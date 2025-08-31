@@ -11,10 +11,16 @@ const allArticles = initialArticlesData || [];
 // Get featured articles
 const featuredArticles = allArticles.filter(article => article.featured);
 
-// Get latest articles (sorted by date)
-const latestArticles = allArticles
-  .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+// Get latest articles from the last 30 days (fallback to newest 8 if none)
+const now = new Date();
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const latestLast30Days = allArticles
+  .filter(a => new Date(a.publishDate) >= thirtyDaysAgo)
+  .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+const newestEight = [...allArticles]
+  .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
   .slice(0, 8);
+const latestArticles = latestLast30Days.length > 0 ? latestLast30Days : newestEight;
 
 // Get main featured article
 const mainFeaturedArticle = featuredArticles.length > 0 ? featuredArticles[0] : latestArticles[0];
@@ -49,29 +55,59 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       </div>
     </section>
     
-    <!-- Latest news -->
+    <!-- Latest news (last 30 days, small thumbnails grid) -->
     <section class="latest-news">
-      <h2 class="section-title">Latest News</h2>
-      
-      <div class="articles-list" id="latestArticlesGrid">
+      <h2 class="section-title">Latest News (Last 30 Days)</h2>
+      <div class="latest-grid" id="latestArticlesGrid">
         {otherArticles.map((article) => (
-          <ArticleCard article={article} />
+          <a href={`/article/${article.slug}`} class="thumb-card overlay">
+            <div class="thumb-image-wrap">
+              <img 
+                src={article.image} 
+                alt={article.title} 
+                class="thumb-img"
+                loading="lazy"
+                width="560"
+                height="315"
+                onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=560&h=315'"
+              />
+              <div class="thumb-gradient"></div>
+              <div class="thumb-text">
+                <div class="thumb-title white">{article.title}</div>
+                <div class="thumb-date white">Updated {new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+              </div>
+            </div>
+          </a>
         ))}
       </div>
-      
       <div class="view-all-container">
-        <a href="/category/TodayNews" class="btn view-all-btn">View All News</a>
+        <button id="toggleAllArticlesBtn" class="btn view-all-btn" type="button" aria-expanded="false" aria-controls="allArticlesSection">View All News</button>
       </div>
     </section>
     
-    <!-- All Articles Section -->
-    <section class="all-articles">
+    <!-- All Articles Section (compact index with tiny thumbnails) -->
+    <section class="all-articles is-collapsed" id="allArticlesSection" aria-hidden="true">
       <h2 class="section-title">All Articles</h2>
-      
-      <div class="articles-list" id="allArticlesGrid">
-        {allArticles.map((article) => (
-          <ArticleCard article={article} />
-        ))}
+      <div class="all-index" id="allArticlesList">
+        {[...allArticles]
+          .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+          .map((article) => (
+            <a href={`/article/${article.slug}`} class="index-row">
+              <img 
+                src={article.image} 
+                alt={article.title}
+                class="index-thumb"
+                loading="lazy"
+                width="56"
+                height="56"
+                onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=56&h=56'"
+              />
+              <div class="index-meta">
+                <div class="index-title">{article.title}</div>
+                <div class="index-sub">{new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+              </div>
+            </a>
+          ))}
       </div>
     </section>
     
@@ -95,88 +131,97 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
 </Layout>
 
 <script>
+  /**
+   * @typedef {Object} Article
+   * @property {number} id
+   * @property {string} slug
+   * @property {string} title
+   * @property {string} excerpt
+   * @property {string} content
+   * @property {string} chineseContent
+   * @property {string} category
+   * @property {string} image
+   * @property {string} author
+   * @property {string} publishDate
+   * @property {boolean} featured
+   */
   // Newsletter form submission
   const newsletterForm = document.querySelector('.newsletter-form');
   
   if (newsletterForm) {
     newsletterForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = e.target.querySelector('input[type="email"]').value;
+      const tgt = e.target;
+      if (!(tgt instanceof HTMLFormElement)) return;
+      const formEl = tgt;
+      const emailInput = formEl.querySelector('input[type="email"]');
+      let email = '';
+      if (emailInput instanceof HTMLInputElement) {
+        email = emailInput.value;
+      }
       
       console.log('Subscribed email:', email);
       alert('Thank you for subscribing to our newsletter!');
-      newsletterForm.reset();
+      formEl.reset();
     });
   }
   
-  // Function to render article card HTML
-  function renderArticleCard(article) {
-    const categoryName = article.category === 'TodayNews' ? 'Today News' : 'Past News';
-    const relativeTime = formatRelativeTime(article.publishDate);
-    
+  // Small thumbnail card (for Latest News)
+  /**
+   * @param {any} article
+   * @returns {string}
+   */
+  function renderSmallThumbCard(article: any) {
+    const date = new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     return `
-      <article class="article-card">
-        <a href="/article/${article.slug}" class="card-image-link">
+      <a href="/article/${article.slug}" class="thumb-card overlay">
+        <div class="thumb-image-wrap">
           <img 
             src="${article.image}" 
             alt="${article.title}" 
-            class="card-image"
+            class="thumb-img"
             loading="lazy"
-            width="400"
-            height="225"
-            onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=400&h=225'"
+            width="560"
+            height="315"
+            onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=560&h=315'"
           />
-        </a>
-        
-        <div class="card-content">
-          <div class="card-meta">
-            <a href="/category/${article.category}" class="category-tag ${article.category}">
-              ${categoryName}
-            </a>
-            <span class="publish-date">${relativeTime}</span>
-          </div>
-          
-          <h3 class="card-title">
-            <a href="/article/${article.slug}">${article.title}</a>
-          </h3>
-          
-          <p class="card-excerpt">${article.excerpt}</p>
-          
-          <div class="card-footer">
-            <span class="author">${article.author}</span>
-            <a href="/article/${article.slug}" class="read-more">
-              Read more
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </a>
+          <div class="thumb-gradient"></div>
+          <div class="thumb-text">
+            <div class="thumb-title">${article.title}</div>
+            <div class="thumb-date">Updated ${date}</div>
           </div>
         </div>
-      </article>
+      </a>
+    `;
+  }
+
+  // Compact index row (for All Articles)
+  /**
+   * @param {any} article
+   * @returns {string}
+   */
+  function renderIndexRow(article: any) {
+    const date = new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return `
+      <a href="/article/${article.slug}" class="index-row">
+        <img 
+          src="${article.image}" 
+          alt="${article.title}"
+          class="index-thumb"
+          loading="lazy"
+          width="56"
+          height="56"
+          onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=56&h=56'"
+        />
+        <div class="index-meta">
+          <div class="index-title">${article.title}</div>
+          <div class="index-sub">${date}</div>
+        </div>
+      </a>
     `;
   }
   
-  // Format relative time function
-  function formatRelativeTime(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-    
-    if (seconds < 60) return 'Just now';
-    
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  }
+  // (relative time helper not used on homepage now)
   
   // Update page with client-side articles
   function updatePageWithClientArticles() {
@@ -185,12 +230,18 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       
       // Get articles from localStorage
       const storedArticles = localStorage.getItem('imacx_articles');
+      /** @type {Article[]} */
       let clientArticles = [];
       
       if (storedArticles) {
-        clientArticles = JSON.parse(storedArticles);
+        clientArticles = /** @type {Article[]} */ (JSON.parse(storedArticles));
         console.log('Client articles loaded:', clientArticles.length);
-        console.log('Client articles:', clientArticles.map(a => `${a.id}: ${a.title}`));
+        const titles = [];
+        for (const art of clientArticles) {
+          const a = /** @type {Article} */ (art);
+          titles.push(`${a.id}: ${a.title}`);
+        }
+        console.log('Client articles:', titles);
       } else {
         console.log('No stored articles found');
         return;
@@ -200,7 +251,8 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       console.log('Client articles count:', clientArticles.length);
       
       // Sort articles by date (newest first)
-      const sortedArticles = [...clientArticles].sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+      /** @type {Article[]} */
+      const sortedArticles = [...clientArticles].sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
       
       // Get featured articles
       const featuredArticles = sortedArticles.filter(article => article.featured);
@@ -209,51 +261,41 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       // Get other articles (excluding main featured)
       const otherArticles = sortedArticles.filter(article => article.id !== mainFeatured?.id);
       
-      // Update latest articles grid (Today News articles)
-      const todayNewsArticles = sortedArticles.filter(article => {
-        console.log(`Checking article ${article.id}: ${article.title}, category: "${article.category}"`);
-        return article.category === 'TodayNews';
-      });
+      // Compute last 30 days list (fallback to newest 8 if empty)
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const last30 = sortedArticles.filter((/** @type {any} */ article) => new Date(article.publishDate) >= thirtyDaysAgo);
+      const latestForGrid = (last30.length > 0 ? last30 : sortedArticles).slice(0, 8);
+
+      // Update latest articles grid (last 30 days)
       const latestArticlesGrid = document.getElementById('latestArticlesGrid');
       if (latestArticlesGrid) {
-        if (todayNewsArticles.length > 0) {
-          console.log('Rendering Today News articles...');
-          const renderedHTML = todayNewsArticles.map(article => renderArticleCard(article)).join('');
-          console.log('Generated HTML length:', renderedHTML.length);
-          console.log('First 200 chars of HTML:', renderedHTML.substring(0, 200));
+        if (latestForGrid.length > 0) {
+          const renderedHTML = latestForGrid.map(article => renderSmallThumbCard(article)).join('');
           latestArticlesGrid.innerHTML = renderedHTML;
-          console.log('Today News grid updated with', todayNewsArticles.length, 'articles');
         } else {
-          console.log('No Today News articles found, showing empty message');
-          latestArticlesGrid.innerHTML = '<p class="no-articles">No Today News articles found.</p>';
+          latestArticlesGrid.innerHTML = '<p class="no-articles">No recent articles in the last 30 days.</p>';
         }
-      } else {
-        console.error('Latest articles grid element not found!');
       }
       
-      // Update all articles grid
-      const allArticlesGrid = document.getElementById('allArticlesGrid');
-      if (allArticlesGrid) {
+      // Update all articles compact list
+      const allArticlesList = document.getElementById('allArticlesList');
+      if (allArticlesList) {
         if (sortedArticles.length > 0) {
-          const allRenderedHTML = sortedArticles.map(article => renderArticleCard(article)).join('');
-          console.log('All articles HTML length:', allRenderedHTML.length);
-          console.log('Rendering all articles...');
-          allArticlesGrid.innerHTML = allRenderedHTML;
-          console.log('All articles grid updated with', sortedArticles.length, 'articles');
+          const allRenderedHTML = sortedArticles.map(article => renderIndexRow(article)).join('');
+          allArticlesList.innerHTML = allRenderedHTML;
         } else {
-          allArticlesGrid.innerHTML = '<p class="no-articles">No articles found.</p>';
+          allArticlesList.innerHTML = '<p class="no-articles">No articles found.</p>';
         }
-      } else {
-        console.error('All articles grid element not found!');
       }
       
       console.log('Page updated successfully with', clientArticles.length, 'articles');
-      console.log('Today News articles:', todayNewsArticles.length);
-      console.log('All articles rendered:', sortedArticles.length);
       
     } catch (error) {
-      console.error('Error updating page with client articles:', error);
-      console.error('Error stack:', error.stack);
+      const err = /** @type {unknown} */ (error);
+      console.error('Error updating page with client articles:', err);
+      const stack = (err && typeof err === 'object' && 'stack' in err) ? /** @type {{stack?: string}} */ (err).stack : '';
+      console.error('Error stack:', stack || '');
     }
   }
   
@@ -275,8 +317,34 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       // Update the page with client-side data
       updatePageWithClientArticles();
       
+      // Toggle All Articles section
+      const toggleBtn = document.getElementById('toggleAllArticlesBtn');
+      const allSection = document.getElementById('allArticlesSection');
+      if (toggleBtn && allSection) {
+        const expand = (expandNow: boolean) => {
+          if (expandNow) {
+            allSection.classList.remove('is-collapsed');
+            allSection.classList.add('is-expanded');
+            allSection.setAttribute('aria-hidden', 'false');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            allSection.classList.remove('is-expanded');
+            allSection.classList.add('is-collapsed');
+            allSection.setAttribute('aria-hidden', 'true');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        };
+        // Default collapsed
+        expand(false);
+        toggleBtn.addEventListener('click', () => {
+          const currentlyExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+          expand(!currentlyExpanded);
+        });
+      }
+
     } catch (error) {
-      console.error('Error initializing articles:', error);
+      const err = /** @type {unknown} */ (error);
+      console.error('Error initializing articles:', err);
     }
   });
   
@@ -418,6 +486,127 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
     margin: var(--space-12) 0;
   }
   
+  /* Latest small thumbnails grid (global so JS-inserted HTML is styled) */
+  :global(.latest-grid) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+
+  :global(.thumb-card) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  :global(.thumb-card:hover) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  :global(.thumb-image-wrap) {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+
+  :global(.thumb-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+
+  :global(.thumb-gradient) {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05) 20%, rgba(0,0,0,0.7) 100%);
+    border-radius: var(--radius-md);
+  }
+
+  :global(.thumb-text) {
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  :global(.thumb-title) {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  :global(.thumb-date) {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* All articles compact list (global for JS-inserted HTML) */
+  :global(.all-index) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  :global(.index-row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition);
+  }
+
+  :global(.index-row:hover) {
+    background-color: var(--color-background-alt);
+  }
+
+  :global(.index-thumb) {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  :global(.index-meta) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  :global(.index-title) {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  :global(.index-sub) {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+  }
   .articles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -437,7 +626,27 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
   }
   
   .view-all-btn {
-    padding: var(--space-3) var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    font-size: 1.05rem;
+    font-weight: 600;
+    min-width: 220px;
+  }
+  
+  /* Collapsible All Articles */
+  .all-articles.is-collapsed {
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+  }
+  .all-articles.is-expanded {
+    max-height: 2000px; /* large enough */
+    opacity: 1;
+    transition: max-height 0.5s ease, opacity 0.3s ease;
   }
   
   .newsletter-section {
@@ -459,12 +668,14 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
   .newsletter-title {
     font-size: 2rem;
     margin-bottom: var(--space-3);
+    color: #fff;
   }
   
   .newsletter-description {
     max-width: 600px;
     font-size: 1.125rem;
     margin: 0 auto;
+    color: rgba(255,255,255,0.9);
   }
   
   .newsletter-form {
@@ -484,8 +695,9 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
   }
   
   .newsletter-form .btn {
-    background-color: var(--color-background);
-    color: var(--color-primary);
+    background-color: rgba(255,255,255,0.15);
+    color: #fff;
     padding: var(--space-3) var(--space-4);
+    border: 1px solid rgba(255,255,255,0.5);
   }
 </style>

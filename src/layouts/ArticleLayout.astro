@@ -18,7 +18,7 @@ const description = article.excerpt;
     <div class="container">
       <header class="article-header">
         <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
-          {category.name}
+          {(category && category.name) || 'Category'}
         </a>
         
         <h1 class="article-title">{article.title}</h1>
@@ -115,12 +115,14 @@ const description = article.excerpt;
     margin-bottom: var(--space-6);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    aspect-ratio: 16 / 9;
   }
   
   .article-featured-image img {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
+    object-fit: cover;
   }
   
   .article-content {

@@ -22,7 +22,7 @@ const initialArticlesData = [
     <p>You can only bring a suitcase and a backpack for this trip. ELECTRONIC PRODUCTS CAN ONLY BE A WATCH AND A SCHOOL IPAD. You can't go to the hotel. There are TVs in most rooms. The name of the hotel is Dali Xifuyuan Boutique B&B.</p>`,
     chineseContent: `<p>随着时间的流逝大理之行也慢慢到来，相信大家应该也都做好了准备。就在这周老师也要向我们交代关于大理的最后注意事项。最后提醒一下大家这次旅行只能带一个要托运的行李行箱和一个背包。电子产品也只能带手表和学校IPAD。不能在酒店里串门。大部份房间有电视。酒店的名字是大理喜福苑精品民宿。</p>`,
     category: "TodayNews",
-    image: "https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg?auto=compress&cs=tinysrgb&w=800",
+    image: "/IMG_1325.jpeg",
     author: "Max and ISAAC and Corum",
     publishDate: "2025-01-14T12:00:00Z",
     featured: true
@@ -79,24 +79,36 @@ const initialArticlesData = [
 // Runtime articles array that can be modified
 let articles = [...initialArticlesData];
 
+// Data versioning to refresh localStorage when seed data changes
+const DATA_VERSION = 2; // bump this to force refresh
+
 // Initialize articles from localStorage or use initial data
 function initializeArticles() {
   if (typeof window !== 'undefined') {
     try {
+      const storedVersion = Number(localStorage.getItem('imacx_data_version') || '0');
       const storedArticles = localStorage.getItem('imacx_articles');
       if (storedArticles) {
         const parsedArticles = JSON.parse(storedArticles);
-        if (Array.isArray(parsedArticles) && parsedArticles.length > 0) {
+        if (storedVersion !== DATA_VERSION) {
+          // Seed changed → refresh storage with initial data
+          articles = [...initialArticlesData];
+          localStorage.setItem('imacx_articles', JSON.stringify(articles));
+          localStorage.setItem('imacx_data_version', String(DATA_VERSION));
+          console.log('Refreshed localStorage with new seed data version:', DATA_VERSION);
+        } else if (Array.isArray(parsedArticles) && parsedArticles.length > 0) {
           articles = parsedArticles;
           console.log('Loaded articles from localStorage:', articles.length, articles.map(a => a.title));
         } else {
           articles = [...initialArticlesData];
           localStorage.setItem('imacx_articles', JSON.stringify(articles));
+          localStorage.setItem('imacx_data_version', String(DATA_VERSION));
           console.log('Using initial articles data:', articles.length, articles.map(a => a.title));
         }
       } else {
         articles = [...initialArticlesData];
         localStorage.setItem('imacx_articles', JSON.stringify(articles));
+        localStorage.setItem('imacx_data_version', String(DATA_VERSION));
         console.log('Initialized with initial articles data:', articles.length, articles.map(a => a.title));
       }
     } catch (error) {
@@ -104,6 +116,7 @@ function initializeArticles() {
       articles = [...initialArticlesData];
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('imacx_articles', JSON.stringify(articles));
+        localStorage.setItem('imacx_data_version', String(DATA_VERSION));
       }
     }
   }
