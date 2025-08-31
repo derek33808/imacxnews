@@ -57,13 +57,36 @@ IMACXNews 现为 Astro 静态站，文章数据打包在前端并用 `localStora
 
 ### MVP 功能清单与进度
 - 必做清理
-  - [ ] 移除 `src/layouts/Layout.astro` 中 `CreateNewsModal.astro`、`EditNewsModal.astro` 的 import 与使用
+  - [x] 移除 `src/layouts/Layout.astro` 中 `CreateNewsModal.astro`、`EditNewsModal.astro` 的 import 与使用
+  - [ ] 运行校验：`npm run dev` 与 `npm run build` 不再报缺失组件错误
+  - [x] 文档同步：在本文件“前端改造点”保留该清理项，记录已完成状态
 
 - A 管理端闭环
-  - [ ] A1 鉴权最小闭环：`/api/auth/login`（JWT + HttpOnly Cookie），`LoginModal.astro` 改为调接口
-  - [ ] A2 文章 CRUD API：`/api/articles`、`/api/articles/[id]`（SQLite + Prisma 持久化）
-  - [ ] A3 管理 UI 对接 API：`AdminArticleManager.astro` 改为调用 API；封面先支持 URL；支持编辑 `publishDate`
-  - [ ] A4 首页数据用 API 覆盖：`index.astro` 用接口数据覆盖渲染（DOMContentLoaded 后）
+  - [x] A1 鉴权最小闭环（登录 + 会话）
+    - 新增 `src/lib/auth.ts`：`setAuthCookie`、`getUserFromRequest`、`requireRole`
+    - 新增登录接口 `src/pages/api/auth/login.ts`：校验用户、签发 JWT，设置 HttpOnly Cookie
+    - 环境变量与种子：`.env` 增加 `JWT_SECRET`；提供种子脚本创建 admin 账号（bcrypt）
+    - 前端改造：`LoginModal.astro` 提交流程改为 `fetch('/api/auth/login')`，成功后刷新；未授权处理 401 提示
+    - 验收：登录后刷新仍保持；未登录/非 admin 写操作返回 401/403
+  - [ ] A2 文章 CRUD API（含发布日期）
+    - 数据层：按“数据模型”落库，执行 `npx prisma migrate dev`
+    - 接口：
+      - `GET /api/articles`（支持 `?slug=`）；`POST /api/articles`
+      - `GET /api/articles/[id]`、`PATCH /api/articles/[id]`、`DELETE /api/articles/[id]`
+    - 规则：`title` 变更自动更新 `slug`；`publishDate` 支持 ISO 8601，未传则用当前时间；参数非法返回 422
+    - 验收：列表/详情/创建/更新/删除可用；含 `publishDate` 写入/更新正确
+  - [ ] A3 管理 UI 对接 API（含发布日期编辑）
+    - 列表：`AdminArticleManager.astro` 使用 `GET /api/articles` 渲染
+    - 删除：改为 `DELETE /api/articles/[id]`，成功后刷新列表与页面
+    - 新增/编辑：改为 `POST`/`PATCH`；表单字段包含 `title/excerpt/content/chineseContent/category/image(author URL)/author/featured/publishDate`
+    - 发布日期：新增日期时间输入，前端做简单校验，后端最终校验并归一化（UTC）
+    - 权限：仅 admin 可见与可操作；未登录提示登录
+    - 验收：面板可增删改；封面 URL 与 `publishDate` 可保存；刷新后数据仍在
+  - [ ] A4 首页数据用 API 覆盖
+    - 策略：保留构建期首屏；在 `DOMContentLoaded` 后 `GET /api/articles` 覆盖“Latest/All”两处渲染
+    - 排序：按 `publishDate` 降序；无数据时显示空态提示
+    - 回退：请求失败时保留构建期快照并提示错误（console）
+    - 验收：新增或编辑文章后，无需重建，刷新首页即可看到最新内容
 
 - B 社交（普通用户）
   - [ ] B1 点赞：`/api/articles/[id]/likes` + `LikeButton.astro`
@@ -563,6 +586,40 @@ npm i @astrojs/node prisma @prisma/client jsonwebtoken bcrypt zod
 npx prisma init
 npx prisma migrate dev --name init
 ```
+
+---
+
+### 下一步建议与连接排查指引（Supabase）
+- 环境变量（建议使用 Pooled 连接，更稳定）：
+  - 将密码做 URL 编码（Node 快速编码：`node -e 'console.log(encodeURIComponent("原始密码"))'`）
+  - `.env` 示例（用 Supabase 控制台 Settings → Database → Connection string → Pooled 的主机替换 `POOL_HOST`）
+```env
+DATABASE_URL="postgresql://postgres:ENCODED_PASSWORD@POOL_HOST:6543/postgres?sslmode=require&pgbouncer=true&connection_limit=1"
+JWT_SECRET="replace-with-strong-secret"
+PUBLIC_API_BASE=""
+```
+  - 如需直连（本地开发可用）：
+```env
+DATABASE_URL="postgresql://postgres:ENCODED_PASSWORD@db.ihkdquydhciabhrwffkb.supabase.co:5432/postgres?sslmode=require"
+```
+
+- 连接测试与迁移：
+  - 网络连通测试：`nc -vz db.ihkdquydhciabhrwffkb.supabase.co 5432` 或 `nc -vz POOL_HOST 6543`
+  - 生成并迁移：`npx prisma generate && npx prisma migrate dev --name init`
+  - 若报 P1001：
+    - 再次检查密码是否已 URL 编码、是否带有 `sslmode=require`
+    - 尝试切换到 Pooled（6543 + `pgbouncer=true`）
+    - 用 psql 验证：`psql "${DATABASE_URL}"`（能连上则 Prisma 侧配置/参数问题）
+
+- 与本文档差异说明：
+  - 代码仓库的 `prisma/schema.prisma` 使用 `provider = "postgresql"`（面向 Supabase）；文档中示例出现的 `sqlite` 仅用于早期本地开发参考。
+
+- 短期任务清单（完成数据库连通后立即执行）：
+  - 1) 运行 `npx prisma migrate dev --name init` 建表
+  - 2) 在 `LoginModal.astro` 将表单提交替换为 `fetch('/api/auth/login')`
+  - 3) 将 Admin 面板“New” 的 prompt 流程替换为表单（包含 `publishDate`）
+  - 4) `src/pages/index.astro` 在 DOMContentLoaded 后调用 `/api/articles` 覆盖首页渲染
+  - 5) 验收：新增/编辑/删除在首页、详情页可见（无需重建）
 
 ---
 

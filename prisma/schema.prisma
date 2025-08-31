@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  username  String        @unique
+  password  String
+  role      Role          @default(USER)
+  createdAt DateTime      @default(now())
+  comments  Comment[]
+  likes     ArticleLike[]
+}
+
+model Article {
+  id             Int           @id @default(autoincrement())
+  title          String
+  slug           String        @unique
+  excerpt        String
+  content        String
+  chineseContent String?
+  category       String
+  image          String
+  author         String
+  publishDate    DateTime      @default(now())
+  featured       Boolean       @default(false)
+  comments       Comment[]
+  likes          ArticleLike[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  article   Article  @relation(fields: [articleId], references: [id])
+  articleId Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model ArticleLike {
+  id        Int      @id @default(autoincrement())
+  article   Article  @relation(fields: [articleId], references: [id])
+  articleId Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@unique([articleId, userId])
+}
+
+
