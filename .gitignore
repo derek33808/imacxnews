@@ -1,6 +1,26 @@
 # Dependencies
 node_modules/
 
+# Build outputs
+dist/
+.astro/
+
+# Environment
+.env
+.env.*
+
+# OS files
+.DS_Store
+
+# Local caches
+.npm-cache/
+
+# Tooling
+coverage/
+.vercel/
+# Dependencies
+node_modules/
+
 # Build output
 .dist/
 dist/
