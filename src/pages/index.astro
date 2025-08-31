@@ -1,0 +1,491 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FeaturedArticle from '../components/ui/FeaturedArticle.astro';
+import ArticleCard from '../components/ui/ArticleCard.astro';
+import { initialArticlesData } from '../data/articles.js';
+import { categories } from '../data/categories';
+
+// Use initial articles for SSR, client will update with localStorage data
+const allArticles = initialArticlesData || [];
+
+// Get featured articles
+const featuredArticles = allArticles.filter(article => article.featured);
+
+// Get latest articles (sorted by date)
+const latestArticles = allArticles
+  .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+  .slice(0, 8);
+
+// Get main featured article
+const mainFeaturedArticle = featuredArticles.length > 0 ? featuredArticles[0] : latestArticles[0];
+
+// Get other articles for the grid (excluding the main featured)
+const otherArticles = latestArticles.filter(article => article.id !== mainFeaturedArticle?.id);
+---
+
+<Layout>
+  <div class="container">
+    <!-- Main featured article -->
+    {mainFeaturedArticle && (
+      <section class="hero-section">
+        <h2>Featured Article</h2>
+        <FeaturedArticle article={mainFeaturedArticle} />
+      </section>
+    )}
+    
+    <!-- Category selection -->
+    <section class="categories-section">
+      <h2 class="section-title">Browse by Category</h2>
+      
+      <div class="categories-grid">
+        {categories.map(category => (
+          <a href={`/category/${category.id}`} class="category-card">
+            <div class="category-icon" style={`background-color: ${category.color}`}>
+              <span class="category-initial">{category.name.charAt(0)}</span>
+            </div>
+            <h3 class="category-name">{category.name}</h3>
+          </a>
+        ))}
+      </div>
+    </section>
+    
+    <!-- Latest news -->
+    <section class="latest-news">
+      <h2 class="section-title">Latest News</h2>
+      
+      <div class="articles-list" id="latestArticlesGrid">
+        {otherArticles.map((article) => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+      
+      <div class="view-all-container">
+        <a href="/category/TodayNews" class="btn view-all-btn">View All News</a>
+      </div>
+    </section>
+    
+    <!-- All Articles Section -->
+    <section class="all-articles">
+      <h2 class="section-title">All Articles</h2>
+      
+      <div class="articles-list" id="allArticlesGrid">
+        {allArticles.map((article) => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+    </section>
+    
+    <!-- Newsletter signup -->
+    <section class="newsletter-section">
+      <div class="newsletter-container">
+        <div class="newsletter-content">
+          <h2 class="newsletter-title">Stay Informed</h2>
+          <p class="newsletter-description">
+            Subscribe to our newsletter and never miss breaking news, exclusive stories, and important updates.
+          </p>
+        </div>
+        
+        <form class="newsletter-form">
+          <input type="email" placeholder="Enter your email address" required>
+          <button type="submit" class="btn">Subscribe</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  // Newsletter form submission
+  const newsletterForm = document.querySelector('.newsletter-form');
+  
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = e.target.querySelector('input[type="email"]').value;
+      
+      console.log('Subscribed email:', email);
+      alert('Thank you for subscribing to our newsletter!');
+      newsletterForm.reset();
+    });
+  }
+  
+  // Function to render article card HTML
+  function renderArticleCard(article) {
+    const categoryName = article.category === 'TodayNews' ? 'Today News' : 'Past News';
+    const relativeTime = formatRelativeTime(article.publishDate);
+    
+    return `
+      <article class="article-card">
+        <a href="/article/${article.slug}" class="card-image-link">
+          <img 
+            src="${article.image}" 
+            alt="${article.title}" 
+            class="card-image"
+            loading="lazy"
+            width="400"
+            height="225"
+            onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=400&h=225'"
+          />
+        </a>
+        
+        <div class="card-content">
+          <div class="card-meta">
+            <a href="/category/${article.category}" class="category-tag ${article.category}">
+              ${categoryName}
+            </a>
+            <span class="publish-date">${relativeTime}</span>
+          </div>
+          
+          <h3 class="card-title">
+            <a href="/article/${article.slug}">${article.title}</a>
+          </h3>
+          
+          <p class="card-excerpt">${article.excerpt}</p>
+          
+          <div class="card-footer">
+            <span class="author">${article.author}</span>
+            <a href="/article/${article.slug}" class="read-more">
+              Read more
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+  
+  // Format relative time function
+  function formatRelativeTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+  
+  // Update page with client-side articles
+  function updatePageWithClientArticles() {
+    try {
+      console.log('Updating page with client articles...');
+      
+      // Get articles from localStorage
+      const storedArticles = localStorage.getItem('imacx_articles');
+      let clientArticles = [];
+      
+      if (storedArticles) {
+        clientArticles = JSON.parse(storedArticles);
+        console.log('Client articles loaded:', clientArticles.length);
+        console.log('Client articles:', clientArticles.map(a => `${a.id}: ${a.title}`));
+      } else {
+        console.log('No stored articles found');
+        return;
+      }
+      
+      // Update debug info
+      console.log('Client articles count:', clientArticles.length);
+      
+      // Sort articles by date (newest first)
+      const sortedArticles = [...clientArticles].sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+      
+      // Get featured articles
+      const featuredArticles = sortedArticles.filter(article => article.featured);
+      const mainFeatured = featuredArticles.length > 0 ? featuredArticles[0] : sortedArticles[0];
+      
+      // Get other articles (excluding main featured)
+      const otherArticles = sortedArticles.filter(article => article.id !== mainFeatured?.id);
+      
+      // Update latest articles grid (Today News articles)
+      const todayNewsArticles = sortedArticles.filter(article => {
+        console.log(`Checking article ${article.id}: ${article.title}, category: "${article.category}"`);
+        return article.category === 'TodayNews';
+      });
+      const latestArticlesGrid = document.getElementById('latestArticlesGrid');
+      if (latestArticlesGrid) {
+        if (todayNewsArticles.length > 0) {
+          console.log('Rendering Today News articles...');
+          const renderedHTML = todayNewsArticles.map(article => renderArticleCard(article)).join('');
+          console.log('Generated HTML length:', renderedHTML.length);
+          console.log('First 200 chars of HTML:', renderedHTML.substring(0, 200));
+          latestArticlesGrid.innerHTML = renderedHTML;
+          console.log('Today News grid updated with', todayNewsArticles.length, 'articles');
+        } else {
+          console.log('No Today News articles found, showing empty message');
+          latestArticlesGrid.innerHTML = '<p class="no-articles">No Today News articles found.</p>';
+        }
+      } else {
+        console.error('Latest articles grid element not found!');
+      }
+      
+      // Update all articles grid
+      const allArticlesGrid = document.getElementById('allArticlesGrid');
+      if (allArticlesGrid) {
+        if (sortedArticles.length > 0) {
+          const allRenderedHTML = sortedArticles.map(article => renderArticleCard(article)).join('');
+          console.log('All articles HTML length:', allRenderedHTML.length);
+          console.log('Rendering all articles...');
+          allArticlesGrid.innerHTML = allRenderedHTML;
+          console.log('All articles grid updated with', sortedArticles.length, 'articles');
+        } else {
+          allArticlesGrid.innerHTML = '<p class="no-articles">No articles found.</p>';
+        }
+      } else {
+        console.error('All articles grid element not found!');
+      }
+      
+      console.log('Page updated successfully with', clientArticles.length, 'articles');
+      console.log('Today News articles:', todayNewsArticles.length);
+      console.log('All articles rendered:', sortedArticles.length);
+      
+    } catch (error) {
+      console.error('Error updating page with client articles:', error);
+      console.error('Error stack:', error.stack);
+    }
+  }
+  
+  // Initialize articles and update page
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      console.log('Index page script loaded');
+      console.log('Initializing articles...');
+      
+      const { initializeArticles } = await import('../data/articles.js');
+      const articles = initializeArticles();
+      console.log('Articles initialized successfully:', articles.length);
+      
+      // Log each article for debugging
+      articles.forEach((article, index) => {
+        console.log(`Article ${index + 1}:`, article.title, `(ID: ${article.id})`);
+      });
+      
+      // Update the page with client-side data
+      updatePageWithClientArticles();
+      
+    } catch (error) {
+      console.error('Error initializing articles:', error);
+    }
+  });
+  
+  // Listen for storage changes (when articles are added/updated)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'imacx_articles') {
+      console.log('Articles updated in localStorage, refreshing page...');
+      updatePageWithClientArticles();
+    }
+  });
+  
+  // Listen for custom events when articles are added
+  window.addEventListener('articleAdded', () => {
+    console.log('Article added event received, updating page...');
+    setTimeout(() => {
+      updatePageWithClientArticles();
+    }, 100);
+  });
+</script>
+
+<style>
+  .debug-info {
+    background-color: var(--color-background-alt);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+    border: 1px solid var(--color-border);
+  }
+  
+  .debug-info h3, .debug-info h4 {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+  
+  .debug-info p {
+    margin-bottom: var(--space-2);
+    color: var(--color-text-light);
+  }
+  
+  .articles-list {
+    margin-top: var(--space-4);
+  }
+  
+  .article-debug {
+    padding: var(--space-2);
+    margin-bottom: var(--space-1);
+    background-color: var(--color-background);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+  }
+  
+  .category {
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+  
+  .featured {
+    color: #dc2626;
+    font-weight: 600;
+  }
+  
+  .no-articles {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-6);
+    position: relative;
+    padding-bottom: var(--space-3);
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--color-primary);
+  }
+  
+  .hero-section {
+    margin-top: var(--space-6);
+  }
+  
+  .categories-section {
+    margin: var(--space-12) 0;
+  }
+  
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+  
+  .category-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  
+  .category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .category-icon {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+  
+  .category-name {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+  
+  .latest-news,
+  .all-articles {
+    margin: var(--space-12) 0;
+  }
+  
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+  
+  .articles-list {
+    display: block;
+    margin-bottom: var(--space-8);
+  }
+  
+  .view-all-container {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-8);
+  }
+  
+  .view-all-btn {
+    padding: var(--space-3) var(--space-6);
+  }
+  
+  .newsletter-section {
+    margin: var(--space-12) 0;
+  }
+  
+  .newsletter-container {
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-6);
+  }
+  
+  .newsletter-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-3);
+  }
+  
+  .newsletter-description {
+    max-width: 600px;
+    font-size: 1.125rem;
+    margin: 0 auto;
+  }
+  
+  .newsletter-form {
+    display: flex;
+    gap: var(--space-2);
+    width: 100%;
+    max-width: 500px;
+    flex-direction: column;
+  }
+  
+  .newsletter-form input {
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    flex: 1;
+  }
+  
+  .newsletter-form .btn {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    padding: var(--space-3) var(--space-4);
+  }
+</style>

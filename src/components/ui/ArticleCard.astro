@@ -1,0 +1,142 @@
+---
+import { getRelativeTime } from '../../utils/dateFormatter';
+import { getCategoryById } from '../../data/categories';
+
+const { article, featured = false } = Astro.props;
+const category = getCategoryById(article.category);
+---
+
+<article class={`article-card ${featured ? 'featured' : ''}`}>
+  <a href={`/article/${article.slug}`} class="card-image-link">
+    <img 
+      src={article.image} 
+      alt={article.title} 
+      class="card-image"
+      loading={featured ? "eager" : "lazy"}
+      width="400"
+      height="225"
+      onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=400&h=225'"
+    />
+  </a>
+  
+  <div class="card-content">
+    <div class="card-meta">
+      <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
+        {category.name}
+      </a>
+      <span class="publish-date">{getRelativeTime(article.publishDate)}</span>
+    </div>
+    
+    <h3 class="card-title">
+      <a href={`/article/${article.slug}`}>{article.title}</a>
+    </h3>
+    
+    <p class="card-excerpt">{article.excerpt}</p>
+    
+    <div class="card-footer">
+      <span class="author">{article.author}</span>
+      <a href={`/article/${article.slug}`} class="read-more">
+        Read more
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .article-card {
+    display: block;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background-color: var(--color-background);
+    transition: transform var(--transition), box-shadow var(--transition);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--space-6);
+  }
+  
+  .article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .card-image-link {
+    display: block;
+    width: 100%;
+    margin-bottom: var(--space-4);
+  }
+  
+  .card-image {
+    width: 100%;
+    height: auto;
+    transition: transform 0.5s ease;
+    border-radius: var(--radius-md);
+  }
+  
+  .article-card:hover .card-image {
+    transform: scale(1.05);
+  }
+  
+  .card-content {
+    padding: var(--space-4);
+  }
+  
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  
+  .publish-date {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+    line-height: 1.3;
+  }
+  
+  .card-title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  
+  .card-title a:hover {
+    color: var(--color-primary);
+  }
+  
+  .card-excerpt {
+    font-size: 0.9375rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-4);
+    line-height: 1.6;
+  }
+  
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+  
+  .author {
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+  
+  .read-more {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-primary);
+    font-weight: 500;
+    transition: gap var(--transition);
+  }
+  
+  .read-more:hover {
+    gap: var(--space-2);
+  }
+</style>

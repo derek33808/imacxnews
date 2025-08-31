@@ -1,0 +1,64 @@
+---
+import Header from '../components/global/Header.astro';
+import Footer from '../components/global/Footer.astro';
+import LoginModal from '../components/global/LoginModal.astro';
+import CreateNewsModal from '../components/global/CreateNewsModal.astro';
+import EditNewsModal from '../components/global/EditNewsModal.astro';
+import AdminArticleManager from '../components/global/AdminArticleManager.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'IMACXNews', description = 'Your trusted source for breaking news from Avenues The World School' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <LoginModal />
+    <AdminArticleManager />
+    
+    <script>
+      // Import articles functionality
+      import { addArticle } from '../data/articles.js';
+      
+      // Make addNewArticle function globally available
+      window.addNewArticle = function(articleData) {
+        addArticle(articleData);
+      };
+      
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+              history.pushState(null, null, href);
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

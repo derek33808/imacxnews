@@ -1,0 +1,20 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { initialArticlesData, getArticleBySlug } from '../../data/articles.js';
+
+export async function getStaticPaths() {
+  return (initialArticlesData || []).map(article => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+
+// 404 handling if article not found
+if (!article) {
+  return Astro.redirect('/404');
+}
+---
+
+<ArticleLayout article={article} />

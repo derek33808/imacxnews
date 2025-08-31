@@ -1,0 +1,69 @@
+---
+import Layout from './Layout.astro';
+import ArticleCard from '../components/ui/ArticleCard.astro';
+import { getCategoryById } from '../data/categories';
+
+const { category, articles } = Astro.props;
+const categoryInfo = getCategoryById(category);
+
+const title = `${categoryInfo.name} News | GlobalNews`;
+const description = categoryInfo.description;
+---
+
+<Layout title={title} description={description}>
+  <div class="container">
+    <header class="category-header">
+      <h1 class="category-title">{categoryInfo.name}</h1>
+      <p class="category-description">{categoryInfo.description}</p>
+    </header>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div class="articles-list">
+      {articles.map((article, index) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .category-header {
+    margin: var(--space-8) 0;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .category-title {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-2);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .category-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background-color: var(--color-primary);
+  }
+  
+  .category-description {
+    color: var(--color-text-light);
+    font-size: 1.125rem;
+    max-width: 800px;
+    margin-top: var(--space-4);
+  }
+  
+  .articles-list {
+    display: block;
+  }
+  
+  @media (max-width: 768px) {
+    .category-title {
+      font-size: 2rem;
+    }
+  }
+</style>

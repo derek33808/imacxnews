@@ -1,0 +1,368 @@
+---
+---
+
+<div class="login-modal-overlay" id="loginModal">
+  <div class="login-modal">
+    <div class="login-header">
+      <h2>Login to IMACXNews</h2>
+      <button class="close-modal" id="closeModal" aria-label="Close login modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required placeholder="Enter your username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter your password">
+      </div>
+      
+      <button type="submit" class="login-submit-btn">Login</button>
+      
+      <div class="login-help">
+        <p class="demo-info">Demo Account:</p>
+        <p class="demo-credentials">Username: <strong>Admin</strong></p>
+        <p class="demo-credentials">Password: <strong>1234</strong></p>
+      </div>
+    </form>
+    
+    <div class="login-success" id="loginSuccess" style="display: none;">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h3>Welcome back, Admin!</h3>
+      <p>You have successfully logged in to IMACXNews.</p>
+      <button class="continue-btn" id="continueBtn">Continue</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-4);
+  }
+  
+  .login-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .login-modal {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .login-modal-overlay.active .login-modal {
+    transform: translateY(0);
+  }
+  
+  .login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .login-header h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.5rem;
+  }
+  
+  .close-modal {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: var(--space-2);
+    transition: color var(--transition);
+  }
+  
+  .close-modal:hover {
+    color: var(--color-primary);
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: border-color var(--transition);
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .login-submit-btn {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    margin-bottom: var(--space-4);
+  }
+  
+  .login-submit-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .login-help {
+    padding: var(--space-4);
+    background-color: var(--color-background-alt);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+  
+  .demo-info {
+    margin: 0 0 var(--space-2) 0;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  
+  .demo-credentials {
+    margin: var(--space-1) 0;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+  
+  .login-success {
+    text-align: center;
+  }
+  
+  .success-icon {
+    margin-bottom: var(--space-4);
+    color: #22c55e;
+  }
+  
+  .login-success h3 {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+  
+  .login-success p {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+  }
+  
+  .continue-btn {
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+  }
+  
+  .continue-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+</style>
+
+<script>
+  const loginModal = document.getElementById('loginModal');
+  const loginForm = document.getElementById('loginForm');
+  const loginSuccess = document.getElementById('loginSuccess');
+  const closeModal = document.getElementById('closeModal');
+  const continueBtn = document.getElementById('continueBtn');
+  
+  // Admin credentials
+  const ADMIN_USERNAME = 'Admin';
+  const ADMIN_PASSWORD = '1234';
+  
+  // Open modal function (will be called from header)
+  window.openLoginModal = function() {
+    loginModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on username input after animation
+    setTimeout(() => {
+      document.getElementById('username').focus();
+    }, 300);
+  };
+  
+  // Close modal function
+  function closeLoginModal() {
+    loginModal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Reset form and views
+    setTimeout(() => {
+      loginForm.style.display = 'block';
+      loginSuccess.style.display = 'none';
+      loginForm.reset();
+    }, 300);
+  }
+  
+  // Close modal events
+  closeModal.addEventListener('click', closeLoginModal);
+  continueBtn.addEventListener('click', closeLoginModal);
+  
+  // Close when clicking outside
+  loginModal.addEventListener('click', (e) => {
+    if (e.target === loginModal) {
+      closeLoginModal();
+    }
+  });
+  
+  // Close when ESC key is pressed
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && loginModal.classList.contains('active')) {
+      closeLoginModal();
+    }
+  });
+  
+  // Form submission
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    // Check credentials
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      // Show success view
+      loginForm.style.display = 'none';
+      loginSuccess.style.display = 'block';
+      
+      // Store login state
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('username', username);
+      
+      // Auto-close modal after 2 seconds
+      setTimeout(() => {
+        closeLoginModal();
+        // Update header after modal closes
+        updateHeaderForLoggedInUser();
+        
+        // Force update admin button visibility
+        const adminManageBtn = document.getElementById('adminManageBtn');
+        if (adminManageBtn && username === 'Admin') {
+          adminManageBtn.style.display = 'flex';
+        }
+        
+        // Dispatch custom event to notify header
+        window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+          detail: { username, isAdmin: username === 'Admin' } 
+        }));
+      }, 2000);
+    } else {
+      // Show error
+      alert('Invalid username or password. Please try again.');
+    }
+  });
+  
+  // Update header for logged in user
+  function updateHeaderForLoggedInUser() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const username = localStorage.getItem('username');
+    const loginBtn = document.querySelector('.login-btn');
+    const userDropdown = document.querySelector('.user-dropdown');
+    
+    if (isLoggedIn) {
+      loginBtn.textContent = username;
+      loginBtn.style.backgroundColor = 'var(--color-primary)';
+      loginBtn.style.color = 'white';
+      loginBtn.style.border = '2px solid var(--color-primary)';
+      
+      // Remove old event listeners
+      loginBtn.replaceWith(loginBtn.cloneNode(true));
+      const newLoginBtn = document.querySelector('.login-btn');
+      
+      // Add dropdown toggle functionality
+      newLoginBtn.onclick = function(e) {
+        e.stopPropagation();
+        userDropdown.classList.toggle('active');
+      };
+    }
+  }
+  
+  // Update login button for logged out state
+  function updateLoginButtonForLoggedOut() {
+    const loginBtn = document.querySelector('.login-btn');
+    
+    loginBtn.textContent = 'Login';
+    loginBtn.style.backgroundColor = 'transparent';
+    loginBtn.style.color = 'var(--color-primary)';
+    loginBtn.style.border = '2px solid var(--color-primary)';
+    
+    // Remove old event listeners
+    loginBtn.replaceWith(loginBtn.cloneNode(true));
+    const newLoginBtn = document.querySelector('.login-btn');
+    
+    // Restore login functionality
+    newLoginBtn.onclick = function() {
+      if (window.openLoginModal) {
+        window.openLoginModal();
+      }
+    };
+  }
+  
+  // Check login state on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const username = localStorage.getItem('username');
+    
+    if (isLoggedIn && username) {
+      updateHeaderForLoggedInUser();
+    } else {
+      updateLoginButtonForLoggedOut();
+    }
+  });
+  
+  // Make functions available globally
+  window.updateHeaderForLoggedInUser = updateHeaderForLoggedInUser;
+  window.updateLoginButtonForLoggedOut = updateLoginButtonForLoggedOut;
+</script>

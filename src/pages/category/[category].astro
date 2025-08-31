@@ -1,0 +1,24 @@
+---
+import CategoryLayout from '../../layouts/CategoryLayout.astro';
+import { categories } from '../../data/categories';
+import { getArticlesByCategory } from '../../data/articles.js';
+
+export async function getStaticPaths() {
+  return categories.map(category => {
+    const categoryArticles = getArticlesByCategory(category.id);
+    return {
+      params: { category: category.id },
+      props: { category: category.id, articles: categoryArticles },
+    };
+  });
+}
+
+const { category, articles } = Astro.props;
+
+// 404 handling if category not found
+if (!category) {
+  return Astro.redirect('/404');
+}
+---
+
+<CategoryLayout category={category} articles={articles} />

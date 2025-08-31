@@ -1,0 +1,243 @@
+:root {
+  --color-primary: #1a73e8;
+  --color-primary-light: #4285f4;
+  --color-primary-dark: #0d47a1;
+  
+  --color-text: #202124;
+  --color-text-light: #5f6368;
+  --color-background: #ffffff;
+  --color-background-alt: #f8f9fa;
+  --color-border: #dadce0;
+  
+  --color-politics: #d32f2f;
+  --color-technology: #0288d1;
+  --color-business: #388e3c;
+  --color-entertainment: #7b1fa2;
+  --color-sports: #f57c00;
+  --color-health: #0097a7;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  --transition: 0.2s ease-in-out;
+}
+
+.dark-theme {
+  --color-primary: #4285f4;
+  --color-primary-light: #8ab4f8;
+  --color-primary-dark: #1a73e8;
+  
+  --color-text: #e8eaed;
+  --color-text-light: #9aa0a6;
+  --color-background: #202124;
+  --color-background-alt: #292a2d;
+  --color-border: #3c4043;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  line-height: 1.2;
+  margin-bottom: var(--space-4);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin-bottom: var(--space-4);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--color-primary-light);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Grid utilities */
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.grid-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Button styles */
+.btn {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.btn:hover {
+  background-color: var(--color-primary-light);
+  color: white;
+}
+
+/* Category tag */
+.category-tag {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.category-tag.politics {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--color-politics);
+}
+
+.category-tag.technology {
+  background-color: rgba(2, 136, 209, 0.1);
+  color: var(--color-technology);
+}
+
+.category-tag.business {
+  background-color: rgba(56, 142, 60, 0.1);
+  color: var(--color-business);
+}
+
+.category-tag.entertainment {
+  background-color: rgba(123, 31, 162, 0.1);
+  color: var(--color-entertainment);
+}
+
+.category-tag.sports {
+  background-color: rgba(245, 124, 0, 0.1);
+  color: var(--color-sports);
+}
+
+.category-tag.health {
+  background-color: rgba(0, 151, 167, 0.1);
+  color: var(--color-health);
+}
+
+/* Utilities */
+.mt-4 {
+  margin-top: var(--space-4);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+
+.my-8 {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.py-4 {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--color-border);
+}

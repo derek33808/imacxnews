@@ -1,0 +1,644 @@
+---
+---
+
+<div class="admin-manager-modal-overlay" id="adminManagerModal">
+  <div class="admin-manager-modal">
+    <div class="modal-header">
+      <h2>Manage Articles</h2>
+      <button class="close-modal" id="closeAdminManagerModal" aria-label="Close admin manager modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="articles-list" id="articlesList">
+      <!-- Articles will be populated here -->
+    </div>
+  </div>
+</div>
+
+<style>
+  .admin-manager-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-4);
+  }
+  
+  .admin-manager-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .admin-manager-modal {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    width: 100%;
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-lg);
+    border: none;
+  }
+  
+  .admin-manager-modal-overlay.active .admin-manager-modal {
+    transform: translateY(0);
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6);
+    background-color: #3b82f6;
+    color: white;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+  
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    letter-spacing: 0.5px;
+  }
+  
+  .modal-header h2::before {
+    content: '';
+    width: 28px;
+    height: 28px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'%3E%3C/path%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+  
+  .close-modal {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    padding: var(--space-3);
+    transition: color var(--transition);
+    border-radius: var(--radius-md);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .close-modal:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+  }
+  
+  .articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+    background: linear-gradient(to bottom, var(--color-background), var(--color-background-alt));
+  }
+  
+  .article-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-background);
+    transition: all var(--transition);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+  }
+  
+  .article-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-light));
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  
+  .article-item:hover {
+    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-alt) 100%);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(26, 115, 232, 0.15);
+    border-color: var(--color-primary-light);
+  }
+  
+  .article-item:hover::before {
+    opacity: 1;
+  }
+  
+  .article-thumbnail {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-md);
+    border: 2px solid var(--color-border);
+    transition: all var(--transition);
+    align-self: stretch;
+  }
+  
+  .article-item:hover .article-thumbnail {
+    transform: scale(1.05);
+    border-color: var(--color-primary);
+  }
+  
+  .article-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition);
+  }
+  
+  .article-item:hover .article-thumbnail img {
+    transform: scale(1.1);
+  }
+  
+  .article-info {
+  }
+  
+  .article-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+    transition: color var(--transition);
+  }
+  
+  .article-item:hover .article-title {
+    color: var(--color-primary);
+  }
+  
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    align-items: center;
+    font-weight: 500;
+  }
+  
+  .article-meta .category-tag {
+    font-size: 0.8rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .article-actions {
+    display: flex;
+    gap: var(--space-4);
+    flex-shrink: 0;
+    align-items: flex-start;
+    align-self: flex-start;
+    margin-top: var(--space-2);
+  }
+  
+  .action-btn {
+    padding: var(--space-4) var(--space-6);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 120px;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .action-btn:hover::before {
+    left: 100%;
+  }
+  
+  .edit-btn {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  .edit-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .delete-btn {
+    background: linear-gradient(145deg, #ff4757 0%, #ff3838 25%, #ff6b6b 50%, #ff5252 75%, #e74c3c 100%);
+    color: white;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+      0 8px 25px rgba(231, 76, 60, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(231, 76, 60, 0.3);
+    border-radius: var(--radius-lg);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .delete-btn::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -110%;
+    width: 100%;
+    height: calc(100% + 4px);
+    background: linear-gradient(
+      90deg, 
+      transparent 0%, 
+      rgba(255, 255, 255, 0.1) 20%, 
+      rgba(255, 255, 255, 0.4) 50%, 
+      rgba(255, 255, 255, 0.1) 80%, 
+      transparent 100%
+    );
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: skewX(-20deg);
+  }
+  
+  .delete-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+    border-radius: var(--radius-lg);
+    pointer-events: none;
+  }
+  
+  .delete-btn:hover {
+    background: linear-gradient(145deg, #e74c3c 0%, #dc2626 25%, #ef4444 50%, #dc2626 75%, #b91c1c 100%);
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 
+      0 12px 35px rgba(231, 76, 60, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+      0 0 0 2px rgba(231, 76, 60, 0.4),
+      0 0 20px rgba(231, 76, 60, 0.3);
+  }
+  
+  .delete-btn:hover::before {
+    left: 110%;
+  }
+  
+  .delete-btn:active {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 6px 20px rgba(231, 76, 60, 0.5),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.1s ease;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: var(--space-16);
+    color: var(--color-text-light);
+    background: linear-gradient(135deg, var(--color-background-alt) 0%, var(--color-background) 100%);
+    border-radius: var(--radius-lg);
+    margin: var(--space-6);
+    border: 2px dashed var(--color-border);
+  }
+  
+  .empty-state svg {
+    margin-bottom: var(--space-8);
+    opacity: 0.7;
+    color: var(--color-primary);
+    filter: drop-shadow(0 2px 4px rgba(26, 115, 232, 0.2));
+  }
+  
+  .empty-state p {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Scrollbar styling */
+  .articles-list::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  .articles-list::-webkit-scrollbar-track {
+    background: linear-gradient(to bottom, var(--color-background-alt), var(--color-background));
+    border-radius: var(--radius-md);
+    margin: var(--space-2);
+  }
+  
+  .articles-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-light));
+    border-radius: var(--radius-md);
+    border: 2px solid var(--color-background);
+  }
+  
+  .articles-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, var(--color-primary-light), var(--color-primary));
+  }
+  
+  @media (max-width: 768px) {
+    .admin-manager-modal {
+      margin: var(--space-2);
+      max-width: calc(100% - var(--space-4));
+      max-height: calc(100vh - var(--space-4));
+    }
+    
+    .modal-header {
+      padding: var(--space-4);
+    }
+    
+    .modal-header h2 {
+      font-size: 1.75rem;
+    }
+    
+    .articles-list {
+      padding: var(--space-4);
+      gap: var(--space-4);
+    }
+    
+    .article-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding: var(--space-5);
+    }
+    
+    .article-thumbnail {
+      width: 100%;
+      height: 180px;
+      align-self: stretch;
+    }
+    
+    .article-info {
+      padding-right: 0;
+      width: 100%;
+    }
+    
+    .article-actions {
+      width: 100%;
+      justify-content: center;
+      gap: var(--space-6);
+    }
+    
+    .article-meta {
+      gap: var(--space-3);
+      justify-content: center;
+    }
+    
+    .action-btn {
+      flex: 1;
+      min-width: auto;
+      padding: var(--space-4) var(--space-4);
+    }
+  }
+</style>
+
+<script>
+  const adminManagerModal = document.getElementById('adminManagerModal');
+  const closeAdminManagerModalBtn = document.getElementById('closeAdminManagerModal');
+  const articlesList = document.getElementById('articlesList');
+  
+  // Open admin manager modal
+  window.openAdminManagerModal = function() {
+    loadArticlesList();
+    adminManagerModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+  
+  // Close modal function
+  const closeAdminManagerModal = () => {
+    adminManagerModal.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+  
+  // Close modal events
+  closeAdminManagerModalBtn.addEventListener('click', closeAdminManagerModal);
+  
+  // Close when clicking outside
+  adminManagerModal.addEventListener('click', (e) => {
+    if (e.target === adminManagerModal) {
+      closeAdminManagerModal();
+    }
+  });
+  
+  // Close when ESC key is pressed
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && adminManagerModal.classList.contains('active')) {
+      closeAdminManagerModal();
+    }
+  });
+  
+  // Load articles list
+  async function loadArticlesList() {
+    try {
+      const { getAllArticles } = await import('../../data/articles.js');
+      const articles = getAllArticles();
+      
+      if (articles.length === 0) {
+        articlesList.innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <p>No articles found</p>
+          </div>
+        `;
+        return;
+      }
+      
+      articlesList.innerHTML = articles.map(article => `
+        <div class="article-item">
+          <div class="article-thumbnail">
+            <img src="${article.image}" alt="${article.title}">
+          </div>
+          
+          <div class="article-info">
+            <h3 class="article-title">${article.title}</h3>
+            <div class="article-meta">
+              <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
+              <span>By ${article.author}</span>
+              <span>${formatRelativeTime(article.publishDate)}</span>
+            </div>
+          </div>
+          
+          <div class="article-actions">
+            <button class="action-btn delete-btn" onclick="deleteArticle(${article.id})">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+      
+    } catch (error) {
+      console.error('Error loading articles:', error);
+      articlesList.innerHTML = `
+        <div class="empty-state">
+          <p>Error loading articles</p>
+        </div>
+      `;
+    }
+  }
+  
+  // Delete article function
+  window.deleteArticle = async function(articleId) {
+    if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const { deleteArticle } = await import('../../data/articles.js');
+      const deletedArticle = deleteArticle(articleId);
+      
+      if (deletedArticle) {
+        alert('Article deleted successfully!');
+        
+        // Reload the articles list
+        loadArticlesList();
+        
+        // Force page reload to reflect deletion
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        alert('Error deleting article, please try again.');
+      }
+      
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      alert('Error deleting article, please try again.');
+    }
+  };
+  
+  // Format relative time function
+  function formatRelativeTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+  
+  // Listen for article updates
+  window.addEventListener('articlePublished', () => {
+    if (adminManagerModal.classList.contains('active')) {
+      loadArticlesList();
+    }
+  });
+  
+  window.addEventListener('articleUpdated', () => {
+    if (adminManagerModal.classList.contains('active')) {
+      loadArticlesList();
+    }
+  });
+</script>

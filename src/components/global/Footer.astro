@@ -1,0 +1,239 @@
+---
+import { categories } from '../../data/categories';
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <a href="/" aria-label="Go to homepage">
+          <span class="logo-text">IMACX</span><span class="logo-accent">News</span>
+        </a>
+        <p class="tagline">Delivering accurate news and insightful analysis</p>
+      </div>
+      
+      <div class="footer-links">
+        <div class="footer-section">
+          <h3>Categories</h3>
+          <ul>
+            {categories.map(category => (
+              <li>
+                <a href={`/category/${category.id}`}>{category.name}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/advertise">Advertise</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="/terms">Terms of Use</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/cookies">Cookie Policy</a></li>
+            <li><a href="/accessibility">Accessibility</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Subscribe</h3>
+          <p>Get the latest news delivered to your inbox</p>
+          <form class="newsletter-form">
+            <input type="email" placeholder="Your email address" required>
+            <button type="submit" class="btn">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; {new Date().getFullYear()} IMACX-news. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#" aria-label="Follow us on Twitter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+        </a>
+        <a href="#" aria-label="Follow us on Facebook">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+        </a>
+        <a href="#" aria-label="Follow us on Instagram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        </a>
+        <a href="#" aria-label="Follow us on YouTube">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background-color: var(--color-background-alt);
+    color: var(--color-text);
+    padding: var(--space-8) 0 var(--space-4);
+    margin-top: var(--space-16);
+    border-top: 1px solid var(--color-border);
+    transition: 
+      background-color var(--transition),
+      border-color var(--transition),
+      color var(--transition);
+  }
+  
+  .footer-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+  
+  .footer-logo a {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    margin-bottom: var(--space-2);
+  }
+  
+  .logo-text {
+    font-weight: 400;
+  }
+  
+  .logo-accent {
+    color: var(--color-primary);
+  }
+  
+  .tagline {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-4);
+  }
+  
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--space-8);
+  }
+  
+  .footer-section h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-4);
+  }
+  
+  .footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-section li {
+    margin-bottom: var(--space-2);
+  }
+  
+  .footer-section a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  
+  .footer-section a:hover {
+    color: var(--color-primary);
+  }
+  
+  .newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  
+  .newsletter-form input {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    width: 100%;
+    transition: 
+      border-color var(--transition),
+      background-color var(--transition),
+      color var(--transition);
+  }
+  
+  .newsletter-form input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .footer-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    gap: var(--space-4);
+  }
+  
+  .social-links {
+    display: flex;
+    gap: var(--space-4);
+  }
+  
+  .social-links a {
+    color: var(--color-text-light);
+    transition: color var(--transition);
+  }
+  
+  .social-links a:hover {
+    color: var(--color-primary);
+  }
+  
+  @media (min-width: 768px) {
+    .footer-content {
+      grid-template-columns: 1fr 2fr;
+    }
+    
+    .footer-links {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+    }
+    
+    .footer-bottom {
+      flex-direction: row;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .footer-links {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+
+<script>
+  // Form submission handler
+  const form = document.querySelector('.newsletter-form');
+  
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = e.target.querySelector('input[type="email"]').value;
+    
+    // In a real application, you would send this to your backend
+    console.log('Subscribed email:', email);
+    
+    // Show success message
+    alert('Thank you for subscribing!');
+    form.reset();
+  });
+</script>

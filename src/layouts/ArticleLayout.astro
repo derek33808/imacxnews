@@ -1,0 +1,181 @@
+---
+import Layout from './Layout.astro';
+import { formatDate } from '../utils/dateFormatter';
+import { getCategoryById } from '../data/categories';
+import ArticleCard from '../components/ui/ArticleCard.astro';
+import { getRelatedArticles } from '../data/articles.js';
+
+const { article } = Astro.props;
+const category = getCategoryById(article.category);
+const relatedArticles = getRelatedArticles(article.id, 3);
+
+const title = `${article.title} | IMACX-news`;
+const description = article.excerpt;
+---
+
+<Layout title={title} description={description}>
+  <article class="article-container">
+    <div class="container">
+      <header class="article-header">
+        <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
+          {category.name}
+        </a>
+        
+        <h1 class="article-title">{article.title}</h1>
+        
+        <p class="article-excerpt">{article.excerpt}</p>
+        
+        <div class="article-meta">
+          <div class="author-info">
+            <span class="author-name">By {article.author}</span>
+          </div>
+          
+          <time datetime={article.publishDate} class="publish-date">
+            {formatDate(article.publishDate, 'MMMM d, yyyy')}
+          </time>
+        </div>
+      </header>
+      
+      <div class="article-featured-image">
+        <img 
+          src={article.image} 
+          alt={article.title} 
+          loading="eager"
+          width="1200"
+          height="675"
+        />
+      </div>
+      
+      <div class="article-content">
+        <div class="english-content" set:html={article.content} />
+        {article.chineseContent && (
+          <>
+            <hr class="content-divider" />
+            <div class="chinese-content" set:html={article.chineseContent} />
+          </>
+        )}
+      </div>
+      
+      {relatedArticles.length > 0 && (
+        <div class="related-articles">
+          <h2 class="related-title">Related Articles</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3">
+            {relatedArticles.map((relatedArticle) => (
+              <ArticleCard article={relatedArticle} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-container {
+    margin: var(--space-8) 0;
+  }
+  
+  .article-header {
+    margin-bottom: var(--space-6);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .article-title {
+    font-size: 2rem;
+    line-height: 1.2;
+    margin: var(--space-3) 0;
+    color: var(--color-text);
+  }
+  
+  .article-excerpt {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    line-height: 1.5;
+    margin-bottom: var(--space-4);
+  }
+  
+  .article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .author-name {
+    font-weight: 500;
+  }
+  
+  .article-featured-image {
+    margin-bottom: var(--space-6);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  
+  .article-featured-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .article-content {
+    max-width: 800px;
+    margin: 0 auto var(--space-12);
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+  
+  .article-content p {
+    margin-bottom: 1.5em;
+  }
+
+  .content-divider {
+    margin: var(--space-8) 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .chinese-content {
+    font-size: 1.125rem;
+    line-height: 1.8;
+  }
+  
+  .related-articles {
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .related-title {
+    margin-bottom: var(--space-6);
+    font-size: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .article-title {
+      font-size: 3rem;
+    }
+    
+    .article-featured-image {
+      margin-left: calc(-1 * var(--space-8));
+      margin-right: calc(-1 * var(--space-8));
+      width: calc(100% + var(--space-16));
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .article-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+    
+    .article-title {
+      font-size: 2rem;
+    }
+  }
+</style>

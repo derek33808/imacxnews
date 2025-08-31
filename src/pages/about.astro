@@ -1,0 +1,190 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Us | IMACXNews" description="Learn about IMACXNews, our mission, values, and the team behind our journalism">
+  <div class="container">
+    <div class="about-header">
+      <h1 class="about-title">About IMACXNews</h1>
+      <p class="about-tagline">Latest updates and announcements from Avenues The World School community</p>
+    </div>
+    
+    <section class="about-section">
+      <h2 class="section-title">Our Mission</h2>
+      <p>At IMACXNews, we bring you important updates and insights. Our dedicated news team, consisting of Max, ISAAC, and Corum, under the guidance of Ms. Penelope, provides comprehensive coverage of recent events. Weekly news reports will be published every Monday at the entrance of two classes.</p>
+    </section>
+    
+    <section class="about-section">
+      <h2 class="section-title">Our Team</h2>
+      <p>The news creation team consists of three students - Max, ISAAC, and Corum from Avenues The World School. Through their own efforts, they stay informed about the latest events both within the school and around the world, updating and publishing weekly news for everyone.</p>
+      
+      <div class="team-leadership">
+        <div class="leadership-grid">
+          <div class="leadership-card">
+            <div class="leadership-image">
+              <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Max" alt="Max avatar" />
+            </div>
+            <h4>Max</h4>
+            <p>Writer</p>
+          </div>
+          <div class="leadership-card">
+            <div class="leadership-image">
+              <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=ISAAC" alt="ISAAC avatar" />
+            </div>
+            <h4>ISAAC</h4>
+            <p>Writer</p>
+          </div>
+          <div class="leadership-card">
+            <div class="leadership-image">
+              <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Corum" alt="Corum avatar" />
+            </div>
+            <h4>Corum</h4>
+            <p>Writer</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="about-section">
+      <h2 class="section-title">Contact Us</h2>
+      <p>Have a tip, correction, or question? We want to hear from you.</p>
+      
+      <div class="contact-info">
+        <div class="contact-item">
+          <h3>General Inquiries</h3>
+          <p>contact@imacxnews.com</p>
+        </div>
+        <div class="contact-item">
+          <h3>News Tips</h3>
+          <p>tips@imacxnews.com</p>
+        </div>
+        <div class="contact-item">
+          <h3>Corrections</h3>
+          <p>corrections@imacxnews.com</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .about-header {
+    margin: var(--space-8) 0;
+    text-align: center;
+  }
+  
+  .about-title {
+    font-size: 3rem;
+    margin-bottom: var(--space-2);
+  }
+  
+  .about-tagline {
+    color: var(--color-text-light);
+    font-size: 1.25rem;
+  }
+  
+  .about-section {
+    margin-bottom: var(--space-12);
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-6);
+    position: relative;
+    padding-bottom: var(--space-3);
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--color-primary);
+  }
+  
+  .about-section p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+    max-width: 800px;
+  }
+  
+  .leadership-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+  }
+  
+  .leadership-card {
+    text-align: center;
+    padding: var(--space-4);
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    transition: transform var(--transition);
+  }
+  
+  .leadership-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .leadership-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto var(--space-4);
+    background-color: var(--color-background-alt);
+  }
+  
+  .leadership-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .leadership-card h4 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  
+  .leadership-card p {
+    color: var(--color-text-light);
+    margin-bottom: 0;
+  }
+  
+  .contact-info {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+  
+  .contact-item {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  
+  .contact-item h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  
+  .contact-item p {
+    margin-bottom: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .leadership-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .contact-info {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

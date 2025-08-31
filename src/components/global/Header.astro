@@ -1,0 +1,417 @@
+---
+import Navigation from './Navigation.astro';
+import SearchBar from './SearchBar.astro';
+import ThemeToggle from './ThemeToggle.astro';
+---
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <a href="/" aria-label="Go to homepage">
+          <span class="logo-text">IMACX</span><span class="logo-accent">News</span>
+        </a>
+      </div>
+      
+      <!-- Admin manage button -->
+      <button class="admin-manage-btn" id="adminManageBtn" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        Admin Manage
+      </button>
+      
+      <Navigation />
+      
+      <div class="header-actions">
+        <a href="/snake-game" class="game-link">Snake Game</a>
+        <SearchBar />
+        <div class="user-menu" id="userMenu">
+          <button class="login-btn" id="loginBtn">Login</button>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-info">
+              <div class="user-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <div class="user-details">
+                <span class="user-name" id="userName">Admin</span>
+                <span class="user-role">Administrator</span>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-btn" id="logoutBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Logout
+            </button>
+          </div>
+        </div>
+        <ThemeToggle />
+      </div>
+    </div>
+    
+  </div>
+</header>
+
+<style>
+  .site-header {
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    background-color: var(--color-background);
+    z-index: 100;
+    transition: 
+      background-color var(--transition),
+      border-color var(--transition);
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+  
+  .logo a {
+    display: flex;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  
+  .logo-text {
+    font-weight: 400;
+  }
+  
+  .logo-accent {
+    color: var(--color-primary);
+  }
+  
+  /* Admin manage button */
+  .admin-manage-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .admin-manage-btn:hover {
+    background-color: var(--color-primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+
+  .game-link {
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color var(--transition);
+  }
+
+  .game-link:hover {
+    background-color: var(--color-primary-light);
+    color: white;
+  }
+  
+  .login-btn {
+    padding: var(--space-2) var(--space-4);
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  
+  .login-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  .user-menu {
+    position: relative;
+  }
+  
+  .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+    margin-top: var(--space-2);
+  }
+  
+  .user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .user-details {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .user-name {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.875rem;
+  }
+  
+  .user-role {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+  
+  .dropdown-divider {
+    height: 1px;
+    background-color: var(--color-border);
+    margin: 0 var(--space-2);
+  }
+  
+  .dropdown-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    text-align: left;
+  }
+  
+  .dropdown-item:hover {
+    background-color: var(--color-background-alt);
+  }
+  
+  .logout-btn {
+    color: #dc2626;
+  }
+  
+  .logout-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+  }
+  
+  /* Admin Bar Styles */
+  @media (max-width: 768px) {
+    .header-content {
+      gap: var(--space-3);
+    }
+    
+    .header-actions {
+      gap: var(--space-2);
+    }
+    
+    .admin-manage-btn {
+      padding: var(--space-2) var(--space-3);
+      font-size: 0.875rem;
+    }
+  }
+</style>
+
+<script>
+  // Header scroll behavior
+  const header = document.querySelector('.site-header');
+  let lastScrollY = window.scrollY;
+  
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 100) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+    
+    lastScrollY = window.scrollY;
+  });
+  
+  // Get elements
+  const loginBtn = document.getElementById('loginBtn');
+  const userMenu = document.getElementById('userMenu');
+  const userDropdown = document.getElementById('userDropdown');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const manageArticlesBtn = document.getElementById('manageArticlesBtn');
+  
+  // Check login status on page load
+  function checkLoginStatus() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const username = localStorage.getItem('username');
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    
+    if (isLoggedIn && username) {
+      updateLoginButtonForLoggedIn(username);
+      // Show admin button for logged in users
+      if (adminManageBtn) {
+        adminManageBtn.style.display = 'flex';
+      }
+    } else {
+      updateLoginButtonForLoggedOut();
+      // Hide admin button for logged out users
+      if (adminManageBtn) {
+        adminManageBtn.style.display = 'none';
+      }
+    }
+  }
+  
+  // Update login button for logged in state
+  function updateLoginButtonForLoggedIn(username) {
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    
+    if (loginBtn) {
+      loginBtn.textContent = username;
+      loginBtn.style.backgroundColor = 'var(--color-primary)';
+      loginBtn.style.color = 'white';
+      loginBtn.style.borderColor = 'var(--color-primary)';
+      
+      // Show admin button for admin
+      if (adminManageBtn && username === 'Admin') {
+        adminManageBtn.style.display = 'flex';
+      }
+      
+      // Add click handler to show dropdown
+      loginBtn.onclick = (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle('active');
+      };
+    }
+  }
+  
+  // Update login button for logged out state
+  function updateLoginButtonForLoggedOut() {
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    
+    if (loginBtn) {
+      loginBtn.textContent = 'Login';
+      loginBtn.style.backgroundColor = 'transparent';
+      loginBtn.style.color = 'var(--color-primary)';
+      loginBtn.style.borderColor = 'var(--color-primary)';
+      
+      // Hide admin button
+      if (adminManageBtn) {
+        adminManageBtn.style.display = 'none';
+      }
+      
+      // Add click handler to open login modal
+      loginBtn.onclick = () => {
+        if (window.openLoginModal) {
+          window.openLoginModal();
+        }
+      };
+    }
+  }
+  
+  // Make functions globally available
+  window.updateLoginButtonForLoggedIn = updateLoginButtonForLoggedIn;
+  window.updateLoginButtonForLoggedOut = updateLoginButtonForLoggedOut;
+  
+  // Logout functionality
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('Do you want to logout?')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        userDropdown.classList.remove('active');
+        updateLoginButtonForLoggedOut();
+        
+        // Hide admin button after logout
+        const adminManageBtn = document.getElementById('adminManageBtn');
+        if (adminManageBtn) {
+          adminManageBtn.style.display = 'none';
+        }
+        
+        // Dispatch logout event
+        window.dispatchEvent(new CustomEvent('userLoggedOut'));
+        
+        // Refresh page to reset state
+        window.location.reload();
+      }
+    });
+  }
+  
+  // Manage articles button functionality
+  const adminManageBtn = document.getElementById('adminManageBtn');
+  if (adminManageBtn) {
+    adminManageBtn.addEventListener('click', () => {
+      if (window.openAdminManagerModal) {
+        window.openAdminManagerModal();
+      }
+    });
+  }
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (userMenu && !userMenu.contains(e.target)) {
+      userDropdown.classList.remove('active');
+    }
+  });
+  
+  // Close dropdown when ESC key is pressed
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && userDropdown.classList.contains('active')) {
+      userDropdown.classList.remove('active');
+    }
+  });
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    checkLoginStatus();
+  });
+</script>

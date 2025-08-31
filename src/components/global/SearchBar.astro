@@ -1,0 +1,192 @@
+---
+---
+
+<div class="search-container">
+  <button class="search-toggle" aria-label="Open search">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+  </button>
+  
+  <div class="search-overlay">
+    <div class="search-content">
+      <form class="search-form">
+        <input type="text" placeholder="Search news..." class="search-input" aria-label="Search">
+        <button type="submit" class="search-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+      </form>
+      
+      <button class="close-search" aria-label="Close search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      
+      <div class="search-results"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search-container {
+    position: relative;
+  }
+  
+  .search-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    padding: var(--space-2);
+    transition: color var(--transition);
+  }
+  
+  .search-toggle:hover {
+    color: var(--color-primary);
+  }
+  
+  .search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-16) var(--space-4);
+  }
+  
+  .search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .search-content {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+  }
+  
+  .search-overlay.active .search-content {
+    transform: translateY(0);
+  }
+  
+  .search-form {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: border-color var(--transition);
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .search-button {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    cursor: pointer;
+    transition: background-color var(--transition);
+  }
+  
+  .search-button:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .close-search {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: var(--space-2);
+    transition: color var(--transition);
+  }
+  
+  .close-search:hover {
+    color: var(--color-primary);
+  }
+  
+  .search-results {
+    margin-top: var(--space-6);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+</style>
+
+<script>
+  // Search toggle functionality
+  const searchToggle = document.querySelector('.search-toggle');
+  const searchOverlay = document.querySelector('.search-overlay');
+  const closeSearch = document.querySelector('.close-search');
+  const searchForm = document.querySelector('.search-form');
+  const searchInput = document.querySelector('.search-input');
+  const searchResults = document.querySelector('.search-results');
+  
+  searchToggle.addEventListener('click', () => {
+    searchOverlay.classList.add('active');
+    setTimeout(() => {
+      searchInput.focus();
+    }, 300);
+    document.body.style.overflow = 'hidden';
+  });
+  
+  closeSearch.addEventListener('click', () => {
+    searchOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+  
+  // Close search when clicking outside of search content
+  searchOverlay.addEventListener('click', (e) => {
+    if (e.target === searchOverlay) {
+      searchOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+  
+  // Close search when ESC key is pressed
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
+      searchOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+  
+  // Form submission
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    
+    if (query) {
+      // In a real application, you would fetch results from your backend
+      // For demo purposes, we'll just display a message
+      searchResults.innerHTML = `
+        <p>Searching for: "${query}"</p>
+        <p style="margin-top: var(--space-4);">No results found. Try a different search term.</p>
+      `;
+    }
+  });
+</script>
