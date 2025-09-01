@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 
 export function setAuthCookie(headers: Headers, token: string) {
-  const secureAttr = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.PROD) ? '; Secure' : '';
-  headers.append('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Lax${secureAttr}`);
+  // Local preview: do NOT set Secure to allow cookies over http://127.0.0.1
+  headers.append('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Lax`);
 }
 
 export function getUserFromRequest(request: Request): { id: number; role: 'USER' | 'ADMIN'; username: string } | null {

@@ -31,11 +31,20 @@ model Article {
   chineseContent String?
   category       String
   image          String
+  imageAlt       String?       // 图片alt文本
+  imageCaption   String?       // 图片说明
   author         String
   publishDate    DateTime      @default(now())
   featured       Boolean       @default(false)
+  contentLength  Int?          // 内容长度（字符数）
+  readingTime    Int?          // 预估阅读时间（分钟）
   comments       Comment[]
   likes          ArticleLike[]
+
+  @@index([category])
+  @@index([featured])
+  @@index([publishDate])
+  @@index([contentLength])
 }
 
 model Comment {

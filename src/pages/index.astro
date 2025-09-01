@@ -298,6 +298,44 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
       console.error('Error stack:', stack || '');
     }
   }
+
+  // Fetch from API and overlay homepage content (A4)
+  async function overlayWithApiArticles() {
+    try {
+      const res = await fetch('/api/articles');
+      if (!res.ok) {
+        console.error('Failed to fetch /api/articles:', res.status);
+        return;
+      }
+      const apiArticles = await res.json();
+      if (!Array.isArray(apiArticles)) return;
+
+      // Sort by publishDate desc
+      const sorted = [...apiArticles].sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+
+      // Latest grid: last 30 days fallback to newest 8
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const last30 = sorted.filter(a => new Date(a.publishDate) >= thirtyDaysAgo);
+      const latestForGrid = (last30.length > 0 ? last30 : sorted).slice(0, 8);
+
+      const latestArticlesGrid = document.getElementById('latestArticlesGrid');
+      if (latestArticlesGrid) {
+        latestArticlesGrid.innerHTML = latestForGrid.length
+          ? latestForGrid.map(renderSmallThumbCard).join('')
+          : '<p class="no-articles">No recent articles in the last 30 days.</p>';
+      }
+
+      const allArticlesList = document.getElementById('allArticlesList');
+      if (allArticlesList) {
+        allArticlesList.innerHTML = sorted.length
+          ? sorted.map(renderIndexRow).join('')
+          : '<p class="no-articles">No articles found.</p>';
+      }
+    } catch (err) {
+      console.error('Error overlaying articles from API:', err);
+    }
+  }
   
   // Initialize articles and update page
   document.addEventListener('DOMContentLoaded', async () => {
@@ -314,8 +352,10 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
         console.log(`Article ${index + 1}:`, article.title, `(ID: ${article.id})`);
       });
       
-      // Update the page with client-side data
+      // Update the page with client-side data (fallback)
       updatePageWithClientArticles();
+      // Overlay with server data from API
+      overlayWithApiArticles();
       
       // Toggle All Articles section
       const toggleBtn = document.getElementById('toggleAllArticlesBtn');

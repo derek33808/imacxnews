@@ -614,6 +614,71 @@ DATABASE_URL="postgresql://postgres:ENCODED_PASSWORD@db.ihkdquydhciabhrwffkb.sup
 - 与本文档差异说明：
   - 代码仓库的 `prisma/schema.prisma` 使用 `provider = "postgresql"`（面向 Supabase）；文档中示例出现的 `sqlite` 仅用于早期本地开发参考。
 
+---
+
+## 开发进度记录
+
+### 2025-01-18 开发总结
+**主要目标：** 继续实现文章图片数据库存储优化
+
+#### 完成的任务
+1. **数据库连接优化** ✅
+   - 使用Supabase Pooled连接模式 (端口6543)
+   - 配置Smart Fallback机制，自动切换到静态数据
+   - 实现连接健康监控和重试机制
+
+2. **数据库Schema增强** ✅
+   - 成功添加新字段到Article表：
+     - `imageAlt`: 图片Alt文本 (SEO优化)
+     - `imageCaption`: 图片说明文字
+     - `contentLength`: 内容长度统计
+     - `readingTime`: 预估阅读时间
+   - 创建相关索引优化查询性能
+
+3. **存储架构优化方案** ✅
+   - 完成存储架构评估和优化方案设计
+   - 创建标准化图片目录结构 (`public/images/`)
+   - 实现ImageManager工具类和OptimizedImage组件
+   - 文档化最佳实践到 `docs/存储架构优化方案.md`
+
+#### 遇到的技术挑战
+1. **Prepared Statement冲突问题** ⚠️
+   - 现象：`prepared statement "s0" already exists` 错误
+   - 影响：阻止所有Prisma操作 (migrate, db push, upsert等)
+   - 原因：Supabase连接池与Prisma的prepared statement缓存冲突
+   - 解决方案：使用原生PostgreSQL客户端 (pg包) 绕过Prisma
+
+2. **Schema同步问题** ✅
+   - 问题：数据库缺少新增字段导致同步失败
+   - 解决：创建 `fix-schema-node.js` 直接执行ALTER TABLE命令
+   - 结果：成功添加所有必需字段
+
+#### 技术实现亮点
+- **双重容错机制：** Prisma问题时自动切换到原生PostgreSQL客户端
+- **智能内容分析：** 自动计算中英文内容长度和阅读时间
+- **SEO优化：** 自动生成图片Alt文本
+- **详细日志：** 完整的同步过程追踪和错误报告
+
+#### 当前状态
+- ✅ 数据库Schema已完全更新
+- ✅ 所有必需字段已添加 
+- ⚠️ 图片数据同步因Prepared Statement冲突暂停
+- 📋 准备使用原生PostgreSQL客户端完成最终同步
+
+#### 下一步计划
+1. 使用原生PostgreSQL客户端完成文章图片数据同步
+2. 验证所有数据正确写入数据库
+3. 测试API接口的数据加载功能
+4. 清理临时脚本文件
+
+#### 技术收获
+- 深入理解了Supabase连接池机制
+- 掌握了原生PostgreSQL客户端操作
+- 学会了绕过ORM限制的数据库操作技巧
+- 完善了错误处理和容错机制
+
+---
+
 - 短期任务清单（完成数据库连通后立即执行）：
   - 1) 运行 `npx prisma migrate dev --name init` 建表
   - 2) 在 `LoginModal.astro` 将表单提交替换为 `fetch('/api/auth/login')`

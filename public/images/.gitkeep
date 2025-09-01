@@ -1,0 +1,14 @@
+# Images directory structure
+# This file ensures the directory structure is preserved in Git
+
+## Directory Structure:
+# /images/
+# ├── articles/
+# │   ├── today-news/      # TodayNews category images
+# │   ├── past-news/       # PastNews category images
+# │   └── featured/        # Featured article images
+# ├── thumbnails/          # Auto-generated thumbnails
+# │   ├── small/           # 150x150px
+# │   ├── medium/          # 300x200px
+# │   └── large/           # 800x400px
+# └── uploads/             # User uploaded images

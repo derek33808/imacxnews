@@ -10,11 +10,13 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^9.0.0",
+    "@prisma/client": "^5.19.1",
     "astro": "^5.2.5",
     "date-fns": "^3.3.1",
-    "@astrojs/node": "^9.0.0",
+    "dotenv": "^17.2.1",
     "jsonwebtoken": "^9.0.2",
-    "@prisma/client": "^5.19.1",
+    "pg": "^8.16.3",
     "prisma": "^5.19.1"
   }
 }

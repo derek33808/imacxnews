@@ -1,0 +1,108 @@
+---
+// 优化的图片组件，支持懒加载和响应式图片
+export interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  slug?: string;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+  class?: string;
+  width?: number;
+  height?: number;
+}
+
+const { 
+  src, 
+  alt, 
+  caption, 
+  slug,
+  loading = 'lazy', 
+  sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
+  class: className = '',
+  width,
+  height
+} = Astro.props;
+
+// 判断是否为外部图片
+const isExternal = src.startsWith('http://') || src.startsWith('https://');
+
+// 生成响应式图片路径
+const generateThumbnailPath = (slug: string, size: string) => 
+  `/images/thumbnails/${size}/${slug}-thumb.webp`;
+
+const srcSet = !isExternal && slug ? [
+  `${generateThumbnailPath(slug, 'small')} 150w`,
+  `${generateThumbnailPath(slug, 'medium')} 300w`, 
+  `${generateThumbnailPath(slug, 'large')} 800w`
+].join(', ') : undefined;
+
+const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-opacity duration-300`.trim();
+---
+
+<figure class="image-container">
+  {loading === 'lazy' ? (
+    <img
+      data-src={src}
+      src="/images/placeholder.svg"
+      alt={alt}
+      class={imgClass}
+      srcset={srcSet}
+      sizes={sizes}
+      width={width}
+      height={height}
+      loading="lazy"
+    />
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      class={imgClass}
+      srcset={srcSet}
+      sizes={sizes}
+      width={width}
+      height={height}
+      loading="eager"
+    />
+  )}
+  
+  {caption && (
+    <figcaption class="image-caption text-sm text-gray-600 mt-2 text-center italic">
+      {caption}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .image-container {
+    @apply relative overflow-hidden;
+  }
+  
+  .image-container img {
+    @apply w-full h-auto object-cover;
+  }
+  
+  .image-container img.lazy {
+    @apply opacity-0;
+  }
+  
+  .image-container img.loaded {
+    @apply opacity-100;
+  }
+  
+  .image-caption {
+    @apply px-2;
+  }
+  
+  /* 占位符效果 */
+  .image-container img[data-src] {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+  
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>

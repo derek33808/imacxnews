@@ -15,6 +15,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         New
       </button>
+
     </div>
     
     <div class="articles-list" id="articlesList">
@@ -487,6 +488,168 @@
   const adminManagerModal = document.getElementById('adminManagerModal');
   const closeAdminManagerModalBtn = document.getElementById('closeAdminManagerModal');
   const articlesList = document.getElementById('articlesList');
+  const createArticleBtn = document.getElementById('createArticleBtn');
+
+  
+  // Create/Edit modal elements (created once and reused)
+  let formModal;
+  let formEl;
+  let formTitleEl;
+  let submitBtnEl;
+  let isEditing = false;
+  let editingId = null;
+  
+  function ensureFormModal() {
+    if (formModal) return;
+    formModal = document.createElement('div');
+    formModal.className = 'admin-manager-modal-overlay';
+    formModal.innerHTML = `
+      <div class="admin-manager-modal" style="max-width:800px">
+        <div class="modal-header">
+          <h2 id="formTitle">New Article</h2>
+          <button class="close-modal" id="closeFormModal" aria-label="Close form modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div style="padding: var(--space-6); display:flex; flex-direction:column; gap: var(--space-4);">
+          <form id="articleForm" style="display:flex; flex-direction:column; gap: var(--space-4);">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+              <label style="display:flex; flex-direction:column; gap:6px;">Title<input name="title" required placeholder="Enter title" /></label>
+              <label style="display:flex; flex-direction:column; gap:6px;">Author<input name="author" required placeholder="Enter author" /></label>
+              <label style="display:flex; flex-direction:column; gap:6px;">Category
+                <select name="category" required>
+                  <option value="TodayNews">TodayNews</option>
+                  <option value="PastNews">PastNews</option>
+                </select>
+              </label>
+              <label style="display:flex; flex-direction:column; gap:6px;">Publish Date<input type="datetime-local" name="publishDate" /></label>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:6px;">Image URL<input name="image" required placeholder="https://..." /></label>
+            <label style="display:flex; flex-direction:column; gap:6px;">Excerpt<textarea name="excerpt" rows="2" required placeholder="Short summary"></textarea></label>
+            <label style="display:flex; flex-direction:column; gap:6px;">Content<textarea name="content" rows="6" required placeholder="Main content"></textarea></label>
+            <label style="display:flex; flex-direction:column; gap:6px;">Chinese Content<textarea name="chineseContent" rows="4" placeholder="中文内容（可选）"></textarea></label>
+            <label style="display:flex; align-items:center; gap:8px; width:max-content"><input type="checkbox" name="featured" /> Featured</label>
+            <div id="formError" style="display:none; color:#dc2626; background: rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.3); padding:8px 12px; border-radius:8px;"></div>
+            <div style="display:flex; gap: var(--space-3); justify-content:flex-end;">
+              <button type="button" class="action-btn" id="cancelFormBtn">Cancel</button>
+              <button type="submit" class="action-btn edit-btn" id="submitFormBtn">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(formModal);
+    
+    formEl = formModal.querySelector('#articleForm');
+    formTitleEl = formModal.querySelector('#formTitle');
+    submitBtnEl = formModal.querySelector('#submitFormBtn');
+    const closeBtn = formModal.querySelector('#closeFormModal');
+    const cancelBtn = formModal.querySelector('#cancelFormBtn');
+    
+    const close = () => { formModal.classList.remove('active'); document.body.style.overflow = ''; };
+    closeBtn.addEventListener('click', close);
+    cancelBtn.addEventListener('click', close);
+    formModal.addEventListener('click', (e) => { if (e.target === formModal) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && formModal.classList.contains('active')) close(); });
+    
+    formEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = formModal.querySelector('#formError');
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+      const fd = new FormData(formEl);
+      const data = {
+        title: String(fd.get('title') || ''),
+        author: String(fd.get('author') || ''),
+        category: String(fd.get('category') || ''),
+        image: String(fd.get('image') || ''),
+        excerpt: String(fd.get('excerpt') || ''),
+        content: String(fd.get('content') || ''),
+        chineseContent: String(fd.get('chineseContent') || ''),
+        featured: fd.get('featured') === 'on'
+      };
+      const publishDate = String(fd.get('publishDate') || '');
+      if (publishDate) {
+        data.publishDate = publishDate;
+      }
+      try {
+        let resp;
+        if (isEditing && editingId != null) {
+          resp = await fetch(`/api/articles/${editingId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        } else {
+          resp = await fetch('/api/articles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        }
+        if (!resp.ok) {
+          let msg = 'Error saving article.';
+          try { const j = await resp.json(); if (j && j.error) msg = j.error; } catch {}
+          if (resp.status === 401 || resp.status === 403) msg = 'Please login as admin first.';
+          if (resp.status === 422) msg = 'Invalid input. Please check publishDate and required fields.';
+          errEl.textContent = msg;
+          errEl.style.display = 'block';
+          return;
+        }
+        formModal.classList.remove('active');
+        document.body.style.overflow = '';
+        formEl.reset();
+        if (isEditing) {
+          window.dispatchEvent(new CustomEvent('articleUpdated'));
+        } else {
+          window.dispatchEvent(new CustomEvent('articlePublished'));
+        }
+        loadArticlesList();
+        setTimeout(() => { window.location.reload(); }, 600);
+      } catch (err) {
+        console.error('Save error', err);
+        alert('Network error, please try again.');
+      }
+    });
+  }
+  
+  function openCreateForm() {
+    ensureFormModal();
+    isEditing = false;
+    editingId = null;
+    formTitleEl.textContent = 'New Article';
+    formEl.reset();
+    formModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function toDatetimeLocalValue(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+  
+  function openEditForm(article) {
+    ensureFormModal();
+    isEditing = true;
+    editingId = article.id;
+    formTitleEl.textContent = 'Edit Article';
+    formEl.reset();
+    formEl.querySelector('[name="title"]').value = article.title || '';
+    formEl.querySelector('[name="author"]').value = article.author || '';
+    formEl.querySelector('[name="category"]').value = article.category || 'TodayNews';
+    formEl.querySelector('[name="image"]').value = article.image || '';
+    formEl.querySelector('[name="excerpt"]').value = article.excerpt || '';
+    formEl.querySelector('[name="content"]').value = article.content || '';
+    formEl.querySelector('[name="chineseContent"]').value = article.chineseContent || '';
+    formEl.querySelector('[name="featured"]').checked = !!article.featured;
+    const pd = formEl.querySelector('[name="publishDate"]');
+    pd.value = toDatetimeLocalValue(article.publishDate);
+    formModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
   
   // Open admin manager modal
   window.openAdminManagerModal = function() {
@@ -494,6 +657,10 @@
     adminManagerModal.classList.add('active');
     document.body.style.overflow = 'hidden';
   };
+  if (createArticleBtn) {
+    createArticleBtn.addEventListener('click', () => openCreateForm());
+  }
+
   
   // Close modal function
   const closeAdminManagerModal = () => {
@@ -556,6 +723,7 @@
           </div>
           
           <div class="article-actions">
+            <button class="action-btn edit-btn" onclick='(function(a){ window.__openEdit && window.__openEdit(a); })(${JSON.stringify({id:0}).replace('0', ""+0)})'>Edit</button>
             <button class="action-btn delete-btn" onclick="deleteArticle(${article.id})">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
@@ -568,6 +736,14 @@
           </div>
         </div>
       `).join('');
+      // Attach edit handlers using a stable approach
+      const items = Array.isArray(articles) ? articles : [];
+      window.__openEdit = (a) => {};
+      // We can't embed full object safely in HTML string; attach delegates now
+      const editButtons = articlesList.querySelectorAll('.article-item .edit-btn');
+      editButtons.forEach((btn, idx) => {
+        btn.addEventListener('click', () => openEditForm(items[idx]));
+      });
       
     } catch (error) {
       console.error('Error loading articles:', error);

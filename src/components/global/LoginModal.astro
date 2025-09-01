@@ -218,7 +218,7 @@
   const closeModal = document.getElementById('closeModal');
   const continueBtn = document.getElementById('continueBtn');
   
-  // Admin credentials
+  // Deprecated local credentials kept for UI hint only
   const ADMIN_USERNAME = 'Admin';
   const ADMIN_PASSWORD = '1234';
   
@@ -264,43 +264,43 @@
     }
   });
   
-  // Form submission
-  loginForm.addEventListener('submit', (e) => {
+  // Form submission via API
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    // Check credentials
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      // Show success view
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!r.ok) {
+        alert('Invalid username or password. Please try again.');
+        return;
+      }
+      let user;
+      try { user = await r.json(); } catch {}
+      if (user && user.username) {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', user.username);
+      } else {
+        // Fallback for demo
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', username);
+      }
+      // Success UI feedback
       loginForm.style.display = 'none';
       loginSuccess.style.display = 'block';
-      
-      // Store login state
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('username', username);
-      
-      // Auto-close modal after 2 seconds
+      // Small delay then reload to ensure cookie is set and UI updates
       setTimeout(() => {
-        closeLoginModal();
-        // Update header after modal closes
-        updateHeaderForLoggedInUser();
-        
-        // Force update admin button visibility
-        const adminManageBtn = document.getElementById('adminManageBtn');
-        if (adminManageBtn && username === 'Admin') {
-          adminManageBtn.style.display = 'flex';
-        }
-        
-        // Dispatch custom event to notify header
-        window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-          detail: { username, isAdmin: username === 'Admin' } 
-        }));
-      }, 2000);
-    } else {
-      // Show error
-      alert('Invalid username or password. Please try again.');
+        window.location.reload();
+      }, 800);
+    } catch (err) {
+      console.error('Login error', err);
+      alert('Network error. Please try again.');
     }
   });
   

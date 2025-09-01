@@ -33,14 +33,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <AdminArticleManager />
     
     <script>
-      // Import articles functionality
-      import { addArticle } from '../data/articles.js';
-      
-      // Make addNewArticle function globally available
-      window.addNewArticle = function(articleData) {
-        addArticle(articleData);
-      };
-      
       // Smooth scroll for anchor links
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -49,9 +41,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
             e.preventDefault();
             const target = document.querySelector(href);
             if (target) {
-              target.scrollIntoView({
-                behavior: 'smooth'
-              });
+              target.scrollIntoView({ behavior: 'smooth' });
               history.pushState(null, null, href);
             }
           }
