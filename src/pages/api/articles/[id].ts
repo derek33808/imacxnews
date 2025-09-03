@@ -26,6 +26,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
   try {
+    const prisma = createDatabaseConnection();
     const id = Number(params.id);
     const data = await request.json();
 
@@ -59,6 +60,7 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
   try {
+    const prisma = createDatabaseConnection();
     const id = Number(params.id);
     await prisma.article.delete({ where: { id } });
     return new Response(null, { status: 204 });

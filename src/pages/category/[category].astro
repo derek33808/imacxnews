@@ -1,24 +1,20 @@
 ---
+export const prerender = false;
 import CategoryLayout from '../../layouts/CategoryLayout.astro';
-import { categories } from '../../data/categories';
+import { categories, getCategoryById } from '../../data/categories';
 import { getArticlesByCategory } from '../../data/articles.js';
 
-export async function getStaticPaths() {
-  return categories.map(category => {
-    const categoryArticles = getArticlesByCategory(category.id);
-    return {
-      params: { category: category.id },
-      props: { category: category.id, articles: categoryArticles },
-    };
-  });
-}
-
-const { category, articles } = Astro.props;
+const { category } = Astro.params;
 
 // 404 handling if category not found
-if (!category) {
+const categoryInfo = getCategoryById(category);
+if (!categoryInfo) {
   return Astro.redirect('/404');
 }
+
+// Get initial articles for SSR - use empty array to avoid mismatch
+// Client-side will load the actual data
+const initialArticles: any[] = [];
 ---
 
-<CategoryLayout category={category} articles={articles} />
+<CategoryLayout category={category} articles={initialArticles} />

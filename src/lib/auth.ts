@@ -6,11 +6,13 @@ export function setAuthCookie(headers: Headers, token: string) {
 }
 
 export function getUserFromRequest(request: Request): { id: number; role: 'USER' | 'ADMIN'; username: string } | null {
-  const cookie = request.headers.get('cookie') || '';
-  const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
-  if (!match) return null;
+  // 1) 优先支持 Authorization: Bearer <token>
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  const bearer = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const rawToken = bearer || (request.headers.get('cookie') || '').match(/(?:^|;\s*)token=([^;]+)/)?.[1];
+  if (!rawToken) return null;
   try {
-    return jwt.verify(decodeURIComponent(match[1]), import.meta.env.JWT_SECRET) as { id: number; role: 'USER' | 'ADMIN'; username: string };
+    return jwt.verify(decodeURIComponent(rawToken), import.meta.env.JWT_SECRET) as { id: number; role: 'USER' | 'ADMIN'; username: string };
   } catch {
     return null;
   }

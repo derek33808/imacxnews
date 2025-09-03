@@ -4,7 +4,7 @@ import ArticleCard from '../components/ui/ArticleCard.astro';
 import { getCategoryById } from '../data/categories';
 
 const { category, articles } = Astro.props;
-const categoryInfo = getCategoryById(category);
+const categoryInfo = getCategoryById(category) || { id: category, name: String(category || 'News'), description: '' };
 
 const title = `${categoryInfo.name} News | GlobalNews`;
 const description = categoryInfo.description;
@@ -17,14 +17,151 @@ const description = categoryInfo.description;
       <p class="category-description">{categoryInfo.description}</p>
     </header>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-    <div class="articles-list">
-      {articles.map((article, index) => (
-        <ArticleCard article={article} />
+    <div class="articles-list" id="categoryArticlesList">
+      {/** @type {any[]} */ (articles as any[]).map((article: any, index: number) => (
+        <div class="large-article-card">
+          <div class="article-image-container">
+            <img 
+              src={article.image} 
+              alt={article.title}
+              class="article-image"
+              loading="lazy"
+              width="800"
+              height="450"
+              onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=450'"
+            />
+          </div>
+          
+          <div class="article-content">
+            <div class="article-meta">
+              <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
+                {article.category === 'TodayNews' ? 'Today News' : 'Past News'}
+              </a>
+              <span class="publish-date">{new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+            </div>
+            
+            <h2 class="article-title">
+              <a href={`/article/${article.slug}`}>{article.title}</a>
+            </h2>
+            
+            <p class="article-excerpt">{article.excerpt}</p>
+            
+            <div class="article-footer">
+              <span class="author">By {article.author}</span>
+              <a href={`/article/${article.slug}`} class="read-more-btn">
+                Read Full Story
+              </a>
+            </div>
+          </div>
+        </div>
       ))}
     </div>
-  </div>
 </Layout>
+
+<script define:vars={{ category }}>
+  // Load articles from API and update the category page
+  async function loadCategoryArticles() {
+    try {
+      const res = await fetch('/api/articles');
+      if (!res.ok) {
+        console.error('Failed to fetch articles:', res.status);
+        return;
+      }
+      
+      const allArticles = await res.json();
+      if (!Array.isArray(allArticles)) return;
+      
+      // Filter articles by current category
+      const categoryArticles = allArticles.filter(article => article.category === category);
+      
+      // Sort by publish date (newest first)
+      categoryArticles.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+      
+      console.log(`Loading ${categoryArticles.length} articles for category "${category}"`);
+      
+      // 检查是否已经加载过相同的数据
+      const articlesListEl = document.getElementById('categoryArticlesList');
+      if (articlesListEl && articlesListEl.hasAttribute('data-loaded')) {
+        const currentCards = document.querySelectorAll('.large-article-card');
+        const currentTitles = Array.from(currentCards).map(card => {
+          const titleLink = card.querySelector('.article-title a');
+          return titleLink ? titleLink.textContent.trim() : '';
+        });
+        const currentSignature = currentTitles.join('|');
+        const newSignature = categoryArticles.map(article => article.title).join('|');
+        
+        if (currentSignature === newSignature) {
+          console.log(`Category "${category}" already loaded with same content, skipping update`);
+          return;
+        }
+      }
+      
+      // Update the articles list
+      if (articlesListEl) {
+        if (categoryArticles.length === 0) {
+          articlesListEl.innerHTML = `
+            <div class="no-articles">
+              <p>No articles found in this category yet.</p>
+            </div>
+          `;
+        } else {
+          articlesListEl.innerHTML = categoryArticles.map(article => {
+            const categoryName = article.category === 'TodayNews' ? 'Today News' : 'Past News';
+            const publishDate = new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            
+            return `
+              <div class="large-article-card">
+                <div class="article-image-container">
+                  <img 
+                    src="${article.image}" 
+                    alt="${article.title}"
+                    class="article-image"
+                    loading="lazy"
+                    width="800"
+                    height="450"
+                    onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=450'"
+                  />
+                </div>
+                
+                <div class="article-content">
+                  <div class="article-meta">
+                    <a href="/category/${article.category}" class="category-tag ${article.category}">
+                      ${categoryName}
+                    </a>
+                    <span class="publish-date">${publishDate}</span>
+                  </div>
+                  
+                  <h2 class="article-title">
+                    <a href="/article/${article.slug}">${article.title}</a>
+                  </h2>
+                  
+                  <p class="article-excerpt">${article.excerpt}</p>
+                  
+                  <div class="article-footer">
+                    <span class="author">By ${article.author}</span>
+                    <a href="/article/${article.slug}" class="read-more-btn">
+                      Read Full Story
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+        
+        // 标记已加载，避免重复更新
+        articlesListEl.setAttribute('data-loaded', 'true');
+      }
+      
+      console.log(`Updated category "${category}" with ${categoryArticles.length} articles`);
+    } catch (error) {
+      console.error('Error loading category articles:', error);
+    }
+  }
+  
+  // Load articles when page loads
+  document.addEventListener('DOMContentLoaded', loadCategoryArticles);
+</script>
 
 <style>
   .category-header {
@@ -58,12 +195,144 @@ const description = categoryInfo.description;
   }
   
   .articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin-top: var(--space-6);
+  }
+
+  :global(.large-article-card) {
+    background: var(--color-background);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--color-border);
+  }
+
+  :global(.large-article-card:hover) {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  :global(.article-image-container) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    position: relative;
+  }
+
+  :global(.article-image) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
     display: block;
+  }
+
+  :global(.large-article-card:hover .article-image) {
+    transform: scale(1.05);
+  }
+
+  :global(.article-content) {
+    padding: var(--space-6);
+  }
+
+  :global(.article-meta) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+    font-size: 0.875rem;
+  }
+
+  :global(.publish-date) {
+    color: var(--color-text-light);
+  }
+
+  :global(.article-title) {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: var(--space-4);
+  }
+
+  :global(.article-title a) {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  :global(.article-title a:hover) {
+    color: var(--color-primary);
+  }
+
+  :global(.article-excerpt) {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+  }
+
+  :global(.article-footer) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  :global(.author) {
+    font-weight: 500;
+    color: var(--color-text-light);
+  }
+
+  :global(.read-more-btn) {
+    background: var(--color-primary);
+    color: white;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+  }
+
+  :global(.read-more-btn:hover) {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  :global(.no-articles) {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+    font-size: 1.125rem;
   }
   
   @media (max-width: 768px) {
     .category-title {
       font-size: 2rem;
+    }
+    
+    :global(.article-title) {
+      font-size: 1.5rem;
+    }
+    
+    :global(.article-excerpt) {
+      font-size: 1rem;
+    }
+    
+    :global(.article-footer) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+    
+    :global(.read-more-btn) {
+      align-self: stretch;
+      text-align: center;
     }
   }
 </style>
