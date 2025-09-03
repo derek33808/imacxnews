@@ -108,23 +108,66 @@ export class LazyImageLoader {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
-            img.src = img.dataset.src;
-            img.classList.remove('lazy');
-            img.classList.add('loaded');
-            imageObserver.unobserve(img);
+            const src = img.dataset.src;
+            
+            if (src) {
+              // 直接设置图片src，避免预加载导致的控制台错误
+              img.src = src;
+              img.classList.remove('lazy');
+              img.classList.add('loaded');
+              
+              // 设置错误处理（仅在图片自身的onerror未处理时）
+              if (!img.onerror) {
+                img.onerror = () => {
+                  img.src = '/images/placeholder.svg';
+                  img.classList.add('error');
+                  console.warn('图片加载失败，使用占位图:', src);
+                };
+              }
+              
+              imageObserver.unobserve(img);
+            }
           }
         });
+      }, {
+        rootMargin: '50px' // 提前50px开始加载
       });
 
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
+      // 观察所有懒加载图片
+      const observeImages = () => {
+        document.querySelectorAll('img[data-src]:not(.observed)').forEach(img => {
+          img.classList.add('observed');
+          imageObserver.observe(img);
+        });
+      };
+      
+      observeImages();
+      
+      // 监听DOM变化，观察新添加的图片
+      const mutationObserver = new MutationObserver(() => {
+        observeImages();
       });
+      
+      mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
     } else {
-      // Fallback for older browsers
+      // 降级处理
       document.querySelectorAll('img[data-src]').forEach(img => {
         img.src = img.dataset.src;
         img.classList.remove('lazy');
         img.classList.add('loaded');
+      });
+    }
+  }
+  
+  // 手动清理图片缓存
+  static clearImageCache() {
+    if ('caches' in window) {
+      caches.delete('imacx-images-cache-v1').then(() => {
+        console.log('✅ 图片缓存已清理');
       });
     }
   }

@@ -28,7 +28,7 @@ const description = categoryInfo.description;
               loading="lazy"
               width="800"
               height="450"
-              onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=450'"
+              onerror="this.onerror=null; this.src='/images/placeholder.svg'"
             />
           </div>
           
@@ -341,7 +341,7 @@ const description = categoryInfo.description;
     const articlesHTML = articles.map((article: any) => `
       <div class="large-article-card">
         <div class="article-image-container">
-          <img src="${article.image}" alt="${article.title}" class="article-image" loading="lazy" width="800" height="450" onerror="this.onerror=null; this.src='https://via.placeholder.com/800x450/1a73e8/ffffff?text=News+Image'; console.log('🖼️ Image fallback applied for: ${article.title}');">
+          <img data-src="${article.image}" src="/images/placeholder.svg" alt="${article.title}" class="article-image lazy" loading="lazy" width="800" height="450" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');">
         </div>
         
         <div class="article-content">

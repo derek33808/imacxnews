@@ -2,11 +2,28 @@
 export const prerender = false;
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import { getArticleBySlug } from '../../data/articles.js';
+import { createDatabaseConnection, withRetry } from '../../lib/database';
 
 const { slug } = Astro.params;
 
-// Get article by slug for SSR
-const article = getArticleBySlug(slug);
+let article = null;
+
+// Try database first if not disabled
+if (import.meta.env.DISABLE_DATABASE !== 'true') {
+  try {
+    const prisma = createDatabaseConnection();
+    article = await withRetry(async () => {
+      return await prisma.article.findUnique({ where: { slug } });
+    }, `Find article by slug: ${slug}`);
+  } catch (e) {
+    console.warn('Database error, trying static articles:', e?.message);
+  }
+}
+
+// Fallback to static articles if not found in database
+if (!article) {
+  article = getArticleBySlug(slug);
+}
 
 // 404 handling if article not found
 if (!article) {

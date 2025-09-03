@@ -15,7 +15,9 @@ const category = getCategoryById(article.category) || { name: 'Uncategorized', i
       loading="eager"
       width="800"
       height="450"
-      onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=450'"
+      onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
+      onload="this.style.opacity='1'"
+      style="opacity:0.7; transition: opacity 0.3s ease"
     />
     <div class="featured-overlay"></div>
   </div>

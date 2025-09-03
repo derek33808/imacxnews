@@ -36,5 +36,103 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <!-- External scripts for CSP compliance -->
     <script src="/scripts/smooth-scroll.js" is:inline></script>
     <script src="/scripts/admin-manager.js" is:inline></script>
+    
+    <!-- Image optimization script -->
+    <script is:inline>
+      // 快速图片优化脚本（只处理非懒加载图片）
+      (function() {
+        function optimizeImages() {
+          const images = document.querySelectorAll('img[src]:not(.lazy):not([data-src])');
+          images.forEach(img => {
+            if (img.dataset.optimized) return;
+            img.dataset.optimized = 'true';
+            
+            const src = img.src;
+            if (src.includes('example.com') || src.includes('placeholder.com')) {
+              img.src = '/images/placeholder.svg';
+              return;
+            }
+            
+            // 只为没有onerror处理的图片添加超时
+            if (!img.onerror || img.onerror.toString().includes('this.onerror=null')) {
+              const timeout = setTimeout(() => {
+                if (!img.complete) {
+                  img.src = '/images/placeholder.svg';
+                  console.log('图片加载超时，使用占位图:', src);
+                }
+              }, 8000); // 8秒超时
+              
+              const originalOnLoad = img.onload;
+              img.onload = (e) => {
+                clearTimeout(timeout);
+                img.style.opacity = '1';
+                if (originalOnLoad) originalOnLoad.call(img, e);
+              };
+            }
+          });
+        }
+        
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', optimizeImages);
+        } else {
+          optimizeImages();
+        }
+        
+        // 监听动态内容
+        if (window.MutationObserver) {
+          const observer = new MutationObserver(optimizeImages);
+          observer.observe(document.body, { childList: true, subtree: true });
+        }
+      })();
+    </script>
+    <script type="module">
+      // 初始化图片懒加载
+      import { LazyImageLoader } from '/src/utils/imageUtils.js';
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        // 初始化懒加载
+        LazyImageLoader.init();
+        
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('🚀 Service Worker注册成功:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('❌ Service Worker注册失败:', error);
+            });
+        }
+      });
+      
+      // 文章更新后清理图片缓存
+      window.addEventListener('articlePublished', () => {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          const messageChannel = new MessageChannel();
+          messageChannel.port1.onmessage = (event) => {
+            console.log('✅ 图片缓存已清理');
+          };
+          
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'CLEAR_IMAGE_CACHE' },
+            [messageChannel.port2]
+          );
+        }
+      });
+      
+      window.addEventListener('articleUpdated', () => {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          const messageChannel = new MessageChannel();
+          messageChannel.port1.onmessage = (event) => {
+            console.log('✅ 图片缓存已清理');
+          };
+          
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'CLEAR_IMAGE_CACHE' },
+            [messageChannel.port2]
+          );
+        }
+      });
+    </script>
   </body>
 </html>

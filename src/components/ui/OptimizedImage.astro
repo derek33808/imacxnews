@@ -31,11 +31,8 @@ const isExternal = src.startsWith('http://') || src.startsWith('https://');
 const generateThumbnailPath = (slug: string, size: string) => 
   `/images/thumbnails/${size}/${slug}-thumb.webp`;
 
-const srcSet = !isExternal && slug ? [
-  `${generateThumbnailPath(slug, 'small')} 150w`,
-  `${generateThumbnailPath(slug, 'medium')} 300w`, 
-  `${generateThumbnailPath(slug, 'large')} 800w`
-].join(', ') : undefined;
+// 暂时禁用 srcSet 以避免缩略图404错误
+const srcSet = undefined;
 
 const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-opacity duration-300`.trim();
 ---
@@ -47,22 +44,20 @@ const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-op
       src="/images/placeholder.svg"
       alt={alt}
       class={imgClass}
-      srcset={srcSet}
-      sizes={sizes}
       width={width}
       height={height}
       loading="lazy"
+      onerror="this.onerror=null; this.src='/images/placeholder.svg';"
     />
   ) : (
     <img
       src={src}
       alt={alt}
       class={imgClass}
-      srcset={srcSet}
-      sizes={sizes}
       width={width}
       height={height}
       loading="eager"
+      onerror="this.onerror=null; this.src='/images/placeholder.svg';"
     />
   )}
   

@@ -31,7 +31,23 @@ export const GET: APIRoute = async ({ request }) => {
     }
     
     const articles = await withRetry(async () => {
-      return await prisma.article.findMany({ orderBy: { publishDate: 'desc' } });
+      return await prisma.article.findMany({ 
+        select: {
+          id: true,
+          title: true,
+          author: true,
+          category: true,
+          image: true,
+          publishDate: true,
+          featured: true,
+          slug: true,
+          excerpt: true,
+          // Only select fields needed for list display to reduce data transfer
+          // content and chineseContent are not needed in list, fetch separately when editing
+        },
+        orderBy: { publishDate: 'desc' },
+        take: 100 // Limit return count to avoid loading too much data at once
+      });
     }, 'Fetch all articles', initialArticlesData);
     
     return new Response(JSON.stringify(articles), { headers: { 'Content-Type': 'application/json' } });

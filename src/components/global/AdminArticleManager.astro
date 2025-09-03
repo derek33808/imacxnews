@@ -282,6 +282,120 @@
     align-self: flex-start;
     margin-top: var(--space-2);
   }
+  .article-actions-floating {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    margin-top: 0;
+    align-items: center;
+  }
+  /* Compact icon actions */
+  .compact-actions {
+    gap: var(--space-3);
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 2px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition);
+  }
+  .icon-btn svg { pointer-events: none; }
+  .icon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+  }
+  .icon-btn:active { transform: translateY(0); }
+  .icon-btn.danger {
+    border-color: #fecaca;
+    background: linear-gradient(180deg, #fff5f5, #ffe4e6);
+    color: #dc2626;
+  }
+  .icon-btn.danger:hover {
+    border-color: #ef4444;
+    background: linear-gradient(180deg, #ffe4e6, #fff1f2);
+  }
+
+  /* Confirm modal styles (global overlay but scoped here for bundle) */
+  .confirm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
+  .confirm-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .confirm-modal {
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { transform: translateY(6px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .confirm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #991b1b;
+  }
+  .confirm-body {
+    padding: 16px 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--color-text);
+  }
+  .confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-background-alt);
+  }
+  .btn-cancel {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    cursor: pointer;
+  }
+  .btn-danger {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(220,38,38,0.35);
+  }
   
   .action-btn {
     padding: var(--space-4) var(--space-6);
@@ -402,7 +516,9 @@
     transition: all 0.1s ease;
   }
   
-  .empty-state {
+  .empty-state,
+  .loading-state,
+  .error-state {
     text-align: center;
     padding: var(--space-16);
     color: var(--color-text-light);
@@ -410,20 +526,77 @@
     border-radius: var(--radius-lg);
     margin: var(--space-6);
     border: 2px dashed var(--color-border);
+    transition: all 0.3s ease;
   }
   
-  .empty-state svg {
+  .loading-state {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  }
+  
+  .error-state {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+  }
+  
+  .empty-state svg,
+  .loading-state svg,
+  .error-state svg {
     margin-bottom: var(--space-8);
     opacity: 0.7;
-    color: var(--color-primary);
     filter: drop-shadow(0 2px 4px rgba(26, 115, 232, 0.2));
   }
   
-  .empty-state p {
+  .empty-state svg,
+  .loading-state svg {
+    color: var(--color-primary);
+  }
+  
+  .error-state svg {
+    color: #ef4444;
+  }
+  
+  .empty-state p,
+  .loading-state p,
+  .error-state p {
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
     letter-spacing: 0.5px;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top: 4px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--space-4);
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .retry-btn {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-6);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+  
+  .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
   }
   
   /* Scrollbar styling */
