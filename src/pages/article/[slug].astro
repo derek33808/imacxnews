@@ -1,15 +1,12 @@
 ---
+export const prerender = false;
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
-import { initialArticlesData, getArticleBySlug } from '../../data/articles.js';
+import { getArticleBySlug } from '../../data/articles.js';
 
-export async function getStaticPaths() {
-  return (initialArticlesData || []).map(article => ({
-    params: { slug: article.slug },
-    props: { article },
-  }));
-}
+const { slug } = Astro.params;
 
-const { article } = Astro.props;
+// Get article by slug for SSR
+const article = getArticleBySlug(slug);
 
 // 404 handling if article not found
 if (!article) {

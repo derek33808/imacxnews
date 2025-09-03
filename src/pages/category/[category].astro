@@ -12,9 +12,9 @@ if (!categoryInfo) {
   return Astro.redirect('/404');
 }
 
-// Get initial articles for SSR - use empty array to avoid mismatch
-// Client-side will load the actual data
-const initialArticles: any[] = [];
+// Get initial articles for SSR and keep ordering consistent (newest first)
+const initialArticles = getArticlesByCategory(category)
+  .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
 ---
 
 <CategoryLayout category={category} articles={initialArticles} />

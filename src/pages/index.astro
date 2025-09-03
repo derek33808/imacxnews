@@ -299,23 +299,130 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
     }
   }
 
-  // Fetch from API and overlay homepage content (A4)
+  // Update Featured Article section - only update specific elements to preserve styles
+  function updateFeaturedArticle(article: any) {
+    const featuredArticle = document.querySelector('.featured-article');
+    if (!featuredArticle) return;
+    
+    const categoryDisplay = article.category === 'TodayNews' ? 'Today News' : 'Past News';
+    const formattedDate = new Date(article.publishDate).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Update image
+    const featuredImage = featuredArticle.querySelector('.featured-image') as HTMLImageElement;
+    if (featuredImage) {
+      featuredImage.src = article.image;
+      featuredImage.alt = article.title;
+    }
+    
+    // Update category tag
+    const categoryTag = featuredArticle.querySelector('.category-tag');
+    if (categoryTag) {
+      categoryTag.textContent = categoryDisplay;
+      categoryTag.className = `category-tag ${article.category}`;
+      (categoryTag as HTMLAnchorElement).href = `/category/${article.category}`;
+    }
+    
+    // Update title
+    const titleLink = featuredArticle.querySelector('.featured-title a');
+    if (titleLink) {
+      titleLink.textContent = article.title;
+      (titleLink as HTMLAnchorElement).href = `/article/${article.slug}`;
+    }
+    
+    // Update excerpt
+    const excerpt = featuredArticle.querySelector('.featured-excerpt');
+    if (excerpt) {
+      excerpt.textContent = article.excerpt;
+    }
+    
+    // Update author
+    const author = featuredArticle.querySelector('.featured-author');
+    if (author) {
+      author.textContent = article.author;
+    }
+    
+    // Update date
+    const date = featuredArticle.querySelector('.featured-date');
+    if (date) {
+      date.textContent = formattedDate;
+    }
+    
+    // Update read more link
+    const readMoreLink = featuredArticle.querySelector('.featured-read-more');
+    if (readMoreLink) {
+      (readMoreLink as HTMLAnchorElement).href = `/article/${article.slug}`;
+    }
+  }
+
+  // Fetch from API and overlay homepage content (A4) - with smart caching
   async function overlayWithApiArticles() {
     try {
-      const res = await fetch('/api/articles');
-      if (!res.ok) {
-        console.error('Failed to fetch /api/articles:', res.status);
-        return;
+      // Cache configuration
+      const cacheKey = 'homepage_articles_cache';
+      const cacheTimeKey = 'homepage_articles_cache_time';
+      const CACHE_DURATION = 30000; // 30 seconds cache
+      
+      const cachedData = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+      const currentTime = Date.now();
+      
+      let apiArticles = null;
+      
+      // Check if we have valid cached data
+      if (cachedData && cacheTime && (currentTime - parseInt(cacheTime)) < CACHE_DURATION) {
+        console.log('🚀 Homepage: Using cached articles data - instant load!');
+        apiArticles = JSON.parse(cachedData);
+      } else {
+        console.log('📡 Homepage: Fetching fresh articles data from API...');
+        
+        // Create abort controller for request timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          console.warn('⏰ Homepage: API request timed out after 8 seconds');
+        }, 8000); // 8 second timeout
+        
+        try {
+          const res = await fetch('/api/articles', {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (!res.ok) {
+            throw new Error(`API responded with status: ${res.status}`);
+          }
+          apiArticles = await res.json();
+          
+          // Cache the fresh data
+          localStorage.setItem(cacheKey, JSON.stringify(apiArticles));
+          localStorage.setItem(cacheTimeKey, currentTime.toString());
+          console.log('✅ Homepage: Fresh data fetched and cached');
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          throw fetchError;
+        }
       }
-      const apiArticles = await res.json();
+      
       if (!Array.isArray(apiArticles)) return;
 
       // Sort by publishDate desc
       const sorted = [...apiArticles].sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
 
+      // Update Featured Article with latest article
+      const featuredArticles = sorted.filter(a => a.featured);
+      const mainFeaturedArticle = featuredArticles.length > 0 ? featuredArticles[0] : sorted[0];
+      
+      if (mainFeaturedArticle) {
+        updateFeaturedArticle(mainFeaturedArticle);
+      }
+
       // Latest grid: last 30 days fallback to newest 8
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const nowDate = new Date();
+      const thirtyDaysAgo = new Date(nowDate.getTime() - 30 * 24 * 60 * 60 * 1000);
       const last30 = sorted.filter(a => new Date(a.publishDate) >= thirtyDaysAgo);
       const latestForGrid = (last30.length > 0 ? last30 : sorted).slice(0, 8);
 
@@ -333,7 +440,9 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
           : '<p class="no-articles">No articles found.</p>';
       }
     } catch (err) {
-      console.error('Error overlaying articles from API:', err);
+      console.error('❌ Homepage: Error overlaying articles from API:', err);
+      // Fallback to existing content - no action needed as SSR content is already displayed
+      console.log('🔄 Homepage: Keeping SSR content as fallback');
     }
   }
   
@@ -388,20 +497,56 @@ const otherArticles = latestArticles.filter(article => article.id !== mainFeatur
     }
   });
   
+  // Debounced update mechanism for homepage
+  let homepageUpdateTimeout: NodeJS.Timeout;
+  function debouncedHomepageUpdate() {
+    clearTimeout(homepageUpdateTimeout);
+    homepageUpdateTimeout = setTimeout(() => {
+      // Clear cache to force fresh data
+      localStorage.removeItem('homepage_articles_cache');
+      localStorage.removeItem('homepage_articles_cache_time');
+      console.log('🚀 Homepage: Cache cleared, refreshing data...');
+      overlayWithApiArticles();
+    }, 1000); // 1 second debounce
+  }
+
+  // Page visibility API - only update when page is visible
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      console.log('👁️ Homepage: Page became visible, checking for updates...');
+      debouncedHomepageUpdate();
+    }
+  });
+
   // Listen for storage changes (when articles are added/updated)
   window.addEventListener('storage', (e) => {
     if (e.key === 'imacx_articles') {
-      console.log('Articles updated in localStorage, refreshing page...');
-      updatePageWithClientArticles();
+      console.log('📋 Homepage: Articles updated in localStorage, refreshing...');
+      debouncedHomepageUpdate();
     }
   });
   
-  // Listen for custom events when articles are added
+  // Listen for custom events when articles are added/updated
   window.addEventListener('articleAdded', () => {
-    console.log('Article added event received, updating page...');
-    setTimeout(() => {
-      updatePageWithClientArticles();
-    }, 100);
+    console.log('📢 Homepage: Article added event received');
+    debouncedHomepageUpdate();
+  });
+
+  window.addEventListener('articlePublished', () => {
+    console.log('📢 Homepage: Article published event received');
+    debouncedHomepageUpdate();
+  });
+
+  window.addEventListener('articleUpdated', () => {
+    console.log('📢 Homepage: Article updated event received');
+    debouncedHomepageUpdate();
+  });
+
+  // Listen for logout events to clear cache
+  window.addEventListener('userLoggedOut', () => {
+    console.log('🚪 Homepage: User logged out, clearing cache...');
+    localStorage.removeItem('homepage_articles_cache');
+    localStorage.removeItem('homepage_articles_cache_time');
   });
 </script>
 

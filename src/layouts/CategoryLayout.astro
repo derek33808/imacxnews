@@ -49,7 +49,8 @@ const description = categoryInfo.description;
             <div class="article-footer">
               <span class="author">By {article.author}</span>
               <a href={`/article/${article.slug}`} class="read-more-btn">
-                Read Full Story
+                Read more
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </a>
             </div>
           </div>
@@ -58,110 +59,8 @@ const description = categoryInfo.description;
     </div>
 </Layout>
 
-<script define:vars={{ category }}>
-  // Load articles from API and update the category page
-  async function loadCategoryArticles() {
-    try {
-      const res = await fetch('/api/articles');
-      if (!res.ok) {
-        console.error('Failed to fetch articles:', res.status);
-        return;
-      }
-      
-      const allArticles = await res.json();
-      if (!Array.isArray(allArticles)) return;
-      
-      // Filter articles by current category
-      const categoryArticles = allArticles.filter(article => article.category === category);
-      
-      // Sort by publish date (newest first)
-      categoryArticles.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
-      
-      console.log(`Loading ${categoryArticles.length} articles for category "${category}"`);
-      
-      // 检查是否已经加载过相同的数据
-      const articlesListEl = document.getElementById('categoryArticlesList');
-      if (articlesListEl && articlesListEl.hasAttribute('data-loaded')) {
-        const currentCards = document.querySelectorAll('.large-article-card');
-        const currentTitles = Array.from(currentCards).map(card => {
-          const titleLink = card.querySelector('.article-title a');
-          return titleLink ? titleLink.textContent.trim() : '';
-        });
-        const currentSignature = currentTitles.join('|');
-        const newSignature = categoryArticles.map(article => article.title).join('|');
-        
-        if (currentSignature === newSignature) {
-          console.log(`Category "${category}" already loaded with same content, skipping update`);
-          return;
-        }
-      }
-      
-      // Update the articles list
-      if (articlesListEl) {
-        if (categoryArticles.length === 0) {
-          articlesListEl.innerHTML = `
-            <div class="no-articles">
-              <p>No articles found in this category yet.</p>
-            </div>
-          `;
-        } else {
-          articlesListEl.innerHTML = categoryArticles.map(article => {
-            const categoryName = article.category === 'TodayNews' ? 'Today News' : 'Past News';
-            const publishDate = new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-            
-            return `
-              <div class="large-article-card">
-                <div class="article-image-container">
-                  <img 
-                    src="${article.image}" 
-                    alt="${article.title}"
-                    class="article-image"
-                    loading="lazy"
-                    width="800"
-                    height="450"
-                    onerror="this.src='https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=450'"
-                  />
-                </div>
-                
-                <div class="article-content">
-                  <div class="article-meta">
-                    <a href="/category/${article.category}" class="category-tag ${article.category}">
-                      ${categoryName}
-                    </a>
-                    <span class="publish-date">${publishDate}</span>
-                  </div>
-                  
-                  <h2 class="article-title">
-                    <a href="/article/${article.slug}">${article.title}</a>
-                  </h2>
-                  
-                  <p class="article-excerpt">${article.excerpt}</p>
-                  
-                  <div class="article-footer">
-                    <span class="author">By ${article.author}</span>
-                    <a href="/article/${article.slug}" class="read-more-btn">
-                      Read Full Story
-                    </a>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-        
-        // 标记已加载，避免重复更新
-        articlesListEl.setAttribute('data-loaded', 'true');
-      }
-      
-      console.log(`Updated category "${category}" with ${categoryArticles.length} articles`);
-    } catch (error) {
-      console.error('Error loading category articles:', error);
-    }
-  }
-  
-  // Load articles when page loads
-  document.addEventListener('DOMContentLoaded', loadCategoryArticles);
-</script>
+<!-- Client-side script disabled to prevent content jumping -->
+<!-- Script moved to external file if needed in future -->
 
 <style>
   .category-header {
@@ -288,20 +187,18 @@ const description = categoryInfo.description;
   }
 
   :global(.read-more-btn) {
-    background: var(--color-primary);
-    color: white;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-primary);
     font-weight: 500;
-    transition: all 0.3s ease;
+    text-decoration: none;
+    transition: gap var(--transition);
     font-size: 0.875rem;
   }
 
   :global(.read-more-btn:hover) {
-    background: var(--color-primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    gap: var(--space-2);
   }
 
   :global(.no-articles) {
@@ -331,8 +228,199 @@ const description = categoryInfo.description;
     }
     
     :global(.read-more-btn) {
-      align-self: stretch;
-      text-align: center;
+      align-self: flex-start;
     }
   }
 </style>
+
+<script>
+  // Smart client-side update: only update if localStorage has more articles than SSR
+  document.addEventListener('DOMContentLoaded', async function() {
+    const categoryArticlesList = document.getElementById('categoryArticlesList');
+    if (!categoryArticlesList) return;
+
+    // Get current category from URL
+    const pathParts = window.location.pathname.split('/');
+    const currentCategory = pathParts[pathParts.length - 1];
+    
+    // Count current articles on page
+    const currentArticleCount = categoryArticlesList.querySelectorAll('.large-article-card').length;
+    
+    // Smart caching: Check cache first, then API for latest articles
+    try {
+      // Cache configuration
+      const cacheKey = 'category_articles_cache';
+      const cacheTimeKey = 'category_articles_cache_time';
+      const CACHE_DURATION = 30000; // 30 seconds cache
+      
+      const cachedData = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+      const now = Date.now();
+      
+      let allArticles = null;
+      
+      // Check if we have valid cached data
+      if (cachedData && cacheTime && (now - parseInt(cacheTime)) < CACHE_DURATION) {
+        console.log('🚀 Using cached articles data - instant load!');
+        allArticles = JSON.parse(cachedData);
+      } else {
+        console.log('📡 Fetching fresh articles data from API...');
+        
+        // Create abort controller for request timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          console.warn('⏰ API request timed out after 8 seconds');
+        }, 8000); // 8 second timeout
+        
+        try {
+          const response = await fetch('/api/articles', {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            allArticles = await response.json();
+            // Cache the fresh data
+            localStorage.setItem(cacheKey, JSON.stringify(allArticles));
+            localStorage.setItem(cacheTimeKey, now.toString());
+            console.log('✅ Fresh data fetched and cached');
+          } else {
+            throw new Error(`API responded with status: ${response.status}`);
+          }
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          throw fetchError;
+        }
+      }
+      
+      if (allArticles) {
+        const categoryArticles = allArticles
+          .filter((article: any) => article.category === currentCategory)
+          .sort((a: any, b: any) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+        
+        // Only update if we have more articles than what's currently displayed
+        if (categoryArticles.length > currentArticleCount) {
+          console.log(`📰 Found ${categoryArticles.length - currentArticleCount} new articles, updating page...`);
+          updateCategoryArticles(categoryArticles);
+        } else {
+          console.log(`✓ Articles count (${categoryArticles.length}) matches current display (${currentArticleCount})`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching articles from API:', error);
+      // Enhanced fallback strategy
+      try {
+        // Try legacy localStorage first
+        const storedArticles = localStorage.getItem('imacx_articles');
+        if (storedArticles) {
+          console.log('🔄 Using fallback: legacy localStorage data');
+          const parsedArticles = JSON.parse(storedArticles);
+          const categoryArticles = parsedArticles
+            .filter((article: any) => article.category === currentCategory)
+            .sort((a: any, b: any) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+          
+          if (categoryArticles.length > currentArticleCount) {
+            console.log(`📋 Fallback: Found ${categoryArticles.length - currentArticleCount} new articles from localStorage`);
+            updateCategoryArticles(categoryArticles);
+          }
+        } else {
+          console.warn('⚠️ No fallback data available, keeping current content');
+        }
+      } catch (fallbackError) {
+        console.error('💥 All fallback strategies failed:', fallbackError);
+      }
+    }
+  });
+
+  function updateCategoryArticles(articles: any[]) {
+    const categoryArticlesList = document.getElementById('categoryArticlesList');
+    if (!categoryArticlesList) return;
+
+    // Generate new HTML for all articles
+    const articlesHTML = articles.map((article: any) => `
+      <div class="large-article-card">
+        <div class="article-image-container">
+          <img src="${article.image}" alt="${article.title}" class="article-image" loading="lazy" width="800" height="450" onerror="this.onerror=null; this.src='https://via.placeholder.com/800x450/1a73e8/ffffff?text=News+Image'; console.log('🖼️ Image fallback applied for: ${article.title}');">
+        </div>
+        
+        <div class="article-content">
+          <div class="article-meta">
+            <a href="/category/${article.category}" class="category-tag ${article.category}">
+              ${article.category === 'TodayNews' ? 'Today News' : 'Past News'}
+            </a>
+            <span class="publish-date">${formatDate(article.publishDate)}</span>
+          </div>
+          
+          <h2 class="article-title">
+            <a href="/article/${article.slug}">${article.title}</a>
+          </h2>
+          
+          <p class="article-excerpt">${article.excerpt}</p>
+          
+          <div class="article-footer">
+            <span class="author">By ${article.author}</span>
+            <a href="/article/${article.slug}" class="read-more-btn">
+              Read more
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Update content smoothly
+    categoryArticlesList.innerHTML = articlesHTML;
+  }
+
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  // Debounced update mechanism to prevent frequent API calls
+  let updateTimeout: NodeJS.Timeout;
+  function debouncedUpdate() {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(() => {
+      // Clear cache to force fresh data
+      localStorage.removeItem('category_articles_cache');
+      localStorage.removeItem('category_articles_cache_time');
+      console.log('🔄 Cache cleared, reloading page...');
+      location.reload();
+    }, 1000); // 1 second debounce
+  }
+
+  // Page visibility API - only update when page is visible
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      console.log('👁️ Page became visible, checking for updates...');
+      debouncedUpdate();
+    }
+  });
+
+  // Listen for article updates from Admin Manager
+  window.addEventListener('articlePublished', () => {
+    console.log('📢 Article published event received');
+    debouncedUpdate();
+  });
+
+  window.addEventListener('articleUpdated', () => {
+    console.log('📢 Article updated event received');
+    debouncedUpdate();
+  });
+
+  // Listen for logout events to clear cache
+  window.addEventListener('userLoggedOut', () => {
+    console.log('🚪 User logged out, clearing cache...');
+    localStorage.removeItem('category_articles_cache');
+    localStorage.removeItem('category_articles_cache_time');
+  });
+</script>
