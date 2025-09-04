@@ -1,12 +1,12 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
+import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
   // 启用服务端输出，确保 /api 路由在 preview/SSR 下可用
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: netlify(),
   devToolbar: {
     enabled: false
   },

@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@astrojs/node": "^9.0.0",
@@ -18,5 +19,8 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
     "prisma": "^5.19.1"
+  },
+  "devDependencies": {
+    "@astrojs/netlify": "^6.5.9"
   }
 }

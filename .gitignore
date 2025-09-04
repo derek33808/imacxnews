@@ -73,3 +73,6 @@ public/*.jpg
 public/*.png
 !public/image.png
 !public/image copy.png
+
+# Local Netlify folder
+.netlify

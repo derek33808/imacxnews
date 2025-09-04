@@ -1,0 +1,157 @@
+# Build configuration
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Functions settings (Astro on Netlify Functions)
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@prisma/client", "prisma"]
+
+# Environment
+[build.environment]
+  NODE_VERSION = "20"
+
+# Headers for static assets (cache aggressively)
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/scripts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects: direct-serve static, then fall back to SSR function
+[[redirects]]
+  from = "/_astro/*"
+  to = "/_astro/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/images/*"
+  to = "/images/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/scripts/*"
+  to = "/scripts/:splat"
+  status = 200
+  force = true
+
+# API routes and all other dynamic routes handled by SSR
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+# Netlify配置文件 - 混合模式（静态+API）
+[build]
+  # 构建命令
+  command = "npm run build"
+  # 构建输出目录
+  publish = "dist"
+
+[build.environment]
+  # Node.js版本
+  NODE_VERSION = "18"
+
+# Netlify Functions配置
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["prisma/schema.prisma"]
+  external_node_modules = ["@prisma/client", "prisma"]
+
+[functions."*"]
+  timeout = 30
+
+# API路由重定向到Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+# 动态SSR路由重定向到Functions
+[[redirects]]
+  from = "/article/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+[[redirects]]
+  from = "/category/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+# 静态资源直接提供（避免走Functions）
+[[redirects]]
+  from = "/_astro/*"
+  to = "/_astro/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/images/*"
+  to = "/images/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/scripts/*"
+  to = "/scripts/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/favicon.svg"
+  to = "/favicon.svg"
+  status = 200
+
+# 兜底：其他请求交给SSR入口（Functions）
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/entry"
+  status = 200
+
+# 暂时移除所有安全头部 - 专注解决API连接问题
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     X-Frame-Options = "SAMEORIGIN"
+#     X-Content-Type-Options = "nosniff"
+#     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# 静态文件缓存优化
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Vary = "Accept-Encoding"
+
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Vary = "Accept-Encoding"
+
+[[headers]]
+  for = "/scripts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Vary = "Accept-Encoding"
+
+# HTML文件缓存
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Astro适配器会自动配置Functions
