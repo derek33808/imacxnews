@@ -39,8 +39,47 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     
     <!-- Image optimization script -->
     <script is:inline>
-      // 快速图片优化脚本（只处理非懒加载图片）
+      // 图片优化和错误处理脚本
       (function() {
+        // 清理无效图片缓存和数据
+        function clearInvalidImageCache() {
+          try {
+            // 清理localStorage中的缓存数据
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.includes('homepage_articles_cache') || key.includes('imacx_articles')) {
+                const data = localStorage.getItem(key);
+                if (data && (data.includes('placeholder.com') || data.includes('example.com') || data.includes('via.placeholder.com'))) {
+                  localStorage.removeItem(key);
+                  console.log('🗑️ 清理无效缓存数据:', key);
+                }
+              }
+            });
+
+            // 清理Service Worker缓存
+            if ('caches' in window) {
+              caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                  caches.open(cacheName).then(cache => {
+                    cache.keys().then(requests => {
+                      requests.forEach(request => {
+                        if (request.url.includes('placeholder.com') || 
+                            request.url.includes('example.com') ||
+                            request.url.includes('via.placeholder.com')) {
+                          cache.delete(request);
+                          console.log('🗑️ 清理无效图片缓存:', request.url);
+                        }
+                      });
+                    });
+                  });
+                });
+              });
+            }
+          } catch (e) {
+            console.warn('清理缓存时出错:', e);
+          }
+        }
+        
         function optimizeImages() {
           const images = document.querySelectorAll('img[src]:not(.lazy):not([data-src])');
           images.forEach(img => {
@@ -48,19 +87,21 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
             img.dataset.optimized = 'true';
             
             const src = img.src;
-            if (src.includes('example.com') || src.includes('placeholder.com')) {
+            // 检测并替换无效的外部图片URL
+            if (src.includes('example.com') || src.includes('placeholder.com') || src.includes('via.placeholder.com')) {
               img.src = '/images/placeholder.svg';
+              console.log('🔄 替换无效图片URL:', src);
               return;
             }
             
-            // 只为没有onerror处理的图片添加超时
+            // 只为没有onerror处理的图片添加超时和错误处理
             if (!img.onerror || img.onerror.toString().includes('this.onerror=null')) {
               const timeout = setTimeout(() => {
                 if (!img.complete) {
                   img.src = '/images/placeholder.svg';
-                  console.log('图片加载超时，使用占位图:', src);
+                  console.log('⏰ 图片加载超时，使用占位图:', src);
                 }
-              }, 8000); // 8秒超时
+              }, 5000); // 减少到5秒超时
               
               const originalOnLoad = img.onload;
               img.onload = (e) => {
@@ -68,9 +109,21 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
                 img.style.opacity = '1';
                 if (originalOnLoad) originalOnLoad.call(img, e);
               };
+
+              const originalOnError = img.onerror;
+              img.onerror = (e) => {
+                clearTimeout(timeout);
+                img.src = '/images/placeholder.svg';
+                img.classList.add('error');
+                console.warn('❌ 图片加载失败，使用占位图:', src);
+                if (originalOnError) originalOnError.call(img, e);
+              };
             }
           });
         }
+        
+        // 初始化时清理缓存
+        clearInvalidImageCache();
         
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', optimizeImages);

@@ -60,12 +60,27 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
   try {
+    // 数据库被禁用时直接返回清晰提示
+    if ((import.meta as any).env && (import.meta as any).env.DISABLE_DATABASE === 'true') {
+      return new Response(
+        JSON.stringify({ error: 'Database disabled in preview mode, delete is unavailable.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
     const prisma = createDatabaseConnection();
     const id = Number(params.id);
-    await prisma.article.delete({ where: { id } });
+    // 使用统一的重试封装，提高临时性故障的鲁棒性
+    await withRetry(async () => {
+      await prisma.article.delete({ where: { id } });
+      return null as any;
+    }, `Delete article: ${id}`);
     return new Response(null, { status: 204 });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: 'Internal Server Error', detail: e?.message || String(e) }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    const detail = e?.message || String(e);
+    return new Response(
+      JSON.stringify({ error: 'Internal Server Error', detail }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };
 

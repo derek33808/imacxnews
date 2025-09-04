@@ -34,6 +34,7 @@ pnpm-debug.log*
 # Env files
 .env
 .env.*
+!.env.example
 
 # OS / Editor
 .DS_Store
@@ -51,3 +52,24 @@ coverage/
 
 # Misc
 *.log
+
+# Debug and test scripts (should not be in production)
+test-*.js
+check-*.js
+fix-*.js
+add-*.js
+*-sync.js
+*connection*.js
+simple-env-fix.js
+direct-connection-test.js
+verify-front-vs-back.js
+final-check.js
+quick-clean.js
+
+# Uploaded images (should be handled by hosting service)
+public/images/uploads/
+public/*.jpeg
+public/*.jpg
+public/*.png
+!public/image.png
+!public/image copy.png

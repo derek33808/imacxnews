@@ -3,12 +3,18 @@ import type { APIRoute } from 'astro';
 import jwt from 'jsonwebtoken';
 import { setAuthCookie } from '../../../lib/auth';
 
-// 简化版：使用固定 admin 账户，以便快速形成闭环
-const ADMIN_USERNAME = 'Admin';
-const ADMIN_PASSWORD = '1234';
+// 从环境变量获取管理员账户信息
+const ADMIN_USERNAME = import.meta.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // 检查环境变量是否配置
+    if (!ADMIN_PASSWORD) {
+      console.error('ADMIN_PASSWORD environment variable not set');
+      return new Response('Server configuration error', { status: 500 });
+    }
+
     const body = await request.json();
     const rawUsername = (body?.username ?? '').toString();
     const rawPassword = (body?.password ?? '').toString();

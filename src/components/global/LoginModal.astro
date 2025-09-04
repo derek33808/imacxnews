@@ -27,9 +27,7 @@
       <button type="submit" class="login-submit-btn">Login</button>
       
       <div class="login-help">
-        <p class="demo-info">Demo Account:</p>
-        <p class="demo-credentials">Username: <strong>Admin</strong></p>
-        <p class="demo-credentials">Password: <strong>1234</strong></p>
+        <p class="demo-info">请联系管理员获取登录凭据</p>
       </div>
     </form>
     
@@ -218,9 +216,7 @@
   const closeModal = document.getElementById('closeModal');
   const continueBtn = document.getElementById('continueBtn');
   
-  // Deprecated local credentials kept for UI hint only
-  const ADMIN_USERNAME = 'Admin';
-  const ADMIN_PASSWORD = '1234';
+  // 移除硬编码凭据，现在通过环境变量管理
   
   // Open modal function (will be called from header)
   window.openLoginModal = function() {
