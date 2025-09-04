@@ -1,60 +1,7 @@
-# Netlify配置文件
+# Netlify 配置文件
 [build]
-  # 构建命令
   command = "npm run build"
-  # 构建输出目录
   publish = "dist"
-  # Netlify Functions目录
-  functions = ".netlify/functions"
 
 [build.environment]
-  # Node.js版本
   NODE_VERSION = "18"
-
-# 重定向规则 - 处理SPA路由
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/entry"
-  status = 200
-
-# API路由重定向到Netlify Functions
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/entry"
-  status = 200
-
-# 头部设置，添加安全策略
-[[headers]]
-  for = "/*"
-  [headers.values]
-    # 基本安全头
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    
-    # 内容安全策略 - 允许内联脚本和样式
-    Content-Security-Policy = """
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval';
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https:;
-      font-src 'self';
-      connect-src 'self' https:;
-      frame-src 'none';
-      object-src 'none';
-      base-uri 'self';
-    """
-
-# 静态文件缓存
-[[headers]]
-  for = "/images/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/_astro/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# 函数设置 - 使用 Astro 默认配置
