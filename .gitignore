@@ -66,13 +66,15 @@ verify-front-vs-back.js
 final-check.js
 quick-clean.js
 
-# Uploaded images (should be handled by hosting service)
-public/images/uploads/
+# Allow uploaded images for Netlify deployment
+# Note: In production, consider using a CDN or image hosting service
 public/*.jpeg
 public/*.jpg
 public/*.png
 !public/image.png
 !public/image copy.png
+!public/IMG_*.jpeg
+!public/images/uploads/**
 
 # Local Netlify folder
 .netlify
