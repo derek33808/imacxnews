@@ -57,7 +57,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# 函数设置
-[functions]
-  # 增加函数超时时间
-  timeout = 30
+# 函数设置 - 使用 Astro 默认配置
