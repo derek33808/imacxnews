@@ -1,9 +1,11 @@
 # Netlify 配置文件
 [build]
-  command = "npm run build"
+  command = "npx prisma generate && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
 
-# 移除手动重定向配置，让Astro适配器自动处理
+# 确保函数正确处理
+[functions]
+  node_bundler = "esbuild"
