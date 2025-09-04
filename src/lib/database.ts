@@ -13,13 +13,18 @@ const RETRY_CONFIG = {
   backoffMultiplier: 1.5
 };
 
-// 连接池配置
+// 优化的连接池配置 - 针对 Netlify + Supabase Pooler
 const CONNECTION_CONFIG = {
-  log: ['warn', 'error'],
+  log: process.env.NODE_ENV === 'production' ? ['warn', 'error'] : ['query', 'info', 'warn', 'error'],
   datasources: {
     db: {
       url: process.env.DATABASE_URL
     }
+  },
+  // Netlify Functions 优化
+  transactionOptions: {
+    maxWait: 2000,      // 等待事务的最大时间
+    timeout: 5000,      // 事务超时时间
   }
 };
 
