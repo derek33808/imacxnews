@@ -6,9 +6,4 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# 开发环境友好的配置
-[[headers]]
-  for = "/*"
-  [headers.values]
-    # 开发环境放宽CSP策略
-    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: wss: ws:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' 'inline-speculation-rules' data: blob: https:; style-src 'self' 'unsafe-inline' data: https:; img-src 'self' data: blob: https:; connect-src 'self' data: blob: https: wss: ws:;"
+# 移除手动重定向配置，让Astro适配器自动处理
