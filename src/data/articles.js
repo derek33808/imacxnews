@@ -4,134 +4,7 @@
 // 🗄️ 数据来源: 原有文章 + 新增示例文章
 
 export const initialArticlesData = [
-  {
-    "id": 30,
-    "title": "校园科技节即将开启",
-    "slug": "campus-tech-festival-2025",
-    "excerpt": "学校将举办年度科技节，展示学生创新项目和最新科技成果。",
-    "content": "<p>今年的校园科技节将于下月举行，届时将有机器人竞赛、编程挑战、3D打印展示等精彩活动。学生们可以展示自己的创新项目，与同龄人交流学习。</p><p>活动包括：机器人编程大赛、创客工坊体验、科技产品展示、专家讲座等环节。</p>",
-    "chineseContent": "<p>我校即将举办的科技节将是一场科技盛宴，希望同学们积极参与，展现创新精神。此次活动旨在培养学生的科技素养和创新能力。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "校园科技节即将开启 - 今日新闻图片",
-    "author": "科技部",
-    "publishDate": "2025-09-03T10:00:00.000Z",
-    "featured": true,
-    "contentLength": 245,
-    "readingTime": 2
-  },
-  {
-    "id": 31,
-    "title": "新学期社团招新活动启动",
-    "slug": "club-recruitment-new-semester",
-    "excerpt": "各个学生社团开始新学期招新，为同学们提供更多发展兴趣爱好的平台。",
-    "content": "<p>本学期共有20多个社团参与招新，包括摄影社、辩论社、音乐社、体育社等。每个社团都准备了精彩的展示活动。</p><p>招新活动将持续一周，学生可以通过在线报名或现场咨询的方式加入心仪的社团。</p>",
-    "chineseContent": "<p>社团活动是校园文化的重要组成部分，希望同学们根据自己的兴趣积极参与。各社团都有经验丰富的指导老师。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/1205651/pexels-photo-1205651.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "新学期社团招新活动启动 - 今日新闻图片",
-    "author": "学生会",
-    "publishDate": "2025-09-02T14:00:00.000Z",
-    "featured": true,
-    "contentLength": 189,
-    "readingTime": 1
-  },
-  {
-    "id": 32,
-    "title": "学术讲座：人工智能的未来",
-    "slug": "ai-future-academic-lecture",
-    "excerpt": "知名AI专家受邀来校举办讲座，分享人工智能发展趋势与应用前景。",
-    "content": "<p>讲座内容涵盖了机器学习、深度学习、自然语言处理等前沿技术，为同学们打开了科技视野。</p><p>专家还与学生进行了互动问答，解答了关于AI发展和职业规划的疑问。</p>",
-    "chineseContent": "<p>这次讲座让学生们了解了AI技术的最新发展，激发了对科技创新的兴趣。多名学生表示要投身AI领域的学习。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "学术讲座：人工智能的未来 - 今日新闻图片",
-    "author": "计算机科学系",
-    "publishDate": "2025-09-01T16:00:00.000Z",
-    "featured": true,
-    "contentLength": 178,
-    "readingTime": 1
-  },
-  {
-    "id": 33,
-    "title": "环保主题演讲比赛结果公布",
-    "slug": "environmental-speech-contest-results",
-    "excerpt": "第三届环保主题演讲比赛圆满结束，优秀选手将代表学校参加市级比赛。",
-    "content": "<p>本次比赛共有50名学生参加，主题围绕可持续发展和环境保护。获奖选手展现了出色的演讲技巧和深刻的环保意识。</p><p>比赛评委由环境科学专家和语言文学教师组成，评选标准包括内容创新性、表达流畅性和感染力。</p>",
-    "chineseContent": "<p>通过这次比赛，学生们更加深入地了解了环保的重要性，树立了绿色发展理念。获奖作品将在校园内展示。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/301298/pexels-photo-301298.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "环保主题演讲比赛结果公布 - 今日新闻图片",
-    "author": "语文组",
-    "publishDate": "2025-08-31T15:00:00.000Z",
-    "featured": false,
-    "contentLength": 199,
-    "readingTime": 1
-  },
-  {
-    "id": 34,
-    "title": "图书馆新书推荐活动",
-    "slug": "library-new-book-recommendations",
-    "excerpt": "图书馆推出月度新书推荐活动，帮助同学们发现更多优质读物。",
-    "content": "<p>本月推荐书籍涵盖文学、科学、历史等多个领域，还特别设置了读书分享会环节。</p><p>图书馆还推出了数字阅读平台，学生可以通过手机和平板电脑随时阅读电子书籍。</p>",
-    "chineseContent": "<p>阅读推荐活动旨在培养学生的阅读习惯，提升文化素养。图书馆将定期举办相关活动。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "图书馆新书推荐活动 - 今日新闻图片",
-    "author": "图书馆",
-    "publishDate": "2025-08-30T11:00:00.000Z",
-    "featured": false,
-    "contentLength": 156,
-    "readingTime": 1
-  },
-  {
-    "id": 35,
-    "title": "环境科学实地考察活动",
-    "slug": "environmental-science-field-trip",
-    "excerpt": "环境科学课程组织学生前往自然保护区进行实地学习和研究。",
-    "content": "<p>这次考察让学生们直接观察生态系统，了解环境保护的重要性，收集了宝贵的研究数据。</p><p>学生们通过实地观察和数据采集，加深了对环境科学理论知识的理解。</p>",
-    "chineseContent": "<p>实地考察是理论联系实际的重要教学方式，有助于培养学生的科学素养和环保意识。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/1851415/pexels-photo-1851415.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "环境科学实地考察活动 - 今日新闻图片",
-    "author": "生物组",
-    "publishDate": "2025-08-29T08:00:00.000Z",
-    "featured": false,
-    "contentLength": 145,
-    "readingTime": 1
-  },
-  {
-    "id": 36,
-    "title": "校友成功创业分享会",
-    "slug": "alumni-entrepreneurship-sharing",
-    "excerpt": "成功创业的校友回校分享创业经验，为在校学生提供职业规划指导。",
-    "content": "<p>分享会上，几位校友讲述了自己的创业历程，从最初的想法到企业的发展壮大，分享了宝贵的经验和教训。</p><p>校友们还为学生提供了实习和就业机会，建立了校企合作关系。</p>",
-    "chineseContent": "<p>校友的成功经验激励着在校学生，为他们的职业发展提供了有益的参考和启发。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/3184431/pexels-photo-3184431.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "校友成功创业分享会 - 今日新闻图片",
-    "author": "校友会",
-    "publishDate": "2025-08-28T17:00:00.000Z",
-    "featured": false,
-    "contentLength": 167,
-    "readingTime": 1
-  },
-  {
-    "id": 37,
-    "title": "心理健康教育周启动",
-    "slug": "mental-health-education-week",
-    "excerpt": "学校启动心理健康教育周活动，关注学生心理健康，提供专业心理辅导。",
-    "content": "<p>活动包括心理健康讲座、心理测评、团体心理辅导等多个环节，帮助学生了解和维护自己的心理健康。</p><p>学校还设立了心理咨询室，为有需要的学生提供一对一的专业心理辅导服务。</p>",
-    "chineseContent": "<p>心理健康教育是全面教育的重要组成部分，有助于学生健康成长和全面发展。</p>",
-    "category": "TodayNews",
-    "image": "https://images.pexels.com/photos/3807755/pexels-photo-3807755.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "心理健康教育周启动 - 今日新闻图片",
-    "author": "心理健康中心",
-    "publishDate": "2025-08-27T13:00:00.000Z",
-    "featured": false,
-    "contentLength": 168,
-    "readingTime": 1
-  },
+
   {
     "id": 1,
     "title": "Reading Challenge Announcement for Grade 5",
@@ -211,70 +84,6 @@ export const initialArticlesData = [
     "featured": false,
     "contentLength": 487,
     "readingTime": 3
-  },
-  {
-    "id": 38,
-    "title": "国际文化交流周圆满落幕",
-    "slug": "international-culture-week-conclusion",
-    "excerpt": "为期一周的国际文化交流活动成功举办，促进了中外学生的友谊与理解。",
-    "content": "<p>活动期间，来自不同国家的学生分享了各自的文化特色，包括传统服装展示、美食制作、语言学习等环节。</p><p>文化交流周吸引了全校师生的积极参与，增进了对多元文化的理解和尊重。</p>",
-    "chineseContent": "<p>这次文化交流周让大家领略了世界各地的文化魅力，增进了国际友谊。活动获得了师生的一致好评。</p>",
-    "category": "PastNews",
-    "image": "https://images.pexels.com/photos/1709003/pexels-photo-1709003.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "国际文化交流周圆满落幕 - 历史新闻图片",
-    "author": "国际部",
-    "publishDate": "2025-08-26T12:00:00.000Z",
-    "featured": false,
-    "contentLength": 156,
-    "readingTime": 1
-  },
-  {
-    "id": 39,
-    "title": "春季运动会创多项记录",
-    "slug": "spring-sports-meet-records",
-    "excerpt": "今年春季运动会参与人数创历史新高，多个项目打破了校内记录。",
-    "content": "<p>运动会为期三天，设有田径、游泳、球类等多个项目。学生们展现了顽强拼搏的体育精神，创造了许多精彩瞬间。</p><p>本次运动会共有800多名学生参与，创造了12项新的校内记录。</p>",
-    "chineseContent": "<p>体育运动不仅强健了体魄，更培养了同学们的团队精神和竞争意识。运动会期间涌现出许多感人故事。</p>",
-    "category": "PastNews",
-    "image": "https://images.pexels.com/photos/936090/pexels-photo-936090.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "春季运动会创多项记录 - 历史新闻图片",
-    "author": "体育组",
-    "publishDate": "2025-08-25T10:00:00.000Z",
-    "featured": false,
-    "contentLength": 158,
-    "readingTime": 1
-  },
-  {
-    "id": 40,
-    "title": "校园音乐节精彩回顾",
-    "slug": "campus-music-festival-review",
-    "excerpt": "首届校园音乐节成功举办，学生乐队和歌手们展现了青春活力。",
-    "content": "<p>音乐节汇聚了校内最优秀的音乐人才，从古典到流行，从独唱到合唱，各种风格的表演让观众大饱耳福。</p><p>活动当晚观众爆满，掌声雷动，展现了学生们的音乐素养和艺术才华。</p>",
-    "chineseContent": "<p>音乐节的成功举办丰富了校园文化生活，为有音乐梦想的学生提供了展示平台。</p>",
-    "category": "PastNews",
-    "image": "https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "校园音乐节精彩回顾 - 历史新闻图片",
-    "author": "音乐组",
-    "publishDate": "2025-08-24T19:00:00.000Z",
-    "featured": false,
-    "contentLength": 147,
-    "readingTime": 1
-  },
-  {
-    "id": 41,
-    "title": "校园安全演练圆满完成",
-    "slug": "campus-safety-drill-completed",
-    "excerpt": "全校师生参与消防安全演练，提高了应急反应能力和安全意识。",
-    "content": "<p>演练包括火灾逃生、急救知识、安全设备使用等项目，全校师生表现出色，达到了预期效果。</p><p>通过演练，师生们掌握了基本的安全技能，提高了应对突发事件的能力。</p>",
-    "chineseContent": "<p>安全演练是保障校园安全的重要措施，有助于提高全校师生的安全防范意识。</p>",
-    "category": "PastNews",
-    "image": "https://images.pexels.com/photos/6195527/pexels-photo-6195527.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "imageAlt": "校园安全演练圆满完成 - 历史新闻图片",
-    "author": "安全办",
-    "publishDate": "2025-08-23T14:00:00.000Z",
-    "featured": false,
-    "contentLength": 145,
-    "readingTime": 1
   }
 ];
 
@@ -290,4 +99,36 @@ export function getAllArticles() {
 
 export function reloadArticles() {
   return initialArticlesData;
+}
+
+export function getArticlesByCategory(category) {
+  return initialArticlesData.filter(article => article.category === category);
+}
+
+export function getArticleBySlug(slug) {
+  return initialArticlesData.find(article => article.slug === slug);
+}
+
+export function getRelatedArticles(articleId, limit = 3) {
+  const currentArticle = initialArticlesData.find(article => article.id === articleId);
+  if (!currentArticle) {
+    return [];
+  }
+  
+  // 先找同类别的文章
+  const sameCategoryArticles = initialArticlesData.filter(article => 
+    article.id !== articleId && article.category === currentArticle.category
+  );
+  
+  // 如果同类别文章不够，再添加其他文章
+  const otherArticles = initialArticlesData.filter(article => 
+    article.id !== articleId && article.category !== currentArticle.category
+  );
+  
+  // 合并文章并按发布日期排序（最新的在前）
+  const relatedArticles = [...sameCategoryArticles, ...otherArticles]
+    .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+    .slice(0, limit);
+  
+  return relatedArticles;
 }
