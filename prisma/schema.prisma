@@ -45,6 +45,9 @@ model Article {
   @@index([featured])
   @@index([publishDate])
   @@index([contentLength])
+  // 🚀 复合索引以优化查询性能
+  @@index([featured, publishDate])  // 优化首页特色文章查询
+  @@index([category, publishDate])  // 优化分类页面查询
 }
 
 model Comment {

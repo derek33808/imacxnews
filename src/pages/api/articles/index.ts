@@ -4,19 +4,51 @@ import { getUserFromRequest, requireRole } from '../../../lib/auth';
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
 import { ImageManager } from '../../../utils/imageUtils.js';
 
+// 🚀 服务端缓存
+let articlesCache: any = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 120000; // 2分钟服务端缓存
+
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const prisma = createDatabaseConnection();
     const url = new URL(request.url);
     const slug = url.searchParams.get('slug');
+    const limit = parseInt(url.searchParams.get('limit') || '20'); // 默认只加载20篇
+    const offset = parseInt(url.searchParams.get('offset') || '0');
     
+    // 🚀 设置 HTTP 缓存头
+    const headers = {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // 5分钟缓存，10分钟过期重验证
+      'CDN-Cache-Control': 'public, max-age=1800', // CDN 30分钟缓存
+    };
+
     if (slug) {
+      const prisma = createDatabaseConnection();
       const article = await withRetry(async () => {
         return await prisma.article.findUnique({ where: { slug } });
       }, `Find article by slug: ${slug}`);
-      return new Response(JSON.stringify(article ? [article] : []), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify(article ? [article] : []), { headers });
     }
     
+    // 🚀 检查服务端缓存
+    const now = Date.now();
+    if (articlesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+      console.log('🚀 Using server-side cache');
+      // 应用分页
+      const start = offset;
+      const end = offset + limit;
+      const paginatedArticles = articlesCache.slice(start, end);
+      
+      return new Response(JSON.stringify({
+        articles: paginatedArticles,
+        total: articlesCache.length,
+        hasMore: end < articlesCache.length,
+        fromCache: true
+      }), { headers });
+    }
+    
+    const prisma = createDatabaseConnection();
     const articles = await withRetry(async () => {
       return await prisma.article.findMany({ 
         select: {
@@ -32,12 +64,30 @@ export const GET: APIRoute = async ({ request }) => {
           // Only select fields needed for list display to reduce data transfer
           // content and chineseContent are not needed in list, fetch separately when editing
         },
-        orderBy: { publishDate: 'desc' },
-        take: 100 // Limit return count to avoid loading too much data at once
+        orderBy: [
+          { featured: 'desc' }, // 特色文章优先
+          { publishDate: 'desc' }
+        ],
+        take: 200 // 服务端缓存更多文章，但客户端分页加载
       });
     }, 'Fetch all articles');
     
-    return new Response(JSON.stringify(articles), { headers: { 'Content-Type': 'application/json' } });
+    // 🚀 更新服务端缓存
+    articlesCache = articles;
+    cacheTimestamp = now;
+    
+    // 应用分页
+    const start = offset;
+    const end = offset + limit;
+    const paginatedArticles = articles.slice(start, end);
+    
+    return new Response(JSON.stringify({
+      articles: paginatedArticles,
+      total: articles.length,
+      hasMore: end < articles.length,
+      fromCache: false
+    }), { headers });
+    
   } catch (e: any) {
     console.error('数据库错误，无法获取文章:', e?.message);
     return new Response(JSON.stringify({ error: 'Database error', detail: e?.message }), { 

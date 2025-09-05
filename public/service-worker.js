@@ -1,5 +1,6 @@
-const CACHE_NAME = 'imacx-images-v1';
-const IMAGE_CACHE_NAME = 'imacx-images-cache-v1';
+const CACHE_NAME = 'imacx-static-v1';
+const IMAGE_CACHE_NAME = 'imacx-images-v1';
+const API_CACHE_NAME = 'imacx-api-v1';
 
 // 需要缓存的静态资源
 const STATIC_ASSETS = [
@@ -33,11 +34,50 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 拦截请求 - 实现图片缓存策略
+// 拦截请求 - 实现缓存策略
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // 只处理图片请求
+  // 🚀 API 缓存策略 (缓存优先，后台更新)
+  if (url.pathname.startsWith('/api/articles')) {
+    event.respondWith(
+      caches.open(API_CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request);
+        
+        if (cachedResponse) {
+          console.log('📦 从缓存获取API数据:', url.pathname);
+          
+          // 后台更新缓存 (stale-while-revalidate)
+          fetch(event.request).then(response => {
+            if (response && response.status === 200) {
+              cache.put(event.request, response.clone());
+            }
+          }).catch(() => {}); // 静默处理网络错误
+          
+          return cachedResponse;
+        }
+        
+        // 缓存中没有，从网络获取
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (error) {
+          console.warn('API请求失败:', url.pathname);
+          // 返回空数组而不是错误，防止页面崩溃
+          return new Response(JSON.stringify({ articles: [], total: 0, hasMore: false }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      })
+    );
+    return;
+  }
+  
+  // 图片缓存策略
   if (event.request.destination === 'image' || 
       url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
     
@@ -96,6 +136,17 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CLEAR_IMAGE_CACHE') {
     caches.delete(IMAGE_CACHE_NAME).then(() => {
       console.log('🗑️ 图片缓存已清理');
+      event.ports[0].postMessage({ success: true });
+    });
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_ALL_CACHE') {
+    Promise.all([
+      caches.delete(IMAGE_CACHE_NAME),
+      caches.delete(API_CACHE_NAME),
+      caches.delete(CACHE_NAME)
+    ]).then(() => {
+      console.log('🗑️ 所有缓存已清理');
       event.ports[0].postMessage({ success: true });
     });
   }

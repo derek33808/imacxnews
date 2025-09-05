@@ -62,31 +62,82 @@ const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-op
   )}
   
   {caption && (
-    <figcaption class="image-caption text-sm text-gray-600 mt-2 text-center italic">
+    <figcaption class="image-caption">
       {caption}
     </figcaption>
   )}
 </figure>
 
+<!-- 🚀 懒加载JavaScript实现 -->
+<script>
+  // 使用Intersection Observer实现懒加载
+  if ('IntersectionObserver' in window) {
+    const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          const src = img.dataset.src;
+          
+          if (src) {
+            img.src = src;
+            img.classList.add('loaded');
+            img.removeAttribute('data-src');
+            observer.unobserve(img);
+          }
+        }
+      });
+    }, {
+      rootMargin: '50px' // 提前50px开始加载
+    });
+
+    // 观察当前组件中的懒加载图片
+    document.addEventListener('DOMContentLoaded', () => {
+      const lazyImages = document.querySelectorAll('img[data-src]');
+      lazyImages.forEach(img => lazyImageObserver.observe(img));
+    });
+  } else {
+    // 降级处理：直接加载所有图片
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        const lazyImg = img as HTMLImageElement;
+        if (lazyImg.dataset.src) {
+          lazyImg.src = lazyImg.dataset.src;
+          lazyImg.removeAttribute('data-src');
+          lazyImg.classList.add('loaded');
+        }
+      });
+    });
+  }
+</script>
+
 <style>
   .image-container {
-    @apply relative overflow-hidden;
+    position: relative;
+    overflow: hidden;
   }
   
   .image-container img {
-    @apply w-full h-auto object-cover;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
   }
   
   .image-container img.lazy {
-    @apply opacity-0;
+    opacity: 0;
   }
   
   .image-container img.loaded {
-    @apply opacity-100;
+    opacity: 1;
   }
   
   .image-caption {
-    @apply px-2;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    text-align: center;
+    font-style: italic;
+    padding: 0 0.5rem;
   }
   
   /* 占位符效果 */

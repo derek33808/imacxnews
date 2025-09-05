@@ -37,6 +37,18 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <script src="/scripts/smooth-scroll.js" is:inline></script>
     <script src="/scripts/admin-manager.js" is:inline></script>
     
+    <!-- 🚀 Cache cleaner - fix API format compatibility issues -->
+    <script src="/scripts/cache-cleaner.js" is:inline></script>
+    
+    <!-- 🚀 Load enhanced lazy loader -->
+    <script is:inline>
+      // Load enhanced lazy loader for better performance
+      const lazyScript = document.createElement('script');
+      lazyScript.src = '/scripts/lazy-loader.js';
+      lazyScript.async = true;
+      document.head.appendChild(lazyScript);
+    </script>
+    
     <!-- Image optimization script -->
     <script is:inline>
       // Image optimization and error handling script

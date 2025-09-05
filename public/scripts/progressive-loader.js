@@ -1,35 +1,42 @@
-// 🚀 Progressive Loading Manager
+// 🚀 Enhanced Progressive Loading Manager
 class ProgressiveLoader {
   constructor() {
     this.isLoading = false;
     this.cache = new Map();
-    this.cacheExpiry = 30000; // 30 second cache
+    this.cacheExpiry = 60000; // 增加到1分钟缓存
+    this.currentPage = 0;
+    this.pageSize = 10; // 分页加载
+    this.allArticles = [];
+    this.hasMore = true;
   }
   
-  async loadArticles() {
+  async loadArticles(page = 0, useCache = true) {
     if (this.isLoading) return;
     
     this.isLoading = true;
     this.showLoadingStatus('Loading articles...');
     
     try {
-      // Check cache
-      const cached = this.getFromCache('articles');
-      if (cached) {
-        console.log('🚀 Using cached data, instant loading!');
-        this.renderContent(cached);
-        this.hideLoadingStatus();
-        return;
+      // 🚀 更智能的缓存策略
+      const cacheKey = `articles_page_${page}`;
+      if (useCache) {
+        const cached = this.getFromCache(cacheKey);
+        if (cached) {
+          console.log('🚀 Using cached data, instant loading!');
+          this.handleArticleData(cached, page);
+          this.hideLoadingStatus();
+          return;
+        }
       }
       
-      // Fetch data from API
+      // 🚀 分页获取数据
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
         console.warn('⏰ API request timeout');
-      }, 10000);
+      }, 8000); // 减少到8秒超时
       
-      const response = await fetch('/api/articles', {
+      const response = await fetch(`/api/articles?limit=${this.pageSize}&offset=${page * this.pageSize}`, {
         signal: controller.signal
       });
       
@@ -39,66 +46,78 @@ class ProgressiveLoader {
         throw new Error(`API error: ${response.status}`);
       }
       
-      const articles = await response.json();
+      const data = await response.json();
       
-      // Cache data
-      this.setCache('articles', articles);
+      // 🚀 处理新的API响应格式 或 向后兼容
+      let articles, hasMore;
+      if (data.articles) {
+        // 新格式
+        articles = data.articles;
+        hasMore = data.hasMore;
+      } else {
+        // 旧格式（向后兼容）
+        articles = Array.isArray(data) ? data : [];
+        hasMore = articles.length === this.pageSize;
+      }
       
-      // Render content
-      this.renderContent(articles);
+      const processedData = { articles, hasMore };
+      
+      // 缓存数据
+      this.setCache(cacheKey, processedData);
+      
+      // 处理数据
+      this.handleArticleData(processedData, page);
       this.hideLoadingStatus();
       
       console.log('✅ Article data loading completed');
       
     } catch (error) {
       console.error('❌ Loading failed:', error);
-      this.showError('Loading failed, please refresh page and try again');
+      this.showError('Loading failed. Click to retry.');
     } finally {
       this.isLoading = false;
     }
   }
   
+  handleArticleData(data, page) {
+    const articles = data.articles || [];
+    this.hasMore = data.hasMore !== undefined ? data.hasMore : true;
+    
+    if (page === 0) {
+      // 首次加载
+      this.allArticles = articles;
+      this.renderContent(articles);
+    } else {
+      // 追加加载
+      this.allArticles = [...this.allArticles, ...articles];
+      this.appendArticles(articles);
+    }
+    
+    this.currentPage = page;
+  }
+  
   renderContent(articles) {
     if (!Array.isArray(articles) || articles.length === 0) {
-      this.showError('No articles data available');
+      this.showError('No articles available');
       return;
     }
     
-    // Process data
-    const sortedArticles = [...articles].sort((a, b) => 
-      new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-    );
-    
-    const featuredArticles = sortedArticles.filter(a => a.featured);
-    const mainFeatured = featuredArticles.length > 0 ? featuredArticles[0] : sortedArticles[0];
+    // Process data - 文章已经在API端排序，无需重复排序
+    const featuredArticles = articles.filter(a => a.featured);
+    const mainFeatured = featuredArticles.length > 0 ? featuredArticles[0] : articles[0];
     
     // Render featured article
     this.renderFeaturedArticle(mainFeatured);
     
-    // 🔧 Fix: Filter articles by last 30 days (including future date handling)
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    
-    const last30DaysArticles = sortedArticles.filter(article => {
-      const publishDate = new Date(article.publishDate);
-      // Include articles from past 30 days and next 30 days (considering possible future dates in data)
-      return publishDate >= thirtyDaysAgo && publishDate <= thirtyDaysLater;
-    });
-    
-    console.log(`📅 Last 30 days filter result: ${last30DaysArticles.length}/${sortedArticles.length}`);
-    console.log(`📅 Time range: ${thirtyDaysAgo.toDateString()} to ${thirtyDaysLater.toDateString()}`);
-    
-    // 🔧 Only show articles from last 30 days, no supplementing with older articles
-    const latestArticles = last30DaysArticles.slice(0, 8);
-    
-    // Render latest articles (truly last 30 days)
+    // 🚀 只显示最新的8篇文章，减少初始渲染量
+    const latestArticles = articles.slice(0, 8);
     this.renderLatestArticles(latestArticles);
     
-    // Render all articles
-    this.renderAllArticles(sortedArticles);
+    // 🚀 延迟渲染全部文章列表
+    setTimeout(() => {
+      this.renderAllArticles(this.allArticles);
+    }, 100);
     
-    // Smooth transition animation
     this.transitionToContent();
   }
   
@@ -232,7 +251,7 @@ class ProgressiveLoader {
     this.hideLoadingStatus();
     const status = document.getElementById('loadingStatus');
     if (status) {
-      status.innerHTML = `<span style="color: #dc2626;">❌ ${message}</span>`;
+      status.innerHTML = `<span style="color: #dc2626; cursor: pointer;" onclick="location.reload()">❌ ${message}</span>`;
       status.style.display = 'flex';
     }
   }
