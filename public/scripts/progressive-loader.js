@@ -303,7 +303,8 @@ class ProgressiveLoader {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async () => {
+// 🚀 修复竞态条件：检查 DOM 是否已经加载完成
+async function initProgressiveLoader() {
   const loader = new ProgressiveLoader();
   
   // Start loading immediately
@@ -359,4 +360,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       loader.loadArticles();
     }
   });
-});
+}
+
+// 🚀 智能初始化：无论何时加载都能正确执行
+if (document.readyState === 'loading') {
+  // DOM 还在加载中，等待 DOMContentLoaded 事件
+  document.addEventListener('DOMContentLoaded', initProgressiveLoader);
+} else {
+  // DOM 已经加载完成，立即执行
+  initProgressiveLoader();
+}
