@@ -76,7 +76,7 @@
 # 🚀 Astro SSR 重定向规则 - 确保所有路由都通过服务器处理
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/entry"
+  to = "/.netlify/functions/ssr"
   status = 200
 
 # 处理今日新闻的不同 URL 变体
@@ -114,5 +114,5 @@
 # SSR fallback - 所有其他路由通过 Astro 服务器处理
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/entry"
+  to = "/.netlify/functions/ssr"
   status = 200
