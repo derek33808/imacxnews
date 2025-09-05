@@ -73,46 +73,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# 🚀 Astro SSR 重定向规则 - 确保所有路由都通过服务器处理
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/ssr"
-  status = 200
-
-# 处理今日新闻的不同 URL 变体
-[[redirects]]
-  from = "/category/today-news"
-  to = "/category/TodayNews"
-  status = 301
-
-[[redirects]]
-  from = "/category/todaynews"
-  to = "/category/TodayNews"
-  status = 301
-
-[[redirects]]
-  from = "/category/Today-News"
-  to = "/category/TodayNews"
-  status = 301
-
-# 处理过去新闻的不同 URL 变体
-[[redirects]]
-  from = "/category/past-news"
-  to = "/category/PastNews"
-  status = 301
-
-[[redirects]]
-  from = "/category/pastnews"
-  to = "/category/PastNews"
-  status = 301
-
-[[redirects]]
-  from = "/category/Past-News"
-  to = "/category/PastNews"
-  status = 301
-
-# SSR fallback - 所有其他路由通过 Astro 服务器处理
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/ssr"
-  status = 200
+# 让 Astro Netlify 适配器自动处理所有重定向规则
