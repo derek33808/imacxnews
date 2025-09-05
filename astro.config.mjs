@@ -3,8 +3,11 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import netlify from '@astrojs/netlify';
 
-// 强制在生产环境使用 netlify 适配器
-const adapter = netlify();
+// 🚀 智能适配器选择：开发环境使用 Node.js，生产环境使用 Netlify
+const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('dev');
+const adapter = isDev ? node({ mode: 'standalone' }) : netlify();
+
+console.log(`🚀 Using ${isDev ? 'Node.js' : 'Netlify'} adapter for ${isDev ? 'development' : 'production'}`);
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,5 +20,11 @@ export default defineConfig({
   server: {
     port: 4321,
     host: true
+  },
+  // 🚀 开发环境优化
+  vite: {
+    define: {
+      __DEV__: isDev
+    }
   }
 });

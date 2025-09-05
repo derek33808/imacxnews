@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
+    "dev": "NODE_ENV=development astro dev",
+    "dev:netlify": "netlify dev",
     "build": "astro build",
     "preview": "astro preview",
     "netlify": "netlify dev",

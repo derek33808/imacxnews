@@ -362,11 +362,36 @@ async function initProgressiveLoader() {
   });
 }
 
+// 全局未处理 Promise 拒绝处理器 (浏览器环境)
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', function(event) {
+    console.error('🚨 Unhandled Promise Rejection:', event.reason);
+    console.error('Promise:', event.promise);
+    // 防止默认的控制台错误输出
+    event.preventDefault();
+  });
+}
+
+// 包装 initProgressiveLoader 以捕获错误
+async function safeInitProgressiveLoader() {
+  try {
+    await initProgressiveLoader();
+  } catch (error) {
+    console.error('❌ Progressive loader initialization failed:', error);
+    // 显示错误信息给用户
+    const status = document.getElementById('loadingStatus');
+    if (status) {
+      status.innerHTML = `<span style="color: #dc2626; cursor: pointer;" onclick="location.reload()">❌ Loading failed. Click to retry.</span>`;
+      status.style.display = 'flex';
+    }
+  }
+}
+
 // 🚀 智能初始化：无论何时加载都能正确执行
 if (document.readyState === 'loading') {
   // DOM 还在加载中，等待 DOMContentLoaded 事件
-  document.addEventListener('DOMContentLoaded', initProgressiveLoader);
+  document.addEventListener('DOMContentLoaded', safeInitProgressiveLoader);
 } else {
   // DOM 已经加载完成，立即执行
-  initProgressiveLoader();
+  safeInitProgressiveLoader();
 }

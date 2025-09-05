@@ -106,13 +106,43 @@ const isLoading = true;
     </section>
   </div>
   
-  <!-- 🚀 Progressive loading script -->
+  <!-- 🚀 Progressive loading script with error handling -->
   <script is:inline>
-    // Dynamically load progressive-loader.js
-    const script = document.createElement('script');
-    script.src = '/scripts/progressive-loader.js';
-    script.async = true;
-    document.head.appendChild(script);
+    // 添加全局错误处理器
+    window.addEventListener('error', function(event) {
+      console.error('🚨 Global JavaScript Error:', event.error);
+      console.error('Source:', event.filename, 'Line:', event.lineno, 'Column:', event.colno);
+    });
+
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('🚨 Unhandled Promise Rejection:', event.reason);
+      event.preventDefault(); // 防止在控制台显示错误
+    });
+
+    // Dynamically load progressive-loader.js with error handling
+    try {
+      const script = document.createElement('script');
+      script.src = '/scripts/progressive-loader.js';
+      script.async = true;
+      
+      script.onerror = function() {
+        console.error('❌ Failed to load progressive-loader.js');
+        // 显示备用内容或错误信息
+        const status = document.getElementById('loadingStatus');
+        if (status) {
+          status.innerHTML = '<span style="color: #dc2626;">❌ Script loading failed. Please refresh the page.</span>';
+          status.style.display = 'flex';
+        }
+      };
+      
+      script.onload = function() {
+        console.log('✅ Progressive loader script loaded successfully');
+      };
+      
+      document.head.appendChild(script);
+    } catch (error) {
+      console.error('❌ Error loading progressive-loader script:', error);
+    }
   </script>
 </Layout>
 

@@ -1,5 +1,5 @@
 // 数据库连接管理 - 包含重试机制、智能备用和连接优化
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 
 let prisma: PrismaClient | null = null;
 let connectionHealthy = true;
@@ -14,7 +14,7 @@ const RETRY_CONFIG = {
 };
 
 // 优化的连接池配置 - 针对 Netlify + Supabase Pooler
-const CONNECTION_CONFIG = {
+const CONNECTION_CONFIG: Prisma.PrismaClientOptions = {
   log: process.env.NODE_ENV === 'production' ? ['warn', 'error'] : ['query', 'info', 'warn', 'error'],
   datasources: {
     db: {
@@ -135,7 +135,20 @@ export async function checkDatabaseHealth(): Promise<boolean> {
 // 优雅关闭数据库连接
 export async function closeDatabaseConnection() {
   if (prisma) {
-    await prisma.$disconnect();
-    prisma = null;
+    try {
+      await prisma.$disconnect();
+    } catch (error) {
+      console.warn('Error disconnecting Prisma client:', error);
+    } finally {
+      prisma = null;
+    }
   }
+}
+
+// 全局未处理的 Promise 拒绝处理器 (适用于 Node.js 环境)
+if (typeof process !== 'undefined' && process.on) {
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('🚨 Unhandled Promise Rejection at:', promise, 'reason:', reason);
+    // 不要让进程崩溃，但要记录错误
+  });
 }

@@ -24,11 +24,19 @@ export const GET: APIRoute = async ({ request }) => {
     };
 
     if (slug) {
-      const prisma = createDatabaseConnection();
-      const article = await withRetry(async () => {
-        return await prisma.article.findUnique({ where: { slug } });
-      }, `Find article by slug: ${slug}`);
-      return new Response(JSON.stringify(article ? [article] : []), { headers });
+      try {
+        const prisma = createDatabaseConnection();
+        const article = await withRetry(async () => {
+          return await prisma.article.findUnique({ where: { slug } });
+        }, `Find article by slug: ${slug}`);
+        return new Response(JSON.stringify(article ? [article] : []), { headers });
+      } catch (error) {
+        console.error('Error finding article by slug:', error);
+        return new Response(JSON.stringify({ error: 'Failed to find article', detail: error instanceof Error ? error.message : String(error) }), { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json' } 
+        });
+      }
     }
     
     // 🚀 检查服务端缓存
@@ -48,45 +56,65 @@ export const GET: APIRoute = async ({ request }) => {
       }), { headers });
     }
     
-    const prisma = createDatabaseConnection();
-    const articles = await withRetry(async () => {
-      return await prisma.article.findMany({ 
-        select: {
-          id: true,
-          title: true,
-          author: true,
-          category: true,
-          image: true,
-          publishDate: true,
-          featured: true,
-          slug: true,
-          excerpt: true,
-          // Only select fields needed for list display to reduce data transfer
-          // content and chineseContent are not needed in list, fetch separately when editing
-        },
-        orderBy: [
-          { featured: 'desc' }, // 特色文章优先
-          { publishDate: 'desc' }
-        ],
-        take: 200 // 服务端缓存更多文章，但客户端分页加载
-      });
-    }, 'Fetch all articles');
-    
-    // 🚀 更新服务端缓存
-    articlesCache = articles;
-    cacheTimestamp = now;
-    
-    // 应用分页
-    const start = offset;
-    const end = offset + limit;
-    const paginatedArticles = articles.slice(start, end);
-    
-    return new Response(JSON.stringify({
-      articles: paginatedArticles,
-      total: articles.length,
-      hasMore: end < articles.length,
-      fromCache: false
-    }), { headers });
+    try {
+      const prisma = createDatabaseConnection();
+      const articles = await withRetry(async () => {
+        return await prisma.article.findMany({ 
+          select: {
+            id: true,
+            title: true,
+            author: true,
+            category: true,
+            image: true,
+            publishDate: true,
+            featured: true,
+            slug: true,
+            excerpt: true,
+            // Only select fields needed for list display to reduce data transfer
+            // content and chineseContent are not needed in list, fetch separately when editing
+          },
+          orderBy: [
+            { featured: 'desc' }, // 特色文章优先
+            { publishDate: 'desc' }
+          ],
+          take: 200 // 服务端缓存更多文章，但客户端分页加载
+        });
+      }, 'Fetch all articles');
+      
+      // 🚀 更新服务端缓存
+      articlesCache = articles;
+      cacheTimestamp = now;
+      
+      // 应用分页
+      const start = offset;
+      const end = offset + limit;
+      const paginatedArticles = articles.slice(start, end);
+      
+      return new Response(JSON.stringify({
+        articles: paginatedArticles,
+        total: articles.length,
+        hasMore: end < articles.length,
+        fromCache: false
+      }), { headers });
+    } catch (fetchError) {
+      console.error('Error fetching articles:', fetchError);
+      // 如果获取失败但有缓存，使用过期缓存
+      if (articlesCache) {
+        console.warn('Using stale cache due to fetch error');
+        const start = offset;
+        const end = offset + limit;
+        const paginatedArticles = articlesCache.slice(start, end);
+        
+        return new Response(JSON.stringify({
+          articles: paginatedArticles,
+          total: articlesCache.length,
+          hasMore: end < articlesCache.length,
+          fromCache: true,
+          warning: 'Using stale data due to database error'
+        }), { headers });
+      }
+      throw fetchError; // 重新抛出错误让外层 catch 处理
+    }
     
   } catch (e: any) {
     console.error('数据库错误，无法获取文章:', e?.message);
@@ -147,6 +175,10 @@ export const POST: APIRoute = async ({ request }) => {
         }
       });
     }, `Create article: ${data.title}`);
+    
+    // 清除缓存以确保新文章立即可见
+    articlesCache = null;
+    cacheTimestamp = 0;
     
     return new Response(JSON.stringify(created), { status: 201, headers: { 'Content-Type': 'application/json' } });
   } catch (e: any) {

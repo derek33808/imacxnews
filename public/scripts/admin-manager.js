@@ -406,7 +406,21 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       const response = await fetch('/api/articles');
       if (!response.ok) throw new Error('Failed to load articles');
-      const articles = await response.json();
+      const data = await response.json();
+      
+      // 🚀 Handle both old format (array) and new format (object with articles property)
+      let articles;
+      if (Array.isArray(data)) {
+        // Old format - direct array
+        articles = data;
+      } else if (data && Array.isArray(data.articles)) {
+        // New format - object with articles property
+        articles = data.articles;
+      } else {
+        // Unexpected format
+        console.warn('Unexpected API response format:', data);
+        articles = [];
+      }
       
       // Update cache
       articlesCache = articles;
@@ -469,6 +483,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Render articles list
   function renderArticlesList(articles) {
     if (!articlesList) return;
+    
+    // 🚀 Ensure articles is an array
+    if (!Array.isArray(articles)) {
+      console.error('renderArticlesList: articles is not an array:', articles);
+      articles = [];
+    }
     
     if (articles.length === 0) {
       articlesList.innerHTML = `
