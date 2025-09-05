@@ -3,11 +3,63 @@ import Layout from './Layout.astro';
 import { formatDate } from '../utils/dateFormatter';
 import { getCategoryById } from '../data/categories';
 import ArticleCard from '../components/ui/ArticleCard.astro';
-import { getRelatedArticles } from '../data/articles.js';
+import { createDatabaseConnection, withRetry } from '../lib/database';
 
 const { article } = Astro.props;
 const category = getCategoryById(article.category);
-const relatedArticles = getRelatedArticles(article.id, 3);
+
+// Force fetch related articles from database
+type Article = {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  chineseContent: string | null;
+  category: string;
+  image: string;
+  imageAlt: string | null;
+  imageCaption: string | null;
+  author: string;
+  publishDate: Date;
+  featured: boolean;
+  contentLength: number | null;
+  readingTime: number | null;
+};
+
+let relatedArticles: Article[] = [];
+try {
+  const prisma = createDatabaseConnection();
+  relatedArticles = await withRetry(async () => {
+    // First find articles in the same category
+    const sameCategoryArticles = await prisma.article.findMany({
+      where: { 
+        id: { not: article.id },
+        category: article.category 
+      },
+      orderBy: { publishDate: 'desc' },
+      take: 3
+    });
+    
+    // If not enough articles in same category, supplement with others
+    if (sameCategoryArticles.length < 3) {
+      const otherArticles = await prisma.article.findMany({
+        where: { 
+          id: { not: article.id },
+          category: { not: article.category }
+        },
+        orderBy: { publishDate: 'desc' },
+        take: 3 - sameCategoryArticles.length
+      });
+      return [...sameCategoryArticles, ...otherArticles];
+    }
+    
+    return sameCategoryArticles;
+  }, `Get related articles for article: ${article.id}`);
+} catch (e: any) {
+  console.error('Database connection failed, unable to load related articles:', e?.message);
+  relatedArticles = [];
+}
 
 const title = `${article.title} | IMACX-news`;
 const description = article.excerpt;

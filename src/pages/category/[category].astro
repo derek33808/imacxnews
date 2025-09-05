@@ -2,7 +2,7 @@
 export const prerender = false;
 import CategoryLayout from '../../layouts/CategoryLayout.astro';
 import { categories, getCategoryById } from '../../data/categories';
-import { getArticlesByCategory } from '../../data/articles.js';
+import { createDatabaseConnection, withRetry } from '../../lib/database';
 
 const { category } = Astro.params;
 
@@ -12,9 +12,39 @@ if (!categoryInfo) {
   return Astro.redirect('/404');
 }
 
-// Get initial articles for SSR and keep ordering consistent (newest first)
-const initialArticles = getArticlesByCategory(category)
-  .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+// 强制从数据库获取分类文章
+type Article = {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  chineseContent: string | null;
+  category: string;
+  image: string;
+  imageAlt: string | null;
+  imageCaption: string | null;
+  author: string;
+  publishDate: Date;
+  featured: boolean;
+  contentLength: number | null;
+  readingTime: number | null;
+};
+
+let initialArticles: Article[] = [];
+try {
+  const prisma = createDatabaseConnection();
+  initialArticles = await withRetry(async () => {
+    return await prisma.article.findMany({
+      where: { category },
+      orderBy: { publishDate: 'desc' }
+    });
+  }, `Get articles for category: ${category}`);
+} catch (e: any) {
+  console.error(`数据库连接失败，无法加载分类 ${category} 的文章:`, e?.message);
+  // 不再回退到静态数据，直接使用空数组
+  initialArticles = [];
+}
 ---
 
 <CategoryLayout category={category} articles={initialArticles} />

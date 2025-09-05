@@ -6,35 +6,35 @@ import ArticleCard from '../components/ui/ArticleCard.astro';
 import SkeletonLoader from '../components/ui/SkeletonLoader.astro';
 import { categories } from '../data/categories';
 
-// 🚀 New strategy: Render skeleton screen immediately, load data asynchronously
-// Don't wait for database queries on server-side, provide instant page rendering
+// 🚀 新策略：立即渲染骨架屏，异步加载数据
+// 不在服务端等待数据库查询，提供即时的页面渲染
 const isLoading = true;
 ---
 
 <Layout>
   <div class="container">
-    <!-- Loading status indicator -->
+    <!-- Loading状态指示器 -->
     <div id="loadingStatus" class="loading-status">
       <div class="loading-dot"></div>
-      Loading articles...
+      正在加载文章数据...
     </div>
     
-    <!-- Main featured article section -->
-      <section class="hero-section">
-        <h2>Featured Article</h2>
+    <!-- 主要特色文章区域 -->
+    <section class="hero-section">
+      <h2>Featured Article</h2>
       
-      <!-- Skeleton screen - initial display -->
+      <!-- 骨架屏 - 初始显示 -->
       <div id="featuredSkeleton" class="skeleton-wrapper">
         <SkeletonLoader type="featured" count={1} />
       </div>
       
-      <!-- Real content - displayed after async loading -->
+      <!-- 真实内容 - 异步加载后显示 -->
       <div id="featuredContent" class="content-wrapper" style="display: none;">
-        <!-- This will be dynamically populated by JavaScript -->
+        <!-- 这里将通过JavaScript动态填充 -->
       </div>
     </section>
     
-    <!-- Category selection section -->
+    <!-- 分类选择区域 -->
     <section class="categories-section">
       <h2 class="section-title">Browse by Category</h2>
       
@@ -50,20 +50,20 @@ const isLoading = true;
       </div>
     </section>
     
-    <!-- Latest news section -->
+    <!-- 最新新闻区域 -->
     <section class="latest-news">
       <h2 class="section-title">Latest News (Last 30 Days)</h2>
       
-      <!-- Skeleton screen -->
+      <!-- 骨架屏 -->
       <div id="latestSkeleton" class="skeleton-wrapper">
         <SkeletonLoader type="card" count={6} />
       </div>
       
-      <!-- Real content -->
+      <!-- 真实内容 -->
       <div id="latestContent" class="content-wrapper" style="display: none;">
-      <div class="latest-grid" id="latestArticlesGrid">
-          <!-- Dynamic content -->
-            </div>
+        <div class="latest-grid" id="latestArticlesGrid">
+          <!-- 动态内容 -->
+        </div>
       </div>
       
       <div class="view-all-container">
@@ -71,20 +71,20 @@ const isLoading = true;
       </div>
     </section>
     
-    <!-- All articles section -->
+    <!-- 所有文章区域 -->
     <section class="all-articles is-collapsed" id="allArticlesSection" aria-hidden="true">
       <h2 class="section-title">All Articles</h2>
       
-      <!-- Skeleton screen -->
+      <!-- 骨架屏 -->
       <div id="allArticlesSkeleton" class="skeleton-wrapper">
         <SkeletonLoader type="list" count={10} />
       </div>
       
-      <!-- Real content -->
+      <!-- 真实内容 -->
       <div id="allArticlesContent" class="content-wrapper" style="display: none;">
-      <div class="all-index" id="allArticlesList">
-          <!-- Dynamic content -->
-              </div>
+        <div class="all-index" id="allArticlesList">
+          <!-- 动态内容 -->
+        </div>
       </div>
     </section>
     
@@ -105,19 +105,13 @@ const isLoading = true;
       </div>
     </section>
   </div>
-  
-  <!-- 🚀 Progressive loading script -->
-  <script is:inline>
-    // Dynamically load progressive-loader.js
-    const script = document.createElement('script');
-    script.src = '/scripts/progressive-loader.js';
-    script.async = true;
-    document.head.appendChild(script);
-  </script>
 </Layout>
 
+<!-- 🚀 渐进式加载脚本 -->
+<script src="/scripts/progressive-loader.js" is:inline></script>
+
 <style>
-  /* 🚀 Loading status styles */
+  /* 🚀 加载状态样式 */
   .loading-status {
     position: fixed;
     top: 80px;
@@ -154,7 +148,7 @@ const isLoading = true;
     }
   }
   
-  /* Skeleton screen and content switching */
+  /* 骨架屏和内容切换 */
   .skeleton-wrapper,
   .content-wrapper {
     transition: opacity 0.3s ease;
@@ -369,7 +363,7 @@ const isLoading = true;
     font-size: 0.8rem;
     color: var(--color-text-light);
   }
-  
+
   .view-all-container {
     display: flex;
     justify-content: center;
@@ -452,159 +446,7 @@ const isLoading = true;
     border: 1px solid rgba(255,255,255,0.5);
   }
   
-  /* 🎯 Featured Article styles */
-  :global(.featured-article) {
-    position: relative;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    height: 500px;
-    margin-bottom: var(--space-8);
-  }
-  
-  :global(.featured-image-container) {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  :global(.featured-image) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  :global(.featured-overlay) {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.1) 0%,
-      rgba(0, 0, 0, 0.8) 100%
-    );
-  }
-  
-  :global(.featured-content) {
-    position: relative;
-    z-index: 1;
-    padding: var(--space-6);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    height: 100%;
-    color: white;
-  }
-  
-  :global(.featured-title) {
-    font-size: 1.75rem;
-    margin: var(--space-3) 0;
-    line-height: 1.2;
-  }
-  
-  :global(.featured-title a) {
-    color: white;
-    text-decoration: none;
-    transition: color var(--transition);
-  }
-  
-  :global(.featured-title a:hover) {
-    color: rgba(255, 255, 255, 0.8);
-  }
-  
-  :global(.featured-excerpt) {
-    margin-bottom: var(--space-4);
-    font-size: 1rem;
-    line-height: 1.5;
-    max-width: 700px;
-  }
-  
-  :global(.featured-meta) {
-    display: flex;
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-    font-size: 0.875rem;
-  }
-  
-  :global(.featured-author) {
-    font-weight: 500;
-  }
-  
-  :global(.featured-date) {
-    opacity: 0.8;
-  }
-  
-  :global(.featured-read-more) {
-    align-self: flex-start;
-  }
-  
-  :global(.category-tag) {
-    align-self: flex-start;
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    background-color: var(--color-primary);
-    color: white;
-    text-decoration: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: var(--space-10);
-    transition: background-color var(--transition);
-  }
-  
-  :global(.category-tag:hover) {
-    background-color: var(--color-primary-dark);
-  }
-  
-  :global(.category-tag.TodayNews) {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-  }
-  
-  :global(.category-tag.PastNews) {
-    background-color: rgba(107, 114, 128, 0.1);
-    color: #6b7280;
-  }
-  
-  /* 🎯 Featured Article responsive styles */
-  @media (min-width: 768px) {
-    :global(.featured-article) {
-      height: 600px;
-    }
-    
-    :global(.featured-title) {
-      font-size: 2.5rem;
-      max-width: 800px;
-    }
-    
-    :global(.featured-excerpt) {
-      font-size: 1.125rem;
-    }
-  }
-  
-  @media (max-width: 640px) {
-    :global(.featured-article) {
-      height: 400px;
-    }
-    
-    :global(.featured-title) {
-      font-size: 1.5rem;
-    }
-    
-    :global(.featured-excerpt) {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  }
-  
-  /* Responsive loading status */
+  /* 响应式加载状态 */
   @media (max-width: 768px) {
     .loading-status {
       top: 70px;

@@ -1,33 +1,20 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getUserFromRequest, requireRole } from '../../../lib/auth';
-import { initialArticlesData } from '../../../data/articles';
-import { createDatabaseConnection, withRetry, isSmartFallbackEnabled } from '../../../lib/database';
+import { createDatabaseConnection, withRetry } from '../../../lib/database';
 import { ImageManager } from '../../../utils/imageUtils.js';
 
 export const GET: APIRoute = async ({ request }) => {
-  // 如果数据库被禁用，返回静态数据
-  if (import.meta.env.DISABLE_DATABASE === 'true') {
-    const url = new URL(request.url);
-    const slug = url.searchParams.get('slug');
-    if (slug) {
-      const article = initialArticlesData.find(a => a.slug === slug);
-      return new Response(JSON.stringify(article ? [article] : []), { headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify(initialArticlesData), { headers: { 'Content-Type': 'application/json' } });
-  }
-
   try {
     const prisma = createDatabaseConnection();
     const url = new URL(request.url);
     const slug = url.searchParams.get('slug');
     
     if (slug) {
-      const fallbackArticle = initialArticlesData.find(a => a.slug === slug);
-      const one = await withRetry(async () => {
+      const article = await withRetry(async () => {
         return await prisma.article.findUnique({ where: { slug } });
-      }, `Find article by slug: ${slug}`, fallbackArticle);
-      return new Response(JSON.stringify(one ? [one] : []), { headers: { 'Content-Type': 'application/json' } });
+      }, `Find article by slug: ${slug}`);
+      return new Response(JSON.stringify(article ? [article] : []), { headers: { 'Content-Type': 'application/json' } });
     }
     
     const articles = await withRetry(async () => {
@@ -48,19 +35,15 @@ export const GET: APIRoute = async ({ request }) => {
         orderBy: { publishDate: 'desc' },
         take: 100 // Limit return count to avoid loading too much data at once
       });
-    }, 'Fetch all articles', initialArticlesData);
+    }, 'Fetch all articles');
     
     return new Response(JSON.stringify(articles), { headers: { 'Content-Type': 'application/json' } });
   } catch (e: any) {
-    console.warn('Database error, falling back to static data:', e?.message);
-    // 数据库错误时使用静态数据作为备用
-    const url = new URL(request.url);
-    const slug = url.searchParams.get('slug');
-    if (slug) {
-      const article = initialArticlesData.find(a => a.slug === slug);
-      return new Response(JSON.stringify(article ? [article] : []), { headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify(initialArticlesData), { headers: { 'Content-Type': 'application/json' } });
+    console.error('数据库错误，无法获取文章:', e?.message);
+    return new Response(JSON.stringify({ error: 'Database error', detail: e?.message }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   }
 };
 
