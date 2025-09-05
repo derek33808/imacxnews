@@ -74,6 +74,15 @@ export const DELETE: APIRoute = async ({ params, request }) => {
       await prisma.article.delete({ where: { id } });
       return null as any;
     }, `Delete article: ${id}`);
+
+    // 失效列表缓存（跨路由）
+    const GLOBAL: any = globalThis as any;
+    if (GLOBAL.__articles_cache) {
+      GLOBAL.__articles_cache.data = null;
+      GLOBAL.__articles_cache.timestamp = 0;
+      GLOBAL.__articles_cache.version = (GLOBAL.__articles_cache.version || 0) + 1;
+    }
+
     return new Response(null, { status: 204 });
   } catch (e: any) {
     const detail = e?.message || String(e);

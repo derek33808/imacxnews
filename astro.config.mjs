@@ -3,11 +3,14 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import netlify from '@astrojs/netlify';
 
-// 🚀 智能适配器选择：开发环境使用 Node.js，生产环境使用 Netlify
+// 🚀 智能适配器选择：开发环境和预览环境使用 Node.js，生产环境使用 Netlify
 const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('dev');
-const adapter = isDev ? node({ mode: 'standalone' }) : netlify();
+const isPreview = process.env.NODE_ENV === 'preview' || process.argv.includes('preview');
+const useNodeAdapter = isDev || isPreview;
+const adapter = useNodeAdapter ? node({ mode: 'standalone' }) : netlify();
 
-console.log(`🚀 Using ${isDev ? 'Node.js' : 'Netlify'} adapter for ${isDev ? 'development' : 'production'}`);
+const envType = isDev ? 'development' : isPreview ? 'preview' : 'production';
+console.log(`🚀 Using ${useNodeAdapter ? 'Node.js' : 'Netlify'} adapter for ${envType}`);
 
 // https://astro.build/config
 export default defineConfig({

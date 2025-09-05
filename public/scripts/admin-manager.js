@@ -193,7 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtnEl.textContent = 'Saving...';
         const url = isEditing ? `/api/articles/${editingId}` : '/api/articles';
         const method = isEditing ? 'PATCH' : 'POST';
-        const resp = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const resp = await fetch(url, { 
+          method, 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(data),
+          credentials: 'include'  // 🔑 Include cookies for authentication
+        });
         if (!resp.ok) {
           let msg = 'Failed to save article.';
           try { const j = await resp.json(); if (j && j.error) msg = j.error; } catch {}
@@ -212,10 +217,21 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           window.dispatchEvent(new CustomEvent('articlePublished'));
         }
+        try { localStorage.setItem('imacx_articles', String(Date.now())); } catch {}
         loadArticlesList(true); // Force refresh after save
       } catch (err) {
         console.error('Save error', err);
-        alert('Network error, please try again.');
+        errEl.textContent = err.message || 'Network error, please try again.';
+        errEl.style.display = 'block';
+        
+        // Show specific error for authentication issues
+        if (err.message.includes('login')) {
+          errEl.innerHTML = '🔒 Please <a href="#" onclick="document.getElementById(\'adminManageBtn\').click(); return false;">login as admin</a> first.';
+        }
+      } finally {
+        // 🔧 Always reset button state
+        submitBtnEl.disabled = false;
+        submitBtnEl.textContent = isEditing ? '💾 Update Article' : '💾 Save Article';
       }
     });
   }
@@ -314,7 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       // Get complete article data (including content and chineseContent)
-      const response = await fetch(`/api/articles/${article.id}`);
+      const response = await fetch(`/api/articles/${article.id}`, {
+        credentials: 'include'  // 🔑 Include cookies for authentication
+      });
       if (!response.ok) throw new Error('Failed to fetch article details');
       const fullArticle = await response.json();
       
@@ -404,7 +422,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     try {
-      const response = await fetch('/api/articles');
+      const response = await fetch('/api/articles', {
+        credentials: 'include'  // 🔑 Include cookies for authentication
+      });
       if (!response.ok) throw new Error('Failed to load articles');
       const data = await response.json();
       
@@ -450,7 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!ok) return;
     
     try {
-      const r = await fetch(`/api/articles/${articleId}`, { method: 'DELETE' });
+      const r = await fetch(`/api/articles/${articleId}`, { 
+        method: 'DELETE',
+        credentials: 'include'  // 🔑 Include cookies for authentication
+      });
       if (r.status === 204) {
         alert('Article deleted successfully!');
         
@@ -460,6 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Trigger delete event for other components
         window.dispatchEvent(new CustomEvent('articleDeleted', { detail: { articleId } }));
+        try { localStorage.setItem('imacx_articles', String(Date.now())); } catch {}
         return;
       }
 
@@ -599,26 +623,30 @@ document.addEventListener('DOMContentLoaded', function() {
     return `${years} year${years !== 1 ? 's' : ''} ago`;
   }
 
-  // Event listeners for real-time updates
-  window.addEventListener('articlePublished', () => {
+  // 🚀 Enhanced force refresh function
+  window.forceRefreshAdminPanel = function() {
     articlesCache = null; // Clear cache
+    cacheTimestamp = 0;   // Reset timestamp
     if (adminManagerModal && adminManagerModal.classList.contains('active')) {
+      console.log('🔄 Force refreshing admin panel...');
       loadArticlesList(true); // Force refresh
     }
+  };
+
+  // Event listeners for real-time updates
+  window.addEventListener('articlePublished', () => {
+    console.log('📝 Article published event detected');
+    window.forceRefreshAdminPanel();
   });
   
   window.addEventListener('articleUpdated', () => {
-    articlesCache = null; // Clear cache
-    if (adminManagerModal && adminManagerModal.classList.contains('active')) {
-      loadArticlesList(true); // Force refresh
-    }
+    console.log('✏️ Article updated event detected'); 
+    window.forceRefreshAdminPanel();
   });
 
   window.addEventListener('articleDeleted', () => {
-    articlesCache = null; // Clear cache
-    if (adminManagerModal && adminManagerModal.classList.contains('active')) {
-      loadArticlesList(true); // Force refresh
-    }
+    console.log('🗑️ Article deleted event detected');
+    window.forceRefreshAdminPanel();
   });
 
   // Initialize if opened via URL or other means

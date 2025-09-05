@@ -360,6 +360,18 @@ async function initProgressiveLoader() {
       loader.loadArticles();
     }
   });
+
+  // Listen for custom events from admin panel to refresh homepage lists
+  window.addEventListener('articlePublished', () => {
+    console.log('🆕 Article published, refreshing homepage lists');
+    loader.cache.clear();
+    loader.loadArticles(0, false);
+  });
+  window.addEventListener('articleDeleted', () => {
+    console.log('🗑️ Article deleted, refreshing homepage lists');
+    loader.cache.clear();
+    loader.loadArticles(0, false);
+  });
 }
 
 // 全局未处理 Promise 拒绝处理器 (浏览器环境)

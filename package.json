@@ -7,7 +7,8 @@
     "dev": "NODE_ENV=development astro dev",
     "dev:netlify": "netlify dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "build:preview": "NODE_ENV=preview astro build",
+    "preview": "NODE_ENV=preview astro preview",
     "netlify": "netlify dev",
     "astro": "astro"
   },
