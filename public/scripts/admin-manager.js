@@ -74,10 +74,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>Category
-                <select name="category" required>
-                  <option value="TodayNews">Today News</option>
-                  <option value="PastNews">Past News</option>
-                </select>
+                <div class="custom-select-wrapper">
+                  <select name="category" required class="custom-select">
+                    <option value="TodayNews">Today News</option>
+                    <option value="PastNews">Past News</option>
+                  </select>
+                  <div class="custom-select-display">
+                    <span class="selected-text">Today News</span>
+                    <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                  </div>
+                  <div class="custom-options">
+                    <div class="custom-option" data-value="TodayNews">
+                      <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                      </svg>
+                      <span>Today News</span>
+                    </div>
+                    <div class="custom-option" data-value="PastNews">
+                      <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      <span>Past News</span>
+                    </div>
+                  </div>
+                </div>
               </label>
               <label>
                 <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -86,7 +112,43 @@ document.addEventListener('DOMContentLoaded', function() {
                   <line x1="8" y1="2" x2="8" y2="6"/>
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>Publish Date
-                <input type="text" name="publishDate" placeholder="MM/DD/YYYY HH:MM" title="Enter date and time in American format" pattern="(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4} ([01][0-9]|2[0-3]):[0-5][0-9]" />
+                <div class="datetime-picker-wrapper">
+                  <div class="datetime-input-group">
+                    <input type="text" name="publishDate" readonly placeholder="Click to select date and time" class="datetime-picker-input" />
+                    <button type="button" class="datetime-picker-btn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="datetime-picker-dropdown">
+                    <div class="datetime-picker-header">
+                      <h4>Select Date & Time</h4>
+                      <button type="button" class="datetime-picker-close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="datetime-picker-content">
+                      <div class="date-section">
+                        <input type="date" class="date-input" />
+                      </div>
+                      <div class="time-section">
+                        <input type="time" class="time-input" />
+                      </div>
+                      <div class="datetime-actions">
+                        <button type="button" class="btn-now">Now</button>
+                        <button type="button" class="btn-clear">Clear</button>
+                        <button type="button" class="btn-confirm">Confirm</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </label>
             </div>
           </div>
@@ -292,6 +354,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Expose function for edit form usage
     window.updateImagePreview = updateImagePreview;
+    
+    // Initialize custom select component
+    initializeCustomSelect();
+    
+    // Initialize datetime picker component
+    initializeDateTimePicker();
 
     // Image URL validation and preview update
     if (imageUrlInput) {
@@ -489,12 +557,9 @@ document.addEventListener('DOMContentLoaded', function() {
     isEditing = false;
     editingId = null;
     formTitleEl.innerHTML = `
-      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14,2 14,8 20,8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <path d="m9 9 3 3"/>
+      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
+        <path d="m15 5 4 4"/>
       </svg>New Article`;
     formEl.reset();
     formModal.classList.add('active');
@@ -524,13 +589,9 @@ document.addEventListener('DOMContentLoaded', function() {
     isEditing = true;
     editingId = article.id;
     formTitleEl.innerHTML = `
-      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14,2 14,8 20,8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <path d="m18 2 4 4-13 13H5v-4L18 2Z"/>
-        <path d="m9 7 6 6"/>
+      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
+        <path d="m15 5 4 4"/>
       </svg>Edit Article`;
     formEl.reset();
     formModal.classList.add('active');
@@ -873,4 +934,227 @@ document.addEventListener('DOMContentLoaded', function() {
   if (adminManagerModal && adminManagerModal.classList.contains('active')) {
     loadArticlesList();
   }
+
+  // Custom Select Component
+  function initializeCustomSelect() {
+    if (!formEl) return;
+    
+    const wrapper = formEl.querySelector('.custom-select-wrapper');
+    const select = formEl.querySelector('.custom-select');
+    const display = formEl.querySelector('.custom-select-display');
+    const selectedText = formEl.querySelector('.selected-text');
+    const arrow = formEl.querySelector('.select-arrow');
+    const optionsContainer = formEl.querySelector('.custom-options');
+    const options = formEl.querySelectorAll('.custom-option');
+    const section = wrapper ? wrapper.closest('.form-section') : null;
+    
+    if (!wrapper || !select || !display || !selectedText || !optionsContainer) return;
+    
+    let isOpen = false;
+
+    // Elevation ref-count for shared section
+    function elevate() {
+      if (!section) return;
+      const current = Number(section.dataset.elevatedCount || '0') + 1;
+      section.dataset.elevatedCount = String(current);
+      if (current > 0) section.classList.add('elevated');
+    }
+
+    function lowerAfter(delayMs = 0) {
+      if (!section) return;
+      const perform = () => {
+        const current = Math.max(0, Number(section.dataset.elevatedCount || '0') - 1);
+        section.dataset.elevatedCount = String(current);
+        if (current === 0) section.classList.remove('elevated');
+      };
+      if (delayMs > 0) setTimeout(perform, delayMs); else perform();
+    }
+    
+    // Toggle dropdown
+    function toggleDropdown() {
+      isOpen = !isOpen;
+      wrapper.classList.toggle('open', isOpen);
+      arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      
+      if (isOpen) {
+        elevate();
+        optionsContainer.style.display = 'block';
+        setTimeout(() => optionsContainer.classList.add('show'), 10);
+      } else {
+        optionsContainer.classList.remove('show');
+        setTimeout(() => { optionsContainer.style.display = 'none'; }, 200);
+        lowerAfter(200);
+      }
+    }
+    
+    // Close dropdown
+    function closeDropdown() {
+      if (isOpen) {
+        isOpen = false;
+        wrapper.classList.remove('open');
+        arrow.style.transform = 'rotate(0deg)';
+        optionsContainer.classList.remove('show');
+        setTimeout(() => { optionsContainer.style.display = 'none'; }, 200);
+        lowerAfter(200);
+      }
+    }
+    
+    // Handle option selection
+    function selectOption(value, text) {
+      select.value = value;
+      selectedText.textContent = text;
+      closeDropdown();
+      
+      // Trigger change event
+      const event = new Event('change', { bubbles: true });
+      select.dispatchEvent(event);
+    }
+    
+    // Event listeners
+    display.addEventListener('click', toggleDropdown);
+    
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.value;
+        const text = option.querySelector('span').textContent;
+        selectOption(value, text);
+      });
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+    
+    // Update display when select value changes programmatically
+    const observer = new MutationObserver(() => {
+      const selectedOption = select.querySelector(`option[value="${select.value}"]`);
+      if (selectedOption) {
+        selectedText.textContent = selectedOption.textContent;
+      }
+    });
+    observer.observe(select, { attributes: true, attributeFilter: ['value'] });
+    
+    // Store observer for cleanup
+    wrapper.selectObserver = observer;
+  }
+
+  // DateTime Picker Component
+  function initializeDateTimePicker() {
+    if (!formEl) return;
+    
+    const wrapper = formEl.querySelector('.datetime-picker-wrapper');
+    const input = formEl.querySelector('.datetime-picker-input');
+    const btn = formEl.querySelector('.datetime-picker-btn');
+    const dropdown = formEl.querySelector('.datetime-picker-dropdown');
+    const closeBtn = formEl.querySelector('.datetime-picker-close');
+    const dateInput = formEl.querySelector('.date-input');
+    const timeInput = formEl.querySelector('.time-input');
+    const nowBtn = formEl.querySelector('.btn-now');
+    const clearBtn = formEl.querySelector('.btn-clear');
+    const confirmBtn = formEl.querySelector('.btn-confirm');
+    const section = wrapper ? wrapper.closest('.form-section') : null;
+    
+    if (!wrapper || !input || !btn || !dropdown) return;
+    
+    let isOpen = false;
+    
+    // Open dropdown
+    function openDropdown() {
+      isOpen = true;
+      dropdown.style.display = 'block';
+      setTimeout(() => dropdown.classList.add('show'), 10);
+      if (section) section.classList.add('elevated');
+      wrapper.classList.add('open');
+      
+      // Set current values if input has value
+      if (input.value) {
+        const date = new Date(input.value);
+        if (!isNaN(date.getTime())) {
+          dateInput.value = date.toISOString().split('T')[0];
+          timeInput.value = date.toTimeString().slice(0, 5);
+        }
+      }
+    }
+    
+    // Close dropdown
+    function closeDropdown() {
+      if (isOpen) {
+        isOpen = false;
+        dropdown.classList.remove('show');
+        setTimeout(() => dropdown.style.display = 'none', 200);
+        if (section) section.classList.remove('elevated');
+        wrapper.classList.remove('open');
+      }
+    }
+    
+    // Format date for display
+    function formatDateTime(date) {
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const yyyy = date.getFullYear();
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mi = String(date.getMinutes()).padStart(2, '0');
+      return `${mm}/${dd}/${yyyy} ${hh}:${mi}`;
+    }
+    
+    // Set current date/time
+    function setNow() {
+      const now = new Date();
+      dateInput.value = now.toISOString().split('T')[0];
+      timeInput.value = now.toTimeString().slice(0, 5);
+    }
+    
+    // Clear values
+    function clearValues() {
+      dateInput.value = '';
+      timeInput.value = '';
+      input.value = '';
+      closeDropdown();
+    }
+    
+    // Confirm selection
+    function confirmSelection() {
+      if (!dateInput.value) {
+        clearValues();
+        return;
+      }
+      
+      const dateStr = dateInput.value;
+      const timeStr = timeInput.value || '00:00';
+      const datetime = new Date(`${dateStr}T${timeStr}`);
+      
+      if (!isNaN(datetime.getTime())) {
+        input.value = formatDateTime(datetime);
+      }
+      
+      closeDropdown();
+    }
+    
+    // Event listeners
+    btn.addEventListener('click', openDropdown);
+    input.addEventListener('click', openDropdown);
+    closeBtn.addEventListener('click', closeDropdown);
+    nowBtn.addEventListener('click', setNow);
+    clearBtn.addEventListener('click', clearValues);
+    confirmBtn.addEventListener('click', confirmSelection);
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+    
+    // Auto-confirm on Enter
+    dateInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') confirmSelection();
+    });
+    timeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') confirmSelection();
+    });
+  }
+  
 });
