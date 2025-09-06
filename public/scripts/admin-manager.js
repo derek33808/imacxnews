@@ -28,7 +28,14 @@ document.addEventListener('DOMContentLoaded', function() {
     formModal.innerHTML = `
       <div class="admin-manager-modal">
         <div class="modal-header">
-          <h2 id="formTitle">✨ New Article</h2>
+          <h2 id="formTitle">
+            <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <path d="m9 9 3 3"/>
+            </svg>New Article</h2>
           <button class="close-modal" id="closeFormModal" aria-label="Close form modal">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -38,67 +45,164 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         
         <form id="articleForm" enctype="multipart/form-data">
-          <div class="form-grid">
-            <label>
-              📝 Title
-              <input name="title" required placeholder="Enter an engaging title..." />
-            </label>
-            <label>
-              👤 Author
-              <input name="author" required placeholder="Author name" />
-            </label>
-            <label>
-              📂 Category
-              <select name="category" required>
-                <option value="TodayNews">📰 Today News</option>
-                <option value="PastNews">🗞️ Past News</option>
-              </select>
-            </label>
-            <label>
-              📅 Publish Date
-              <input type="datetime-local" name="publishDate" />
-            </label>
-          </div>
-          
-          <label>
-            🖼️ Image URL
-            <div style="display:flex; gap:8px; align-items:center;">
-              <input name="image" placeholder="/images/placeholder.svg" style="flex:1;" />
-              <button type="button" id="triggerFileSelectBtn" style="white-space:nowrap;">Upload Local...</button>
+          <div class="form-section">
+            <div class="section-header">
+              <svg style="width:19px;height:19px;display:inline;margin-right:10px;" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="9" x2="15" y2="9"/>
+                <line x1="9" y1="13" x2="15" y2="13"/>
+                <line x1="9" y1="17" x2="13" y2="17"/>
+              </svg>
+              Basic Information
             </div>
-            <input type="file" name="imageFile" accept="image/*" style="display:none;" />
-            <small>Supports jpg/png/webp; automatically fills URL after successful upload</small>
-          </label>
-          <div id="imagePreviewWrap" style="display:none; gap:12px; align-items:center;">
-            <img id="imagePreview" alt="preview" style="width:160px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" />
-            <span id="imagePreviewText" style="font-size:12px;color:#6b7280;"></span>
+            <div class="form-grid">
+              <label>
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="m18 2 4 4-13 13H5v-4L18 2Z"/>
+                  <path d="m9 7 6 6"/>
+                </svg>Title
+                <input name="title" required placeholder="Enter an engaging title..." />
+              </label>
+              <label>
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>Author
+                <input name="author" required placeholder="Author name" />
+              </label>
+              <label>
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>Category
+                <select name="category" required>
+                  <option value="TodayNews">Today News</option>
+                  <option value="PastNews">Past News</option>
+                </select>
+              </label>
+              <label>
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>Publish Date
+                <input type="text" name="publishDate" placeholder="MM/DD/YYYY HH:MM" title="Enter date and time in American format" pattern="(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4} ([01][0-9]|2[0-3]):[0-5][0-9]" />
+              </label>
+            </div>
           </div>
           
-          <label>
-            📄 Excerpt
-            <textarea name="excerpt" rows="3" required placeholder="Write a compelling short summary..."></textarea>
-          </label>
+          <div class="form-section">
+            <div class="section-header">
+              <svg style="width:19px;height:19px;display:inline;margin-right:10px;" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+              </svg>
+              Image Settings
+            </div>
+            <label>
+              <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+              </svg>Image URL
+              <div style="display:flex; gap:12px; align-items:stretch;">
+                <input name="image" placeholder="/images/placeholder.svg" style="flex:1;" />
+                <button type="button" id="triggerFileSelectBtn" style="white-space:nowrap;">Upload Local...</button>
+              </div>
+              <input type="file" name="imageFile" accept="image/*" style="display:none;" />
+              <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports jpg/png/webp; automatically fills URL after successful upload</small>
+            </label>
+            <div id="imagePreviewWrap" style="display:none; gap:16px; align-items:center;">
+              <div id="imagePreview" style="width:160px;height:90px;object-fit:cover;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;">
+                <svg style="width:32px;height:32px;color:#9ca3af;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                <span style="font-size:10px;color:#9ca3af;margin-top:4px;">No preview image</span>
+              </div>
+              <span id="imagePreviewText"></span>
+            </div>
+          </div>
           
-          <label>
-            📖 Content
-            <textarea name="content" rows="8" required placeholder="Write your main article content..."></textarea>
-          </label>
+          <div class="form-section">
+            <div class="section-header">
+              <svg style="width:19px;height:19px;display:inline;margin-right:10px;" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="12" y1="17" x2="8" y2="17"/>
+              </svg>
+              Content Summary
+            </div>
+            <label>
+              <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>Excerpt
+              <textarea name="excerpt" rows="3" required placeholder="Write a compelling short summary..."></textarea>
+            </label>
+          </div>
           
-          <label>
-            🇨🇳 Chinese Content
-            <textarea name="chineseContent" rows="6" placeholder="Chinese content (optional)..."></textarea>
-          </label>
+          <div class="form-section">
+            <div class="section-header">
+              <svg style="width:19px;height:19px;display:inline;margin-right:10px;" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                <line x1="10" y1="8" x2="16" y2="8"/>
+                <line x1="10" y1="12" x2="16" y2="12"/>
+              </svg>
+              Article Content
+            </div>
+            <label>
+              <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>Content
+              <textarea name="content" rows="8" required placeholder="Write your main article content..."></textarea>
+            </label>
+            
+            <label>
+              <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a10 10 0 0 1 0 20"/>
+                <path d="M2 12h20"/>
+                <path d="M8 12c0-2.5 1-5 4-5s4 2.5 4 5-1 5-4 5-4-2.5-4-5z"/>
+              </svg>Chinese Content
+              <textarea name="chineseContent" rows="6" placeholder="Chinese content (optional)..."></textarea>
+            </label>
+          </div>
           
-          <div class="checkbox-wrapper">
-            <input type="checkbox" name="featured" id="featuredCheckbox" />
-            <label for="featuredCheckbox">⭐ Featured Article</label>
+          <div class="form-section">
+            <div class="section-header">
+              <svg style="width:19px;height:19px;display:inline;margin-right:10px;" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+              </svg>
+              Article Options
+            </div>
+            <div class="checkbox-wrapper">
+              <input type="checkbox" name="featured" id="featuredCheckbox" />
+              <label for="featuredCheckbox">
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>Featured Article</label>
+            </div>
           </div>
           
           <div id="formError" class="error-message"></div>
           
           <div class="form-actions">
             <button type="button" id="cancelFormBtn">Cancel</button>
-            <button type="submit" id="submitFormBtn">💾 Save Article</button>
+            <button type="submit" id="submitFormBtn">
+              <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17,21 17,13 7,13 7,21"/>
+                <polyline points="7,3 7,8 15,8"/>
+              </svg>Save Article</button>
           </div>
         </form>
       </div>
@@ -128,13 +232,80 @@ document.addEventListener('DOMContentLoaded', function() {
       triggerFileBtn.addEventListener('click', () => fileInput.click());
     }
 
-    // Image URL validation
+    // Update image preview function
+    function updateImagePreview(url = '') {
+      const trimmedUrl = url.trim();
+      console.log('🖼️ Updating image preview with URL:', trimmedUrl);
+      
+      if (!trimmedUrl) {
+        // Show placeholder
+        imagePreview.innerHTML = `
+          <svg style="width:32px;height:32px;color:#9ca3af;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
+          <span style="font-size:10px;color:#9ca3af;margin-top:4px;">No preview image</span>`;
+        imagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
+        imagePreviewWrap.style.display = 'none';
+        return;
+      }
+      
+      // Create and configure image element
+      const img = document.createElement('img');
+      img.src = trimmedUrl;
+      img.alt = 'Preview';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:6px;';
+      
+      // Handle successful load
+      img.onload = function() {
+        console.log('✅ Image loaded successfully:', trimmedUrl);
+        imagePreview.innerHTML = '';
+        imagePreview.appendChild(img);
+        imagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;';
+        imagePreviewWrap.style.display = 'flex';
+      };
+      
+      // Handle load error
+      img.onerror = function() {
+        console.log('❌ Image failed to load:', trimmedUrl);
+        imagePreview.innerHTML = `
+          <svg style="width:32px;height:32px;color:#ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
+          <span style="font-size:10px;color:#ef4444;margin-top:4px;">Failed to load</span>`;
+        imagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #fca5a5;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fef2f2;';
+        imagePreviewWrap.style.display = 'flex';
+      };
+      
+      // Show loading state initially
+      imagePreview.innerHTML = `
+        <svg style="width:24px;height:24px;color:#8b5cf6;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 11-6.219-8.56"/>
+        </svg>
+        <span style="font-size:10px;color:#8b5cf6;margin-top:4px;">Loading...</span>`;
+      imagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
+      imagePreviewWrap.style.display = 'flex';
+    }
+    
+    // Expose function for edit form usage
+    window.updateImagePreview = updateImagePreview;
+
+    // Image URL validation and preview update
     if (imageUrlInput) {
+      // Listen for input changes to update preview in real-time
+      imageUrlInput.addEventListener('input', function() {
+        updateImagePreview(this.value);
+      });
+      
       imageUrlInput.addEventListener('blur', function() {
         const value = this.value.trim();
         if (value && (value.includes('example.com') || value.includes('placeholder.com') || (!value.startsWith('http') && !value.startsWith('/')))) {
           this.value = '/images/placeholder.svg';
           alert('Please enter a valid image URL (starting with http/https) or use the local upload feature');
+          updateImagePreview(this.value);
         }
       });
     }
@@ -143,9 +314,12 @@ document.addEventListener('DOMContentLoaded', function() {
       fileInput.addEventListener('change', async () => {
         if (!fileInput.files || fileInput.files.length === 0) return;
         const file = fileInput.files[0];
-        imagePreviewWrap.style.display = 'flex';
-        imagePreview.src = URL.createObjectURL(file);
+        
+        // Show preview immediately with uploaded file
+        const fileUrl = URL.createObjectURL(file);
+        updateImagePreview(fileUrl);
         imagePreviewText.textContent = 'Uploading...';
+        
         try {
           const fd = new FormData();
           fd.append('file', file);
@@ -157,11 +331,21 @@ document.addEventListener('DOMContentLoaded', function() {
           const resp = await fetch('/api/upload', { method: 'POST', body: fd });
           if (!resp.ok) throw new Error('Upload failed');
           const json = await resp.json();
-          if (imageUrlInput) imageUrlInput.value = json.url;
+          if (imageUrlInput) {
+            imageUrlInput.value = json.url;
+            // Update preview with server URL
+            updateImagePreview(json.url);
+          }
           imagePreviewText.textContent = `Uploaded: ${json.name}`;
+          
+          // Clean up blob URL
+          URL.revokeObjectURL(fileUrl);
         } catch (err) {
           console.error('Upload error', err);
           imagePreviewText.textContent = 'Upload failed, please try again';
+          // Show error state
+          updateImagePreview('');
+          URL.revokeObjectURL(fileUrl);
         }
       });
     }
@@ -231,7 +415,17 @@ document.addEventListener('DOMContentLoaded', function() {
       } finally {
         // 🔧 Always reset button state
         submitBtnEl.disabled = false;
-        submitBtnEl.textContent = isEditing ? '💾 Update Article' : '💾 Save Article';
+        submitBtnEl.innerHTML = isEditing ? `
+          <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17,21 17,13 7,13 7,21"/>
+            <polyline points="7,3 7,8 15,8"/>
+          </svg>Update Article` : `
+          <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17,21 17,13 7,13 7,21"/>
+            <polyline points="7,3 7,8 15,8"/>
+          </svg>Save Article`;
       }
     });
   }
@@ -294,10 +488,22 @@ document.addEventListener('DOMContentLoaded', function() {
     ensureFormModal();
     isEditing = false;
     editingId = null;
-    formTitleEl.textContent = 'New Article';
+    formTitleEl.innerHTML = `
+      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <path d="m9 9 3 3"/>
+      </svg>New Article`;
     formEl.reset();
     formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    // Initialize image preview for new form
+    if (window.updateImagePreview) {
+      window.updateImagePreview('');
+    }
   }
   
   function toDatetimeLocalValue(dateStr) {
@@ -305,19 +511,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return '';
     const pad = (n) => String(n).padStart(2, '0');
-    const yyyy = d.getFullYear();
     const mm = pad(d.getMonth() + 1);
     const dd = pad(d.getDate());
+    const yyyy = d.getFullYear();
     const hh = pad(d.getHours());
     const mi = pad(d.getMinutes());
-    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+    return `${mm}/${dd}/${yyyy} ${hh}:${mi}`;
   }
   
   async function openEditForm(article) {
     ensureFormModal();
     isEditing = true;
     editingId = article.id;
-    formTitleEl.textContent = '✏️ Edit Article';
+    formTitleEl.innerHTML = `
+      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <path d="m18 2 4 4-13 13H5v-4L18 2Z"/>
+        <path d="m9 7 6 6"/>
+      </svg>Edit Article`;
     formEl.reset();
     formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -347,6 +561,12 @@ document.addEventListener('DOMContentLoaded', function() {
       formEl.querySelector('[name="featured"]').checked = !!fullArticle.featured;
       const pd = formEl.querySelector('[name="publishDate"]');
       pd.value = toDatetimeLocalValue(fullArticle.publishDate);
+      
+      // Update image preview for editing
+      const imageInput = formEl.querySelector('[name="image"]');
+      if (imageInput && window.updateImagePreview) {
+        window.updateImagePreview(fullArticle.image || '');
+      }
       
     } catch (error) {
       console.error('Error loading article details:', error);
@@ -635,17 +855,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Event listeners for real-time updates
   window.addEventListener('articlePublished', () => {
-    console.log('📝 Article published event detected');
+    console.log('[Article] Article published event detected');
     window.forceRefreshAdminPanel();
   });
   
   window.addEventListener('articleUpdated', () => {
-    console.log('✏️ Article updated event detected'); 
+    console.log('[Article] Article updated event detected'); 
     window.forceRefreshAdminPanel();
   });
 
   window.addEventListener('articleDeleted', () => {
-    console.log('🗑️ Article deleted event detected');
+    console.log('[Article] Article deleted event detected');
     window.forceRefreshAdminPanel();
   });
 

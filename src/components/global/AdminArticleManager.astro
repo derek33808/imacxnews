@@ -69,6 +69,12 @@
     --glass-border: rgba(255, 255, 255, 0.2);
   }
 
+  /* 🔄 Keyframe Animations */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   @media (prefers-color-scheme: dark) {
     :root {
       --modal-bg: #0f172a;
@@ -1139,170 +1145,499 @@
     transform: rotate(90deg) scale(1.1);
   }
 
-  /* 🎨 Modern Form Styling */
+  /* 🎨 Mixed Floating Card Form Styling */
   .admin-manager-modal form {
-    padding: 32px;
+    padding: 32px 32px 64px 32px; /* 方案B：底部padding增加到64px */
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
     overflow-y: auto;
-    max-height: calc(90vh - 160px);
+    max-height: calc(95vh - 120px); /* 增加可用高度，减少顶部预留 */
+    min-height: auto; /* 确保能自适应内容 */
+    background: 
+      radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+      linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 0 0 20px 20px;
+    position: relative;
+  }
+
+  .admin-manager-modal form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(139, 92, 246, 0.4) 50%, 
+      transparent);
+    pointer-events: none;
   }
 
   .admin-manager-modal label {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+    font-family: ui-rounded, 'SF Pro Rounded', 'Inter Rounded', system-ui, -apple-system, sans-serif; /* 圆润字体 */
     font-weight: 600;
     color: #374151;
-    font-size: 0.9rem;
+    font-size: 1rem; /* 从0.9rem增大到1rem */
+    letter-spacing: -0.01em;
+    position: relative;
+    margin: 0; /* 移除默认边距 */
+    width: 100%; /* 确保标签占满宽度 */
+    min-height: auto; /* 确保能自适应内容 */
+    flex-shrink: 0; /* 防止在flex容器中被压缩 */
+  }
+
+  /* 优化标签内的SVG图标样式 */
+  .admin-manager-modal label svg {
+    vertical-align: text-top;
+    flex-shrink: 0;
+  }
+
+  /* 分类标题样式 - 微调尺寸 */
+  .admin-manager-modal .section-header {
+    display: flex;
+    align-items: center;
+    font-family: ui-rounded, 'SF Pro Rounded', 'Inter Rounded', system-ui, -apple-system, sans-serif;
+    font-weight: 800; /* 更粗字重 */
+    font-size: 1.04rem; /* 从1.3rem缩小20%到1.04rem */
+    color: #7c3aed; /* 更饱和的紫色 */
+    margin-bottom: 18px; /* 微调间距 */
+    padding-bottom: 10px; /* 微调内边距 */
+    border-bottom: 2px solid rgba(124, 58, 237, 0.2); /* 更粗的分割线 */
+    text-transform: uppercase;
+    letter-spacing: 0.04em; /* 增加字母间距 */
+  }
+
+  .admin-manager-modal .section-header svg {
+    flex-shrink: 0;
+    width: 19px; /* 从24px缩小20%到19px */
+    height: 19px;
+    margin-right: 10px; /* 微调间距 */
+  }
+
+  /* Mixed Floating Card Containers */
+  .admin-manager-modal .form-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px) saturate(150%);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 0; /* 确保卡片无额外边距 */
+    box-shadow: 
+      0 4px 16px rgba(139, 92, 246, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible; /* 改为visible确保内容不被截断 */
+    width: 100%; /* 确保卡片占满可用宽度 */
+    box-sizing: border-box; /* 包含边框和内边距在宽度内 */
+    min-height: auto; /* 确保能自适应内容高度 */
+    height: auto; /* 自动高度 */
+  }
+
+  .admin-manager-modal .form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(139, 92, 246, 0.6) 50%, 
+      transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .admin-manager-modal .form-section:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+      0 8px 24px rgba(139, 92, 246, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-color: rgba(139, 92, 246, 0.25);
+  }
+
+  .admin-manager-modal .form-section:hover::before {
+    opacity: 1;
   }
 
   @media (prefers-color-scheme: dark) {
+    .admin-manager-modal form {
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    }
+    
+    .admin-manager-modal form::before {
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(139, 92, 246, 0.6) 50%, 
+        transparent);
+    }
+    
+    .admin-manager-modal .form-section {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(139, 92, 246, 0.2);
+      box-shadow: 
+        0 4px 16px rgba(139, 92, 246, 0.15),
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    .admin-manager-modal .form-section:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      box-shadow: 
+        0 8px 24px rgba(139, 92, 246, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    
     .admin-manager-modal label {
-      color: #d1d5db;
+      color: #e2e8f0;
+    }
+    
+    .admin-manager-modal .section-header {
+      color: #a78bfa;
+      border-bottom-color: rgba(167, 139, 250, 0.25);
     }
   }
 
+  /* 🚀 Mixed Floating Input Fields */
   .admin-manager-modal input,
   .admin-manager-modal textarea,
   .admin-manager-modal select {
-    padding: 16px 20px;
+    padding: 14px 18px;
     border: 2px solid #e5e7eb;
-    border-radius: 16px;
-    font-size: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #ffffff;
-    box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.05),
-      0 1px 2px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.95); /* 提高背景不透明度确保可见 */
+    backdrop-filter: blur(8px);
     outline: none;
+    position: relative;
+    width: 100%; /* 确保输入框占满容器宽度 */
+    box-sizing: border-box; /* 包含padding和border在宽度内 */
+    min-height: auto; /* 确保最小高度自适应 */
+    box-shadow: 
+      0 2px 8px rgba(139, 92, 246, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .admin-manager-modal input::placeholder,
+  .admin-manager-modal textarea::placeholder {
+    color: #6b7280;
+    font-weight: 400;
+    transition: all 0.2s ease;
+  }
+
+  .admin-manager-modal input:hover,
+  .admin-manager-modal textarea:hover,
+  .admin-manager-modal select:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px rgba(139, 92, 246, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-color: rgba(139, 92, 246, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  .admin-manager-modal input:hover::placeholder,
+  .admin-manager-modal textarea:hover::placeholder {
+    color: #4b5563;
   }
 
   .admin-manager-modal input:focus,
   .admin-manager-modal textarea:focus,
   .admin-manager-modal select:focus {
-    border-color: #6366f1;
+    transform: translateY(-3px);
     box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.05),
-      0 0 0 4px rgba(99, 102, 241, 0.1),
-      0 4px 12px rgba(99, 102, 241, 0.15);
-    transform: translateY(-2px);
+      0 0 0 3px rgba(139, 92, 246, 0.15),
+      0 6px 20px rgba(139, 92, 246, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 1);
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .admin-manager-modal input:focus::placeholder,
+  .admin-manager-modal textarea:focus::placeholder {
+    color: #9ca3af;
+    opacity: 0.7;
+  }
+
+  /* 特别确保textarea有足够的显示空间 */
+  .admin-manager-modal textarea {
+    resize: vertical; /* 允许垂直调整大小 */
+    min-height: 80px; /* 最小高度确保可见 */
+    overflow-y: auto; /* 内容溢出时显示滚动条 */
+  }
+
+  /* Subtle Focus Effect for Labels */
+  .admin-manager-modal label:focus-within {
+    transform: translateY(-1px);
+  }
+
+  .admin-manager-modal label::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      rgba(139, 92, 246, 0.6), 
+      rgba(124, 58, 237, 0.6));
+    border-radius: 1px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+  }
+
+  .admin-manager-modal label:focus-within::after {
+    width: 80%;
   }
 
   @media (prefers-color-scheme: dark) {
     .admin-manager-modal input,
     .admin-manager-modal textarea,
     .admin-manager-modal select {
-      background: #374151;
-      border-color: #4b5563;
-      color: #f9fafb;
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(139, 92, 246, 0.2);
+      color: #f1f5f9;
+      box-shadow: 
+        0 2px 8px rgba(139, 92, 246, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    .admin-manager-modal input::placeholder,
+    .admin-manager-modal textarea::placeholder {
+      color: #6b7280;
+    }
+    
+    .admin-manager-modal input:hover,
+    .admin-manager-modal textarea:hover,
+    .admin-manager-modal select:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 
+        0 4px 12px rgba(139, 92, 246, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
     
     .admin-manager-modal input:focus,
     .admin-manager-modal textarea:focus,
     .admin-manager-modal select:focus {
-      border-color: #6366f1;
-      background: #4b5563;
+      background: rgba(30, 41, 59, 1);
+      border-color: rgba(139, 92, 246, 0.6);
+      box-shadow: 
+        0 0 0 3px rgba(139, 92, 246, 0.2),
+        0 6px 20px rgba(139, 92, 246, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
   }
 
-  /* 🎨 Modern Form Grid */
+  /* 🎨 Floating Grid Layout */
   .admin-manager-modal .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 28px;
+    align-items: start; /* 确保网格项目顶部对齐 */
+    width: 100%; /* 确保网格占满可用宽度 */
+  }
+
+  .admin-manager-modal .form-grid > label {
+    margin: 0; /* 移除网格内标签的边距 */
   }
 
   @media (max-width: 768px) {
     .admin-manager-modal .form-grid {
       grid-template-columns: 1fr;
+      gap: 20px;
     }
   }
 
-  /* 🚀 Modern Button Group */
+  /* 🚀 Mixed Floating Button Panel */
   .admin-manager-modal .form-actions {
     display: flex;
     gap: 16px;
     justify-content: flex-end;
-    padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
-    margin-top: 20px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .admin-manager-modal .form-actions {
-      border-top-color: #374151;
-    }
+    padding: 24px 0 0 0; /* 增加顶部padding */
+    margin: 16px 0 0 0; /* 增加顶部margin */
+    background: none;
+    border: none;
+    position: relative;
+    border-top: 1px solid rgba(139, 92, 246, 0.1); /* 添加分割线 */
   }
 
   .admin-manager-modal .form-actions button {
-    padding: 14px 28px;
-    border: none;
-    border-radius: 16px;
+    padding: 14px 24px;
+    border-radius: 12px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 120px;
+    border: none;
     position: relative;
     overflow: hidden;
-    min-width: 120px;
+    letter-spacing: -0.015em;
+  }
+
+  .admin-manager-modal .form-actions button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255, 255, 255, 0.2), 
+      transparent);
+    transition: left 0.5s ease;
+  }
+
+  .admin-manager-modal .form-actions button:hover::before {
+    left: 100%;
   }
 
   .admin-manager-modal .form-actions button[type="button"] {
     background: #f3f4f6;
     color: #374151;
-    border: 2px solid #e5e7eb;
+    box-shadow: 
+      0 2px 8px rgba(139, 92, 246, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.1);
   }
 
   .admin-manager-modal .form-actions button[type="button"]:hover {
     background: #e5e7eb;
-    border-color: #d1d5db;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+      0 4px 12px rgba(139, 92, 246, 0.1),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-color: rgba(139, 92, 246, 0.2);
   }
 
   .admin-manager-modal .form-actions button[type="submit"] {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: #3b82f6;
     color: white;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    box-shadow: 
+      0 2px 8px rgba(59, 130, 246, 0.25),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   .admin-manager-modal .form-actions button[type="submit"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.5);
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px rgba(59, 130, 246, 0.3),
+      0 2px 6px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .admin-manager-modal .form-actions button:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease;
+  }
+
+  .admin-manager-modal .form-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .admin-manager-modal .form-actions button:disabled::before {
+    display: none;
   }
 
   @media (prefers-color-scheme: dark) {
     .admin-manager-modal .form-actions button[type="button"] {
       background: #374151;
       color: #d1d5db;
-      border-color: #4b5563;
+      box-shadow: 
+        0 2px 8px rgba(139, 92, 246, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.15);
     }
     
     .admin-manager-modal .form-actions button[type="button"]:hover {
       background: #4b5563;
-      border-color: #6b7280;
+      box-shadow: 
+        0 4px 12px rgba(139, 92, 246, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-color: rgba(139, 92, 246, 0.25);
     }
   }
 
-  /* 🎨 Modern Checkbox */
+  /* 🎨 Mixed Floating Checkbox Panel */
   .admin-manager-modal .checkbox-wrapper {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-    border-radius: 16px;
-    border: 2px solid #e2e8f0;
-    transition: all 0.3s ease;
+    gap: 16px;
+    padding: 20px 24px;
+    margin: 0; /* 移除默认边距 */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    width: 100%; /* 确保占满可用宽度 */
+    box-sizing: border-box; /* 包含边框和内边距在宽度内 */
+    box-shadow: 
+      0 2px 8px rgba(139, 92, 246, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .admin-manager-modal .checkbox-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(139, 92, 246, 0.6) 50%, 
+      transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .admin-manager-modal .checkbox-wrapper:hover {
-    border-color: #6366f1;
-    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 
+      0 4px 12px rgba(139, 92, 246, 0.12),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .admin-manager-modal .checkbox-wrapper:hover::before {
+    opacity: 1;
   }
 
   .admin-manager-modal .checkbox-wrapper input[type="checkbox"] {
@@ -1311,43 +1646,116 @@
     margin: 0;
     cursor: pointer;
     border-radius: 6px;
+    accent-color: #8b5cf6;
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+  }
+
+  .admin-manager-modal .checkbox-wrapper input[type="checkbox"]:checked {
+    transform: scale(1.15);
+  }
+
+  .admin-manager-modal .checkbox-wrapper label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #374151;
+    margin: 0;
+    flex: 1;
+    cursor: pointer;
+    letter-spacing: -0.015em;
+    transition: all 0.2s ease;
+    display: flex; /* 添加flex布局支持SVG图标 */
+    align-items: center; /* 垂直居中对齐 */
+    flex-direction: row; /* 水平排列图标和文本 */
+    gap: 0; /* 移除gap，通过margin-right控制间距 */
+  }
+
+  .admin-manager-modal .checkbox-wrapper:hover label {
+    color: #8b5cf6;
   }
 
   @media (prefers-color-scheme: dark) {
     .admin-manager-modal .checkbox-wrapper {
-      background: linear-gradient(135deg, #374151, #4b5563);
-      border-color: #4b5563;
-      color: #d1d5db;
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(139, 92, 246, 0.2);
+      box-shadow: 
+        0 2px 8px rgba(139, 92, 246, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
     .admin-manager-modal .checkbox-wrapper:hover {
-      background: linear-gradient(135deg, #4b5563, #374151);
-      border-color: #6366f1;
+      background: rgba(30, 41, 59, 1);
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 
+        0 4px 12px rgba(139, 92, 246, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    
+    .admin-manager-modal .checkbox-wrapper label {
+      color: #e2e8f0;
+    }
+    
+    .admin-manager-modal .checkbox-wrapper:hover label {
+      color: #a78bfa;
     }
   }
 
-  /* 🎯 Error Message Modern */
+  /* 🎯 Mixed Error Panel */
   .admin-manager-modal .error-message {
-    background: linear-gradient(135deg, #fef2f2, #fee2e2);
-    border: 2px solid #fca5a5;
+    background: rgba(254, 242, 242, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(248, 113, 113, 0.3);
     color: #dc2626;
     padding: 16px 20px;
-    border-radius: 16px;
+    border-radius: 12px;
     display: none;
+    font-weight: 600;
+    font-size: 14px;
     position: relative;
     overflow: hidden;
-    font-weight: 500;
+    box-shadow: 
+      0 2px 8px rgba(220, 38, 38, 0.1),
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    animation: errorSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .admin-manager-modal .error-message::before {
     content: '';
     position: absolute;
-    left: 0;
     top: 0;
-    bottom: 0;
-    width: 4px;
-    background: #dc2626;
-    border-radius: 0 2px 2px 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(220, 38, 38, 0.6) 50%, 
+      transparent);
+  }
+
+  @keyframes errorSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .admin-manager-modal .error-message {
+      background: rgba(69, 10, 10, 0.95);
+      border-color: rgba(127, 29, 29, 0.4);
+      color: #fca5a5;
+      box-shadow: 
+        0 2px 8px rgba(220, 38, 38, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
   }
 
   /* 🎨 Modern Confirm Modal Styles */
@@ -1474,25 +1882,274 @@
     }
   }
 
-  /* 🎯 Elegant Scrollbar */
-  .admin-manager-modal::-webkit-scrollbar {
-    width: 8px;
+  /* 🖼️ Mixed Image Upload Panel */
+  .admin-manager-modal label:has(input[name="image"]) > div {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
   }
 
-  .admin-manager-modal::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
+  .admin-manager-modal input[name="image"] {
+    flex: 1;
   }
 
-  .admin-manager-modal::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 4px;
+  .admin-manager-modal button[id="triggerFileSelectBtn"] {
+    padding: 14px 20px !important;
+    background: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 
+      0 2px 8px rgba(16, 185, 129, 0.2),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   }
 
-  .admin-manager-modal::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  .admin-manager-modal button[id="triggerFileSelectBtn"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255, 255, 255, 0.2), 
+      transparent);
+    transition: left 0.5s ease;
+  }
+
+  .admin-manager-modal button[id="triggerFileSelectBtn"]:hover::before {
+    left: 100%;
+  }
+
+  .admin-manager-modal button[id="triggerFileSelectBtn"]:hover {
+    background: #059669 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.3),
+      0 2px 6px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .admin-manager-modal #imagePreviewWrap {
+    margin-top: 16px !important;
+    padding: 16px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(8px) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    display: flex !important;
+    gap: 16px !important;
+    align-items: center !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 
+      0 2px 8px rgba(16, 185, 129, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .admin-manager-modal #imagePreviewWrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(16, 185, 129, 0.6) 50%, 
+      transparent);
+  }
+
+  .admin-manager-modal #imagePreviewWrap:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.12),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+  }
+
+  .admin-manager-modal #imagePreview {
+    border-radius: 8px !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .admin-manager-modal #imagePreviewText {
+    color: #065f46 !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    letter-spacing: -0.015em !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .admin-manager-modal button[id="triggerFileSelectBtn"] {
+      background: #10b981 !important;
+      border-color: rgba(16, 185, 129, 0.3) !important;
+      box-shadow: 
+        0 2px 8px rgba(16, 185, 129, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    .admin-manager-modal button[id="triggerFileSelectBtn"]:hover {
+      background: #059669 !important;
+      box-shadow: 
+        0 4px 12px rgba(16, 185, 129, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .admin-manager-modal #imagePreviewWrap {
+      background: rgba(30, 41, 59, 0.95) !important;
+      border-color: rgba(16, 185, 129, 0.3) !important;
+      box-shadow: 
+        0 2px 8px rgba(16, 185, 129, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .admin-manager-modal #imagePreviewWrap:hover {
+      border-color: rgba(16, 185, 129, 0.4) !important;
+      box-shadow: 
+        0 4px 12px rgba(16, 185, 129, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    .admin-manager-modal #imagePreview {
+      border-color: rgba(16, 185, 129, 0.3) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .admin-manager-modal #imagePreviewText {
+      color: #10b981 !important;
+    }
+  }
+
+  /* 📱 Mixed Mobile Responsive Design */
+  @media (max-width: 768px) {
+    .admin-manager-modal form {
+      padding: 24px 24px 54px 24px; /* 移动端底部留白54px（按比例增加） */
+      gap: 24px;
+      max-height: calc(95vh - 80px); /* 移动端给更多高度空间 */
+    }
+    
+    .admin-manager-modal .form-section {
+      padding: 20px;
+      transform: none !important;
+      overflow: visible; /* 确保移动端也不截断内容 */
+      height: auto; /* 自动高度 */
+    }
+    
+    .admin-manager-modal .form-section:hover {
+      transform: translateY(-2px) !important;
+    }
+    
+    .admin-manager-modal label:has(input[name="image"]) > div {
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .admin-manager-modal button[id="triggerFileSelectBtn"] {
+      width: 100% !important;
+      padding: 16px 20px !important;
+    }
+    
+    .admin-manager-modal .form-actions {
+      flex-direction: column;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .admin-manager-modal .form-actions button {
+      width: 100%;
+      order: 2;
+      min-width: auto;
+    }
+    
+    .admin-manager-modal .form-actions button[type="submit"] {
+      order: 1;
+    }
+    
+    .admin-manager-modal #imagePreviewWrap {
+      flex-direction: column !important;
+      text-align: center !important;
+      gap: 12px !important;
+      margin-top: 12px !important;
+    }
+    
+    .admin-manager-modal #imagePreview {
+      width: 100% !important;
+      max-width: 200px !important;
+      height: auto !important;
+      margin: 0 auto !important;
+    }
+    
+    .admin-manager-modal input,
+    .admin-manager-modal textarea,
+    .admin-manager-modal select {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .admin-manager-modal .checkbox-wrapper {
+      padding: 16px 20px;
+    }
+  }
+
+  /* 🎯 方案B: 扁平现代风格滚动条 */
+  .admin-manager-modal form::-webkit-scrollbar {
+    width: 8px; /* 增加到8px */
+  }
+
+  .admin-manager-modal form::-webkit-scrollbar-track {
+    background: rgba(229, 231, 235, 0.5); /* 扁平背景 */
+    border-radius: 0; /* 无圆角，扁平风格 */
+  }
+
+  .admin-manager-modal form::-webkit-scrollbar-thumb {
+    background: #8b5cf6; /* 扁平单色，无渐变 */
+    border-radius: 0; /* 无圆角，扁平风格 */
+    border: none; /* 无边框 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 现代缓动 */
+    opacity: 0.7; /* 半透明效果 */
+  }
+
+  .admin-manager-modal form::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed; /* 悬浮时更深的紫色 */
+    opacity: 1; /* 悬浮时完全不透明 */
+    transform: scaleX(1.2); /* 悬浮时宽度增加 */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .admin-manager-modal form::-webkit-scrollbar-track {
+      background: rgba(55, 65, 81, 0.5); /* 暗色扁平背景 */
+    }
+    
+    .admin-manager-modal form::-webkit-scrollbar-thumb {
+      background: #a78bfa; /* 暗色模式下的紫色 */
+      opacity: 0.8;
+    }
+    
+    .admin-manager-modal form::-webkit-scrollbar-thumb:hover {
+      background: #8b5cf6; /* 悬浮时的颜色 */
+      opacity: 1;
+    }
   }
 </style>
 
 <!-- Admin Manager script externalized to fix CSP violations -->
+<!-- Script moved to /public/scripts/admin-manager.js -->
 <!-- Script moved to /public/scripts/admin-manager.js -->
