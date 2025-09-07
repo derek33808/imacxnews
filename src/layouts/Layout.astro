@@ -23,13 +23,29 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <meta name="description" content={description} />
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none';" />
     <title>{title}</title>
+    <style>
+      .app-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        overflow: visible;
+      }
+      .app-layout main {
+        flex: 1;
+        width: 100%;
+        overflow: visible;
+      }
+    </style>
   </head>
   <body>
-    <Header />
-    <main>
-      <slot />
-    </main>
-    <Footer />
+    <div class="app-layout">
+      <Header />
+      <main>
+        <slot />
+      </main>
+      <Footer />
+    </div>
     <LoginModal />
     <AdminArticleManager />
     

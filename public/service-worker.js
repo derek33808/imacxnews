@@ -1,6 +1,6 @@
-const CACHE_NAME = 'imacx-static-v1';
-const IMAGE_CACHE_NAME = 'imacx-images-v1';
-const API_CACHE_NAME = 'imacx-api-v1';
+const CACHE_NAME = 'imacx-static-v2';
+const IMAGE_CACHE_NAME = 'imacx-images-v2';
+const API_CACHE_NAME = 'imacx-api-v2';
 
 // 需要缓存的静态资源
 const STATIC_ASSETS = [

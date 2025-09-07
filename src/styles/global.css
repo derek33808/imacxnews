@@ -86,6 +86,8 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  height: 100%;
+  overflow: visible;
 }
 
 body {
@@ -93,6 +95,17 @@ body {
   color: var(--color-text);
   background-color: var(--color-background);
   line-height: 1.5;
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
+main {
+  width: 100%;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+  flex: 1;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -144,6 +157,9 @@ img {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-4);
+  min-height: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .visually-hidden {
