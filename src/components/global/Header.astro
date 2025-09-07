@@ -24,7 +24,6 @@ import ThemeToggle from './ThemeToggle.astro';
       <Navigation />
       
       <div class="header-actions">
-        <a href="/snake-game" class="game-link">Snake Game</a>
         <SearchBar />
         <div class="user-menu" id="userMenu">
           <button class="login-btn" id="loginBtn">Login</button>
@@ -123,21 +122,6 @@ import ThemeToggle from './ThemeToggle.astro';
     display: flex;
     align-items: center;
     gap: var(--space-3);
-  }
-
-
-  .game-link {
-    padding: var(--space-2) var(--space-4);
-    background-color: var(--color-primary);
-    color: white;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    transition: background-color var(--transition);
-  }
-
-  .game-link:hover {
-    background-color: var(--color-primary-light);
-    color: white;
   }
   
   .login-btn {
