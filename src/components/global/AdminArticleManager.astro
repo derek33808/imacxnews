@@ -994,13 +994,13 @@
     .article-item {
       flex-direction: column !important;
       text-align: left !important;
-      padding: 20px 16px 8px 16px !important; /* 大幅减少底部内边距，为按钮突出腾出空间 */
-      min-height: 460px !important; /* 进一步减少高度 */
+      padding: 20px 16px 20px 16px !important; /* 增加底部内边距，为按钮在卡片内部腾出空间 */
+      min-height: 500px !important; /* 增加高度适应按钮完全在内部 */
       height: auto !important;
       box-sizing: border-box !important;
       border-radius: 12px !important;
       margin-bottom: 20px !important;
-      overflow: visible !important; /* 确保按钮可以突出卡片边界 */
+      overflow: hidden !important; /* 确保按钮不会突出卡片边界 */
       display: flex !important;
       justify-content: space-between !important; /* 确保内容垂直分布 */
     }
@@ -1021,7 +1021,7 @@
       flex-direction: column !important;
       gap: 15px !important;
       min-height: 160px !important; /* 调整信息区域高度为按钮区域腾出空间 */
-      margin-bottom: 12px !important; /* 增加下边距为大幅上移的按钮提供合适的重叠空间 */
+      margin-bottom: 4px !important; /* 增加更多下边距，为深入卡片内部的按钮提供重叠空间 */
     }
     
     /* 手机版文章标题优化 */
@@ -1057,10 +1057,10 @@
       position: static !important; /* 改为静态定位，在正常文档流中 */
       top: auto !important;
       right: auto !important;
-      margin-top: -12px !important; /* 大幅增加负边距，让按钮向上移动更多 */
-      padding: 4px 16px 12px 16px !important; /* 增加底部内边距，让按钮突出卡片底部 */
+      margin-top: -12px !important; /* 进一步增加负边距，让按钮深入卡片内部 */
+      padding: 4px 16px 4px 16px !important; /* 移除底部内边距，确保按钮在卡片内部 */
       flex-wrap: nowrap !important; /* 不换行，强制并排 */
-      min-height: 52px !important; /* 略微增加高度以适应突出效果 */
+      min-height: 48px !important; /* 适当减少高度 */
       display: flex !important;
       align-items: center !important;
       flex-direction: row !important; /* 强制水平排列 */
@@ -1081,10 +1081,10 @@
       width: 100% !important;
       justify-content: center !important;
       gap: 16px !important; /* 保持按钮间距 */
-      margin-top: -12px !important; /* 大幅增加负边距，让按钮向上移动更多 */
-      padding: 4px 16px 12px 16px !important; /* 增加底部内边距，让按钮突出卡片底部 */
+      margin-top: -20px !important; /* 进一步增加负边距，让按钮深入卡片内部 */
+      padding: 4px 16px 4px 16px !important; /* 移除底部内边距，确保按钮在卡片内部 */
       flex-wrap: nowrap !important; /* 不换行，强制并排 */
-      min-height: 52px !important; /* 略微增加高度以适应突出效果 */
+      min-height: 48px !important; /* 适当减少高度 */
       display: flex !important;
       align-items: center !important;
       flex-direction: row !important; /* 强制水平排列 */
@@ -1102,18 +1102,19 @@
       flex: 1 !important; /* 平分可用空间 */
       max-width: 48% !important; /* 保持最大宽度 */
       min-width: 120px !important; /* 减少最小宽度让按钮更紧凑 */
-      padding: 10px 16px !important; /* 减少内边距让按钮更紧凑 */
+      padding: 12px 16px !important; /* 略微增加内边距让按钮更舒适 */
       font-size: 0.9rem !important; /* 减少字体大小 */
-      border-radius: 8px !important; /* 减少圆角 */
+      border-radius: 10px !important; /* 增加圆角让按钮更现代 */
       font-weight: 600 !important;
-      min-height: 40px !important; /* 减少按钮高度让它更紧凑 */
+      min-height: 44px !important; /* 增加按钮高度提升触摸体验 */
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       white-space: nowrap !important;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12) !important; /* 增强阴影让按钮在透明背景下突出 */
-      border: 1px solid rgba(209, 213, 219, 0.5) !important; /* 略微增强边框 */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* 增强阴影让按钮在卡片内更突出 */
+      border: 1px solid rgba(209, 213, 219, 0.6) !important; /* 增强边框可见性 */
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; /* 添加过渡效果 */
+      backdrop-filter: blur(8px) !important; /* 添加背景模糊效果 */
     }
 
     .translucent-btn svg {
@@ -2471,8 +2472,9 @@
       }
       
       .translucent-btn {
-        border-color: rgba(75, 85, 99, 0.6) !important; /* 在暗色模式下增强边框可见性 */
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important; /* 增强阴影在暗色背景下的可见性 */
+        border-color: rgba(75, 85, 99, 0.8) !important; /* 在暗色模式下进一步增强边框可见性 */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important; /* 增强阴影在暗色背景下的可见性 */
+        backdrop-filter: blur(8px) saturate(150%) !important; /* 在暗色模式下增强背景模糊效果 */
       }
       
       .translucent-btn.edit-btn {
