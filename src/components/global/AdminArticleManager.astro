@@ -918,11 +918,11 @@
   /* 📱 Responsive Design */
   @media (max-width: 768px) {
     .admin-manager-modal {
-      width: 98vw !important;
+      width: 100vw !important; /* 使用全屏宽度 */
       max-width: 100vw !important;
-      max-height: 98vh !important;
-      margin: 1vh 1vw !important;
-      border-radius: 8px !important;
+      max-height: 100vh !important; /* 使用全屏高度 */
+      margin: 0 !important; /* 去除所有边距 */
+      border-radius: 0 !important; /* 去除圆角获取最大空间 */
     }
 
     .modal-header {
@@ -986,28 +986,29 @@
 
     .articles-list {
       padding: 16px 12px !important;
-      gap: 20px !important;
-      max-height: calc(100vh - 140px) !important;
+      gap: 24px !important; /* 增加卡片间距 */
+      max-height: calc(100vh - 120px) !important; /* 减少header高度获取更多空间 */
       overflow-y: auto !important;
     }
 
     .article-item {
       flex-direction: column !important;
       text-align: left !important;
-      padding: 20px 16px !important;
-      min-height: 450px !important; /* 大幅增加高度确保按钮可见 */
+      padding: 20px 16px 8px 16px !important; /* 大幅减少底部内边距，为按钮突出腾出空间 */
+      min-height: 460px !important; /* 进一步减少高度 */
       height: auto !important;
       box-sizing: border-box !important;
       border-radius: 12px !important;
       margin-bottom: 20px !important;
-      overflow: visible !important;
+      overflow: visible !important; /* 确保按钮可以突出卡片边界 */
       display: flex !important;
+      justify-content: space-between !important; /* 确保内容垂直分布 */
     }
 
     .article-thumbnail {
       width: 100% !important;
-      height: 200px !important;
-      margin-bottom: 16px !important;
+      height: 220px !important; /* 略微增加缩略图高度 */
+      margin-bottom: 20px !important;
       border-radius: 8px !important;
       flex-shrink: 0 !important;
     }
@@ -1018,9 +1019,9 @@
       flex: 1 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 12px !important;
-      min-height: 150px !important; /* 增加信息区域高度 */
-      margin-bottom: 16px !important;
+      gap: 15px !important;
+      min-height: 160px !important; /* 调整信息区域高度为按钮区域腾出空间 */
+      margin-bottom: 12px !important; /* 增加下边距为大幅上移的按钮提供合适的重叠空间 */
     }
     
     /* 手机版文章标题优化 */
@@ -1052,64 +1053,72 @@
     .article-actions {
       width: 100% !important;
       justify-content: center !important;
-      gap: 16px !important;
-      position: relative !important;
+      gap: 16px !important; /* 保持按钮间距 */
+      position: static !important; /* 改为静态定位，在正常文档流中 */
       top: auto !important;
       right: auto !important;
-      margin-top: auto !important; /* 使用auto推到底部 */
-      padding: 16px 0 !important;
-      flex-wrap: wrap !important;
-      min-height: 80px !important; /* 增加按钮区域高度 */
+      margin-top: -12px !important; /* 大幅增加负边距，让按钮向上移动更多 */
+      padding: 4px 16px 12px 16px !important; /* 增加底部内边距，让按钮突出卡片底部 */
+      flex-wrap: nowrap !important; /* 不换行，强制并排 */
+      min-height: 52px !important; /* 略微增加高度以适应突出效果 */
       display: flex !important;
       align-items: center !important;
-      background: rgba(248, 250, 252, 0.8) !important; /* 添加轻微背景色突出按钮区域 */
-      border-radius: 8px !important;
-      margin-left: -16px !important;
-      margin-right: -16px !important;
+      flex-direction: row !important; /* 强制水平排列 */
+      background: transparent !important; /* 移除背景，完全融入卡片 */
+      border-radius: 0 !important; /* 移除圆角 */
+      border: none !important; /* 移除边框，消除视觉分离 */
+      box-shadow: none !important; /* 移除阴影，完全融入 */
+      margin-left: 0 !important; /* 重置左右边距 */
+      margin-right: 0 !important;
       padding-left: 16px !important;
       padding-right: 16px !important;
     }
 
     .article-actions-floating {
-      position: relative !important;
+      position: static !important; /* 改为静态定位，在正常文档流中 */
       top: auto !important;
       right: auto !important;
       width: 100% !important;
       justify-content: center !important;
-      gap: 16px !important;
-      margin-top: auto !important; /* 使用auto推到底部 */
-      padding: 16px 0 !important;
-      flex-wrap: wrap !important;
-      min-height: 80px !important; /* 增加按钮区域高度 */
+      gap: 16px !important; /* 保持按钮间距 */
+      margin-top: -12px !important; /* 大幅增加负边距，让按钮向上移动更多 */
+      padding: 4px 16px 12px 16px !important; /* 增加底部内边距，让按钮突出卡片底部 */
+      flex-wrap: nowrap !important; /* 不换行，强制并排 */
+      min-height: 52px !important; /* 略微增加高度以适应突出效果 */
       display: flex !important;
       align-items: center !important;
-      background: rgba(248, 250, 252, 0.8) !important; /* 添加轻微背景色突出按钮区域 */
-      border-radius: 8px !important;
-      margin-left: -16px !important;
-      margin-right: -16px !important;
+      flex-direction: row !important; /* 强制水平排列 */
+      background: transparent !important; /* 移除背景，完全融入卡片 */
+      border-radius: 0 !important; /* 移除圆角 */
+      border: none !important; /* 移除边框，消除视觉分离 */
+      box-shadow: none !important; /* 移除阴影，完全融入 */
+      margin-left: 0 !important; /* 重置左右边距 */
+      margin-right: 0 !important;
       padding-left: 16px !important;
       padding-right: 16px !important;
     }
 
     .translucent-btn {
-      flex: 1 !important;
-      max-width: 180px !important; /* 进一步增大按钮宽度 */
-      min-width: 140px !important; /* 增大最小宽度 */
-      padding: 18px 24px !important; /* 增大内边距 */
-      font-size: 1rem !important; /* 增大字体 */
-      border-radius: 10px !important;
+      flex: 1 !important; /* 平分可用空间 */
+      max-width: 48% !important; /* 保持最大宽度 */
+      min-width: 120px !important; /* 减少最小宽度让按钮更紧凑 */
+      padding: 10px 16px !important; /* 减少内边距让按钮更紧凑 */
+      font-size: 0.9rem !important; /* 减少字体大小 */
+      border-radius: 8px !important; /* 减少圆角 */
       font-weight: 600 !important;
-      min-height: 52px !important; /* 增大按钮高度 */
+      min-height: 40px !important; /* 减少按钮高度让它更紧凑 */
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       white-space: nowrap !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; /* 添加阴影突出按钮 */
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12) !important; /* 增强阴影让按钮在透明背景下突出 */
+      border: 1px solid rgba(209, 213, 219, 0.5) !important; /* 略微增强边框 */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; /* 添加过渡效果 */
     }
 
     .translucent-btn svg {
-      width: 18px;
-      height: 18px;
+      width: 16px !important; /* 减少图标尺寸匹配紧凑按钮 */
+      height: 16px !important;
     }
     
     .translucent-btn .btn-text {
@@ -2451,6 +2460,37 @@
       .admin-manager-modal .form-actions {
         background: rgba(30, 41, 59, 0.98) !important;
         border-top-color: rgba(139, 92, 246, 0.3) !important;
+      }
+      
+      /* 暗色模式下的按钮区域样式 */
+      .article-actions,
+      .article-actions-floating {
+        background: transparent !important; /* 保持透明背景 */
+        border: none !important; /* 移除边框 */
+        box-shadow: none !important; /* 移除阴影 */
+      }
+      
+      .translucent-btn {
+        border-color: rgba(75, 85, 99, 0.6) !important; /* 在暗色模式下增强边框可见性 */
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important; /* 增强阴影在暗色背景下的可见性 */
+      }
+      
+      .translucent-btn.edit-btn {
+        background: #3b82f6 !important;
+        color: #ffffff !important;
+      }
+      
+      .translucent-btn.edit-btn:hover {
+        background: rgba(59, 130, 246, 0.9) !important;
+      }
+      
+      .translucent-btn.delete-btn {
+        background: rgba(239, 68, 68, 0.8) !important;
+        color: #ffffff !important;
+      }
+      
+      .translucent-btn.delete-btn:hover {
+        background: rgba(239, 68, 68, 0.9) !important;
       }
     }
   }
