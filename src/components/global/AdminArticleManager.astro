@@ -995,12 +995,13 @@
       flex-direction: column !important;
       text-align: left !important;
       padding: 20px 16px !important;
-      min-height: 320px !important;
+      min-height: 450px !important; /* 大幅增加高度确保按钮可见 */
       height: auto !important;
       box-sizing: border-box !important;
       border-radius: 12px !important;
-      margin-bottom: 16px !important;
+      margin-bottom: 20px !important;
       overflow: visible !important;
+      display: flex !important;
     }
 
     .article-thumbnail {
@@ -1018,7 +1019,8 @@
       display: flex !important;
       flex-direction: column !important;
       gap: 12px !important;
-      min-height: 120px !important;
+      min-height: 150px !important; /* 增加信息区域高度 */
+      margin-bottom: 16px !important;
     }
     
     /* 手机版文章标题优化 */
@@ -1050,14 +1052,22 @@
     .article-actions {
       width: 100% !important;
       justify-content: center !important;
-      gap: 12px !important;
+      gap: 16px !important;
       position: relative !important;
       top: auto !important;
       right: auto !important;
-      margin-top: 16px !important;
-      padding: 12px 0 !important;
+      margin-top: auto !important; /* 使用auto推到底部 */
+      padding: 16px 0 !important;
       flex-wrap: wrap !important;
-      min-height: 60px !important;
+      min-height: 80px !important; /* 增加按钮区域高度 */
+      display: flex !important;
+      align-items: center !important;
+      background: rgba(248, 250, 252, 0.8) !important; /* 添加轻微背景色突出按钮区域 */
+      border-radius: 8px !important;
+      margin-left: -16px !important;
+      margin-right: -16px !important;
+      padding-left: 16px !important;
+      padding-right: 16px !important;
     }
 
     .article-actions-floating {
@@ -1066,26 +1076,35 @@
       right: auto !important;
       width: 100% !important;
       justify-content: center !important;
-      gap: 12px !important;
-      margin-top: 16px !important;
-      padding: 12px 0 !important;
+      gap: 16px !important;
+      margin-top: auto !important; /* 使用auto推到底部 */
+      padding: 16px 0 !important;
       flex-wrap: wrap !important;
-      min-height: 60px !important;
+      min-height: 80px !important; /* 增加按钮区域高度 */
+      display: flex !important;
+      align-items: center !important;
+      background: rgba(248, 250, 252, 0.8) !important; /* 添加轻微背景色突出按钮区域 */
+      border-radius: 8px !important;
+      margin-left: -16px !important;
+      margin-right: -16px !important;
+      padding-left: 16px !important;
+      padding-right: 16px !important;
     }
 
     .translucent-btn {
       flex: 1 !important;
-      max-width: 160px !important;
-      min-width: 120px !important;
-      padding: 16px 20px !important;
-      font-size: 0.9rem !important;
+      max-width: 180px !important; /* 进一步增大按钮宽度 */
+      min-width: 140px !important; /* 增大最小宽度 */
+      padding: 18px 24px !important; /* 增大内边距 */
+      font-size: 1rem !important; /* 增大字体 */
       border-radius: 10px !important;
       font-weight: 600 !important;
-      min-height: 48px !important;
+      min-height: 52px !important; /* 增大按钮高度 */
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       white-space: nowrap !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; /* 添加阴影突出按钮 */
     }
 
     .translucent-btn svg {
