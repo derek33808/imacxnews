@@ -453,9 +453,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (!resp.ok) {
           let msg = 'Failed to save article.';
-          try { const j = await resp.json(); if (j && j.error) msg = j.error; } catch {}
-          if (resp.status === 401 || resp.status === 403) msg = 'Please login as admin first.';
-          throw new Error(msg);
+          let isAuthError = false;
+          try { 
+            const j = await resp.json(); 
+            if (j && j.error) msg = j.error; 
+          } catch {}
+          
+          if (resp.status === 401 || resp.status === 403) {
+            msg = 'Authentication failed. Please login as admin again.';
+            isAuthError = true;
+          }
+          
+          const error = new Error(msg);
+          error.isAuthError = isAuthError;
+          throw error;
         }
         
         alert(`Article ${isEditing ? 'updated' : 'created'} successfully!`);
@@ -477,8 +488,38 @@ document.addEventListener('DOMContentLoaded', function() {
         errEl.style.display = 'block';
         
         // Show specific error for authentication issues
-        if (err.message.includes('login')) {
-          errEl.innerHTML = '🔒 Please <a href="#" onclick="document.getElementById(\'adminManageBtn\').click(); return false;">login as admin</a> first.';
+        if (err.isAuthError || err.message.includes('login') || err.message.includes('Authentication')) {
+          errEl.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+              <div>🔒 Authentication failed. Please login again to save articles.</div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="(function(){console.log('Opening login modal...'); try { if(window.openLoginModal) { window.openLoginModal(); } else { console.error('openLoginModal not found'); alert('Login modal not available, refreshing page...'); window.location.reload(); } } catch(e) { console.error('Login modal error:', e); window.location.reload(); }})();" style="
+                  padding: 8px 16px; 
+                  background: #3b82f6; 
+                  color: white; 
+                  border: none; 
+                  border-radius: 6px; 
+                  font-size: 12px; 
+                  cursor: pointer;
+                  transition: background 0.2s ease;
+                " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                  🔑 Login Now
+                </button>
+                <button type="button" onclick="(function(){console.log('Refreshing page...'); window.location.reload();})();" style="
+                  padding: 8px 16px; 
+                  background: #6b7280; 
+                  color: white; 
+                  border: none; 
+                  border-radius: 6px; 
+                  font-size: 12px; 
+                  cursor: pointer;
+                  transition: background 0.2s ease;
+                " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          `;
         }
       } finally {
         // 🔧 Always reset button state
@@ -608,7 +649,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const response = await fetch(`/api/articles/${article.id}`, {
         credentials: 'include'  // 🔑 Include cookies for authentication
       });
-      if (!response.ok) throw new Error('Failed to fetch article details');
+      
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          const choice = confirm('Authentication failed. You need to login again to edit articles.\n\nClick OK to open login window, or Cancel to refresh the page.');
+          if (choice) {
+            if (window.openLoginModal) {
+              window.openLoginModal();
+            } else {
+              window.location.reload();
+            }
+          } else {
+            window.location.reload();
+          }
+          return;
+        }
+        throw new Error('Failed to fetch article details');
+      }
+      
       const fullArticle = await response.json();
       
       // Fill form fields
@@ -637,6 +695,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Debug authentication function
+  window.debugAuth = async function() {
+    try {
+      const response = await fetch('/api/auth/status', {
+        credentials: 'include'
+      });
+      const status = await response.json();
+      
+      console.group('🔍 Authentication Status Debug');
+      console.log('Authenticated:', status.authenticated);
+      console.log('User:', status.user);
+      console.log('Debug Info:', status.debug);
+      console.groupEnd();
+      
+      const message = status.authenticated 
+        ? `✅ Authenticated as ${status.user.username} (${status.user.role})`
+        : `❌ Not authenticated\n\nDebug info:\n- Auth header: ${status.debug?.hasAuthHeader ? 'Yes' : 'No'}\n- Cookie: ${status.debug?.hasCookie ? 'Yes' : 'No'}\n- JWT Secret: ${status.debug?.jwtSecretConfigured ? 'Configured' : 'Missing'}`;
+      
+      alert(message);
+      return status;
+    } catch (error) {
+      console.error('Debug auth error:', error);
+      alert('Failed to check authentication status');
+      return null;
+    }
+  };
+
   // Open admin manager modal
   window.openAdminManagerModal = function() {
     if (adminManagerModal) {
@@ -649,6 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="loading-state">
             <div class="loading-spinner"></div>
             <p>Loading articles...</p>
+            <button onclick="window.debugAuth()" style="margin-top: 16px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Debug Auth</button>
           </div>
         `;
       }
@@ -706,7 +792,28 @@ document.addEventListener('DOMContentLoaded', function() {
       const response = await fetch('/api/articles', {
         credentials: 'include'  // 🔑 Include cookies for authentication
       });
-      if (!response.ok) throw new Error('Failed to load articles');
+      
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          articlesList.innerHTML = `
+            <div class="error-state">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>Authentication failed</p>
+              <p style="font-size: 14px; color: #6b7280; margin: 8px 0;">You need to login again to manage articles</p>
+              <div style="display: flex; gap: 8px; justify-content: center; margin-top: 16px;">
+                <button onclick="(function(){console.log('Opening login modal...'); try { if(window.openLoginModal) { window.openLoginModal(); } else { console.error('openLoginModal not found'); alert('Login modal not available, refreshing page...'); window.location.reload(); } } catch(e) { console.error('Login modal error:', e); window.location.reload(); }})();" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">🔑 Login Now</button>
+                <button onclick="(function(){console.log('Refreshing page...'); window.location.reload();})();" class="retry-btn">Refresh Page</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        throw new Error('Failed to load articles');
+      }
       const data = await response.json();
       
       // 🚀 Handle both old format (array) and new format (object with articles property)
@@ -772,7 +879,16 @@ document.addEventListener('DOMContentLoaded', function() {
       let detail = '';
       try { const data = await r.json(); detail = data?.detail || data?.error || ''; } catch {}
       if (r.status === 403 || r.status === 401) {
-        alert('Please login as admin first.');
+        const choice = confirm('Authentication failed. You need to login again to delete articles.\n\nClick OK to open login window, or Cancel to refresh the page.');
+        if (choice) {
+          if (window.openLoginModal) {
+            window.openLoginModal();
+          } else {
+            window.location.reload();
+          }
+        } else {
+          window.location.reload();
+        }
       } else if (r.status === 503) {
         alert(detail || 'Database disabled in preview, delete is unavailable.');
       } else {
@@ -928,6 +1044,59 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('articleDeleted', () => {
     console.log('[Article] Article deleted event detected');
     window.forceRefreshAdminPanel();
+  });
+
+  // 🔑 Listen for login success to refresh admin panel
+  window.addEventListener('userLoggedIn', (event) => {
+    console.log('[Auth] User logged in successfully:', event.detail?.username);
+    
+    // Clear any auth-related errors in all forms
+    const allErrorEls = document.querySelectorAll('.error-message, #formError');
+    allErrorEls.forEach(errEl => {
+      if (errEl) {
+        errEl.style.display = 'none';
+        errEl.textContent = '';
+        errEl.innerHTML = '';
+      }
+    });
+    
+    // Update login status in localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('username', event.detail?.username || 'Admin');
+    
+    // Refresh admin panel if it's open
+    if (adminManagerModal && adminManagerModal.classList.contains('active')) {
+      console.log('[Auth] Refreshing admin panel after login...');
+      
+      // Show success message temporarily
+      if (articlesList) {
+        articlesList.innerHTML = `
+          <div class="loading-state" style="color: #10b981;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p>✅ Login successful! Reloading articles...</p>
+          </div>
+        `;
+      }
+      
+      // Force refresh the articles list after a short delay
+      setTimeout(() => {
+        window.forceRefreshAdminPanel();
+      }, 800);
+      
+      // Also update header login status
+      if (window.updateHeaderForLoggedInUser) {
+        window.updateHeaderForLoggedInUser();
+      }
+    }
+    
+    // Show admin manage button if user is admin
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    if (adminManageBtn && (event.detail?.username === 'admin' || event.detail?.username === 'Admin')) {
+      adminManageBtn.style.display = 'flex';
+    }
   });
 
   // Initialize if opened via URL or other means

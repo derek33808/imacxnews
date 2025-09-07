@@ -56,7 +56,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 5000; /* 确保在所有其他模态框之上 */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -290,10 +290,32 @@
       // Success UI feedback
       loginForm.style.display = 'none';
       loginSuccess.style.display = 'block';
-      // Small delay then reload to ensure cookie is set and UI updates
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
+      
+      // Dispatch login success event for admin panel
+      window.dispatchEvent(new CustomEvent('userLoggedIn', {
+        detail: { username: user?.username || username }
+      }));
+      
+      // Check if admin panel is open for smarter refresh handling
+      const adminPanelOpen = document.querySelector('.admin-manager-modal-overlay.active');
+      
+      if (adminPanelOpen) {
+        // If admin panel is open, close login modal and let the event handler refresh the panel
+        setTimeout(() => {
+          closeLoginModal();
+          console.log('🔄 Admin panel detected, refreshing panel instead of full page');
+        }, 1000);
+        
+        // Also refresh page as backup after longer delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else {
+        // Normal case: refresh the page
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      }
     } catch (err) {
       console.error('Login error', err);
       alert('Network error. Please try again.');

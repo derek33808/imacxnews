@@ -1720,7 +1720,13 @@
     font-weight: 600;
     font-size: 14px;
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* 改为visible确保内容不被截断 */
+    min-height: 60px; /* 确保有足够的最小高度 */
+    max-height: none; /* 移除高度限制 */
+    white-space: normal; /* 允许换行 */
+    word-wrap: break-word; /* 长单词换行 */
+    line-height: 1.5; /* 增加行高提升可读性 */
+    z-index: 1000; /* 确保错误消息在最顶层 */
     box-shadow: 
       0 2px 8px rgba(220, 38, 38, 0.1),
       0 1px 3px rgba(0, 0, 0, 0.05),
