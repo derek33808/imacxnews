@@ -57,16 +57,26 @@ const description = categoryInfo.description;
         </div>
       ))}
     </div>
+  </div>
 </Layout>
 
 <!-- Client-side script disabled to prevent content jumping -->
 <!-- Script moved to external file if needed in future -->
 
 <style>
+  /* 配合 Layout.astro 的 Sticky Footer 布局 */
+  .container {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* 让容器填充 main 的全部空间，配合 Footer margin-top: auto */
+    /* 移除固定min-height，让JavaScript动态处理布局 */
+  }
+
   .category-header {
     margin: var(--space-8) 0;
     padding-bottom: var(--space-4);
     border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0; /* 防止头部区域被压缩 */
   }
   
   .category-title {
@@ -99,6 +109,13 @@ const description = categoryInfo.description;
     gap: var(--space-8);
     margin-top: var(--space-6);
     width: 100%;
+    flex: 1; /* 关键：让文章列表区域填充剩余空间 */
+    /* 移除固定min-height，让JavaScript动态处理sticky footer */
+  }
+
+  /* 简化：只设置当前页面的特定样式 */
+  .articles-list {
+    flex: 1; /* 关键：让文章列表填充剩余空间 */
   }
 
   :global(#categoryArticlesList .large-article-card) {
@@ -211,8 +228,21 @@ const description = categoryInfo.description;
   }
   
   @media (max-width: 768px) {
+    .container {
+      flex: 1; /* 移动端保持一致的 flex 设置 */
+      min-height: calc(100vh - 80px); /* 移动端调整，考虑header可能更高 */
+    }
+    
+    .category-header {
+      margin: var(--space-6) 0; /* 移动端减少间距 */
+    }
+    
     .category-title {
       font-size: 2rem;
+    }
+    
+    .articles-list {
+      min-height: 300px; /* 移动端适当的最小高度 */
     }
     
     :global(#categoryArticlesList .article-title) {
@@ -429,4 +459,144 @@ const description = categoryInfo.description;
     localStorage.removeItem('category_articles_cache');
     localStorage.removeItem('category_articles_cache_time');
   });
+</script>
+
+<!-- 智能自动Footer位置调节 -->
+<script is:inline>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 启动智能Footer自动定位系统...');
+  
+  function autoPositionFooter() {
+    // 获取关键元素
+    const footer = document.querySelector('.site-footer');
+    const articlesList = document.querySelector('.articles-list');
+    const articles = document.querySelectorAll('.articles-list .large-article-card');
+    
+    if (!footer || !articlesList || articles.length === 0) {
+      console.warn('❌ 找不到必要元素:', { footer: !!footer, articlesList: !!articlesList, articles: articles.length });
+      return;
+    }
+    
+    console.log('📊 找到', articles.length, '篇文章');
+    
+    // 重置Footer的margin-top，让我们重新计算
+    footer.style.marginTop = '0px';
+    footer.style.position = 'relative';
+    footer.style.clear = 'both';
+    footer.style.display = 'block';
+    
+    // 等待样式重置完成，然后计算位置
+    setTimeout(function() {
+      // 获取最后一篇文章的位置
+      const lastArticle = articles[articles.length - 1];
+      const lastArticleRect = lastArticle.getBoundingClientRect();
+      const currentScrollY = window.scrollY;
+      
+      // 计算最后一篇文章在文档中的绝对位置
+      const lastArticleBottom = lastArticleRect.bottom + currentScrollY;
+      
+      // 获取文章列表容器的底部位置
+      const articlesListRect = articlesList.getBoundingClientRect();
+      const articlesListBottom = articlesListRect.bottom + currentScrollY;
+      
+      // 获取Footer当前的位置
+      const footerRect = footer.getBoundingClientRect();
+      const footerTop = footerRect.top + currentScrollY;
+      
+      console.log('📏 位置分析:');
+      console.log('  最后文章底部:', Math.round(lastArticleBottom), 'px');
+      console.log('  文章列表底部:', Math.round(articlesListBottom), 'px');
+      console.log('  Footer当前顶部:', Math.round(footerTop), 'px');
+      
+      // 计算理想的Footer位置（最后一篇文章下方60px）
+      const idealFooterTop = Math.max(lastArticleBottom, articlesListBottom) + 60;
+      
+      // 计算需要的margin-top
+      const requiredMarginTop = Math.max(0, idealFooterTop - footerTop);
+      
+      console.log('🎯 计算结果:');
+      console.log('  理想Footer位置:', Math.round(idealFooterTop), 'px');
+      console.log('  需要的margin-top:', Math.round(requiredMarginTop), 'px');
+      
+      // 应用计算出的间距
+      if (requiredMarginTop > 0) {
+        footer.style.marginTop = Math.round(requiredMarginTop) + 'px';
+        console.log('✅ Footer已自动调整到最后文章下方60px');
+      } else {
+        footer.style.marginTop = '60px'; // 最小间距
+        console.log('✅ Footer使用最小间距60px');
+      }
+      
+      // 验证最终位置
+      setTimeout(function() {
+        const finalFooterRect = footer.getBoundingClientRect();
+        const finalFooterTop = finalFooterRect.top + window.scrollY;
+        const finalGap = finalFooterTop - Math.max(lastArticleBottom, articlesListBottom);
+        
+        console.log('🔍 最终验证:');
+        console.log('  Footer最终位置:', Math.round(finalFooterTop), 'px');
+        console.log('  与最后文章间距:', Math.round(finalGap), 'px');
+        
+        if (finalGap >= 40 && finalGap <= 100) {
+          console.log('🎉 完美！Footer位置自动调整成功');
+        } else if (finalGap >= 0) {
+          console.log('✅ Footer位置正常，间距稍有偏差');
+        } else {
+          console.log('⚠️ Footer位置可能有重叠，需要调整');
+        }
+      }, 100);
+      
+    }, 100);
+  }
+  
+  // 页面加载完成后执行
+  autoPositionFooter();
+  
+  // 监听窗口大小变化，重新调整
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      console.log('📐 窗口大小改变，重新调整Footer位置...');
+      autoPositionFooter();
+    }, 300);
+  });
+  
+  // 监听图片加载完成，重新调整（因为图片加载可能改变文章高度）
+  const images = document.querySelectorAll('.articles-list img');
+  let loadedImages = 0;
+  const totalImages = images.length;
+  
+  if (totalImages > 0) {
+    images.forEach(function(img) {
+      if (img.complete) {
+        loadedImages++;
+      } else {
+        img.addEventListener('load', function() {
+          loadedImages++;
+          if (loadedImages === totalImages) {
+            console.log('🖼️ 所有图片加载完成，重新调整Footer位置...');
+            setTimeout(autoPositionFooter, 200);
+          }
+        });
+        
+        img.addEventListener('error', function() {
+          loadedImages++;
+          if (loadedImages === totalImages) {
+            console.log('🖼️ 图片加载完成（含错误），重新调整Footer位置...');
+            setTimeout(autoPositionFooter, 200);
+          }
+        });
+      }
+    });
+    
+    // 如果所有图片都已经加载完成
+    if (loadedImages === totalImages) {
+      console.log('🖼️ 图片已预加载，延迟调整Footer位置...');
+      setTimeout(autoPositionFooter, 500);
+    }
+  }
+  
+  console.log('🎯 智能Footer定位系统已启动');
+});
 </script>

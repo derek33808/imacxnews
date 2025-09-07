@@ -25,14 +25,17 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <title>{title}</title>
     <style>
       .app-layout {
-        min-height: 100vh;
+        min-height: 100vh; /* 最小高度，避免强制限制内容 */
         display: flex;
         flex-direction: column;
         width: 100%;
-        overflow: visible;
+        overflow: visible; /* 使用页面自身滚动，避免子滚动容器 */
+        flex: 1; /* 确保app-layout填满body */
       }
       .app-layout main {
-        flex: 1;
+        display: flex; /* 让 main 成为弹性列容器 */
+        flex-direction: column;
+        flex: 1; /* 关键：让main占据剩余空间 */
         width: 100%;
         overflow: visible;
       }
