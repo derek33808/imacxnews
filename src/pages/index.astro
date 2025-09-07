@@ -587,19 +587,7 @@ const isLoading = true;
     transition: background-color var(--transition);
   }
   
-  :global(.category-tag:hover) {
-    background-color: var(--color-primary-dark);
-  }
-  
-  :global(.category-tag.TodayNews) {
-    background-color: rgba(59, 130, 246, 0.8);
-    color: white;
-  }
-  
-  :global(.category-tag.PastNews) {
-    background-color: rgba(107, 114, 128, 0.8);
-    color: white;
-  }
+  /* 🎯 已移动到global.css - 避免重复定义 */
   
   /* 🎯 Featured Article responsive styles */
   @media (min-width: 768px) {

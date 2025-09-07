@@ -3,13 +3,13 @@ export const categories = [
     id: "TodayNews",
     name: "Today News",
     description: "Latest news from today",
-    color: "var(--color-primary)"
+    color: "#3b82f6"  // 正确的Today News蓝色
   },
   {
     id: "PastNews",
     name: "Past News",
     description: "Archive of past news articles",
-    color: "var(--color-primary-dark)"
+    color: "#6b7280"  // 正确的Past News灰色
   }
 ];
 
