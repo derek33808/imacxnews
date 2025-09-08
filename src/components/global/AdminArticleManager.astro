@@ -920,13 +920,15 @@
     .admin-manager-modal {
       width: 100vw !important; /* 使用全屏宽度 */
       max-width: 100vw !important;
-      max-height: 100vh !important; /* 使用全屏高度 */
+      max-height: calc(100vh - 60px) !important; /* 减去导航栏和底部条的空间 */
       margin: 0 !important; /* 去除所有边距 */
+      padding: max(20px, env(safe-area-inset-top)) 0 max(30px, env(safe-area-inset-bottom)) 0 !important; /* 智能适配安全区域 */
       border-radius: 0 !important; /* 去除圆角获取最大空间 */
+      box-sizing: border-box !important; /* 确保padding计算在总高度内 */
     }
 
     .modal-header {
-      padding: 16px 20px;
+      padding: 12px 20px 16px 20px; /* 顶部减少padding，因为modal已有padding */
       flex-direction: column;
       gap: 12px;
       align-items: stretch;
@@ -987,7 +989,7 @@
     .articles-list {
       padding: 16px 12px !important;
       gap: 24px !important; /* 增加卡片间距 */
-      max-height: calc(100vh - 120px) !important; /* 减少header高度获取更多空间 */
+      max-height: calc(100vh - 180px) !important; /* 调整高度，考虑新的padding和导航栏空间 */
       overflow-y: auto !important;
     }
 
