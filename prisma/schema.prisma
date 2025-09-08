@@ -23,31 +23,42 @@ model User {
 }
 
 model Article {
-  id             Int           @id @default(autoincrement())
+  id             Int     @id @default(autoincrement())
   title          String
-  slug           String        @unique
+  slug           String  @unique
   excerpt        String
   content        String
   chineseContent String?
   category       String
-  image          String
-  imageAlt       String?       // 图片alt文本
-  imageCaption   String?       // 图片说明
-  author         String
-  publishDate    DateTime      @default(now())
-  featured       Boolean       @default(false)
-  contentLength  Int?          // 内容长度（字符数）
-  readingTime    Int?          // 预估阅读时间（分钟）
-  comments       Comment[]
-  likes          ArticleLike[]
+
+  // 🆕 媒体支持字段
+  mediaType    String  @default("IMAGE") // 'IMAGE' | 'VIDEO'
+  image        String // 保持兼容，主要媒体URL或封面图
+  imageAlt     String? // 图片alt文本
+  imageCaption String? // 图片说明
+
+  // 🆕 视频专属字段
+  videoUrl      String? // 主要视频URL
+  videoPoster   String? // 视频封面图
+  videoDuration Int? // 视频时长（秒）
+
+  author        String
+  publishDate   DateTime      @default(now())
+  featured      Boolean       @default(false)
+  contentLength Int? // 内容长度（字符数）
+  readingTime   Int? // 预估阅读时间（分钟）
+  comments      Comment[]
+  likes         ArticleLike[]
 
   @@index([category])
   @@index([featured])
   @@index([publishDate])
   @@index([contentLength])
+  @@index([mediaType]) // 🆕 媒体类型索引
   // 🚀 复合索引以优化查询性能
-  @@index([featured, publishDate])  // 优化首页特色文章查询
-  @@index([category, publishDate])  // 优化分类页面查询
+  @@index([featured, publishDate]) // 优化首页特色文章查询
+  @@index([category, publishDate]) // 优化分类页面查询
+  @@index([mediaType, publishDate]) // 🆕 按媒体类型和发布时间查询
 }
 
 model Comment {
@@ -61,13 +72,11 @@ model Comment {
 }
 
 model ArticleLike {
-  id        Int      @id @default(autoincrement())
-  article   Article  @relation(fields: [articleId], references: [id])
+  id        Int     @id @default(autoincrement())
+  article   Article @relation(fields: [articleId], references: [id])
   articleId Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
   userId    Int
 
   @@unique([articleId, userId])
 }
-
-

@@ -1,0 +1,585 @@
+---
+// VideoArticleCard.astro - 支持视频的文章卡片组件
+export interface Props {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  mediaType: 'IMAGE' | 'VIDEO';
+  image: string; // 图片URL或视频封面
+  imageAlt?: string;
+  videoUrl?: string;
+  videoDuration?: number;
+  author: string;
+  publishDate: Date;
+  featured?: boolean;
+  contentLength?: number;
+  readingTime?: number;
+}
+
+const {
+  id,
+  title,
+  slug,
+  excerpt,
+  category,
+  mediaType = 'IMAGE',
+  image,
+  imageAlt,
+  videoUrl,
+  videoDuration,
+  author,
+  publishDate,
+  featured = false,
+  readingTime
+} = Astro.props;
+
+// 格式化发布日期
+const formattedDate = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+}).format(new Date(publishDate));
+
+// 格式化视频时长
+function formatDuration(seconds: number): string {
+  if (!seconds) return '';
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+// 获取分类标签样式
+function getCategoryClass(category: string): string {
+  switch (category.toLowerCase()) {
+    case 'todayNews':
+    case 'today':
+      return 'category-today';
+    case 'pastNews':
+    case 'past':
+      return 'category-past';
+    default:
+      return 'category-default';
+  }
+}
+
+const isVideo = mediaType === 'VIDEO';
+const hasVideo = isVideo && videoUrl;
+---
+
+<article class={`video-article-card ${featured ? 'featured' : ''} ${isVideo ? 'has-video' : 'has-image'}`}>
+  <!-- 媒体容器 -->
+  <div class="media-container">
+    {hasVideo ? (
+      <!-- 视频预览 -->
+      <div class="video-wrapper">
+        <video 
+          class="article-video"
+          poster={image}
+          preload="metadata"
+          onclick="this.paused ? this.play() : this.pause()"
+        >
+          <source src={videoUrl} type="video/mp4">
+          <source src={videoUrl} type="video/webm">
+          您的浏览器不支持视频播放。
+        </video>
+        
+        <!-- 视频播放按钮覆盖层 -->
+        <div class="video-overlay">
+          <div class="play-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5,3 19,12 5,21 5,3"/>
+            </svg>
+          </div>
+          
+          {videoDuration && (
+            <div class="video-duration">
+              {formatDuration(videoDuration)}
+            </div>
+          )}
+        </div>
+
+        <!-- 媒体类型标识 -->
+        <div class="media-type-badge video-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          视频
+        </div>
+      </div>
+    ) : (
+      <!-- 图片预览 -->
+      <div class="image-wrapper">
+        <img 
+          class="article-image" 
+          src={image} 
+          alt={imageAlt || title}
+          loading="lazy"
+        />
+        
+        <!-- 媒体类型标识 -->
+        <div class="media-type-badge image-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+          图片
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- 文章内容 -->
+  <div class="article-content">
+    <!-- 分类和特色标签 -->
+    <div class="article-tags">
+      <span class={`category-tag ${getCategoryClass(category)}`}>
+        {category === 'TodayNews' ? '今日新闻' : 
+         category === 'PastNews' ? '往期新闻' : category}
+      </span>
+      {featured && (
+        <span class="featured-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+          </svg>
+          精选
+        </span>
+      )}
+    </div>
+
+    <!-- 文章标题 -->
+    <h3 class="article-title">
+      <a href={`/article/${slug}`}>{title}</a>
+    </h3>
+
+    <!-- 文章摘要 -->
+    <p class="article-excerpt">{excerpt}</p>
+
+    <!-- 文章元信息 -->
+    <div class="article-meta">
+      <div class="meta-item author">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>{author}</span>
+      </div>
+      
+      <div class="meta-item date">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>{formattedDate}</span>
+      </div>
+
+      {readingTime && (
+        <div class="meta-item reading-time">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <span>{readingTime}分钟阅读</span>
+        </div>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  .video-article-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 2px 4px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .video-article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.15),
+      0 6px 12px rgba(0, 0, 0, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  .video-article-card.featured {
+    border: 2px solid #f59e0b;
+    box-shadow: 
+      0 4px 16px rgba(245, 158, 11, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .video-article-card.featured::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+  }
+
+  .media-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+  }
+
+  .image-wrapper,
+  .video-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .article-image,
+  .article-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .video-article-card:hover .article-image,
+  .video-article-card:hover .article-video {
+    transform: scale(1.05);
+  }
+
+  .article-video {
+    cursor: pointer;
+  }
+
+  .video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+  }
+
+  .video-wrapper:hover .video-overlay {
+    opacity: 1;
+  }
+
+  .play-button {
+    width: 72px;
+    height: 72px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .play-button:hover {
+    transform: scale(1.1);
+    background: white;
+    color: #8b5cf6;
+  }
+
+  .video-duration {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .media-type-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .video-badge {
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+  }
+
+  .image-badge {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+  }
+
+  .article-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .article-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .category-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .category-today {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .category-past {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .category-default {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .featured-badge {
+    padding: 4px 8px;
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .featured-badge svg {
+    fill: currentColor;
+  }
+
+  .article-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .article-title a {
+    color: #1f2937;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .article-title a:hover {
+    color: #8b5cf6;
+  }
+
+  .article-excerpt {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .meta-item svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .video-article-card {
+      border-radius: 12px;
+    }
+
+    .article-content {
+      padding: 16px;
+      gap: 10px;
+    }
+
+    .article-title {
+      font-size: 1.125rem;
+    }
+
+    .article-meta {
+      gap: 12px;
+    }
+
+    .meta-item {
+      font-size: 0.8125rem;
+    }
+
+    .play-button {
+      width: 60px;
+      height: 60px;
+    }
+
+    .play-button svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  /* 暗色主题支持 */
+  @media (prefers-color-scheme: dark) {
+    .video-article-card {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(75, 85, 99, 0.8);
+    }
+
+    .video-article-card:hover {
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    .article-title a {
+      color: #f1f5f9;
+    }
+
+    .article-title a:hover {
+      color: #a78bfa;
+    }
+
+    .article-excerpt {
+      color: #94a3b8;
+    }
+
+    .meta-item {
+      color: #94a3b8;
+    }
+
+    .category-today {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .category-past {
+      background: rgba(75, 85, 99, 0.3);
+      color: #d1d5db;
+    }
+
+    .category-default {
+      background: rgba(75, 85, 99, 0.3);
+      color: #d1d5db;
+    }
+
+    .featured-badge {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+
+    .article-meta {
+      border-top-color: rgba(75, 85, 99, 0.5);
+    }
+  }
+</style>
+
+<script is:inline>
+  // 视频播放控制脚本
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoCards = document.querySelectorAll('.video-article-card.has-video');
+    
+    videoCards.forEach(card => {
+      const video = card.querySelector('.article-video');
+      const overlay = card.querySelector('.video-overlay');
+      
+      if (video && overlay) {
+        // 类型转换为HTMLVideoElement和HTMLElement
+        const videoEl = video;
+        const overlayEl = overlay;
+        
+        // 点击视频或覆盖层播放/暂停
+        const togglePlay = () => {
+          if (videoEl.paused) {
+            videoEl.play();
+            overlayEl.style.opacity = '0';
+          } else {
+            videoEl.pause();
+            overlayEl.style.opacity = '1';
+          }
+        };
+
+        videoEl.addEventListener('click', togglePlay);
+        overlayEl.addEventListener('click', togglePlay);
+
+        // 视频播放时隐藏覆盖层
+        videoEl.addEventListener('play', () => {
+          overlayEl.style.opacity = '0';
+        });
+
+        // 视频暂停时显示覆盖层
+        videoEl.addEventListener('pause', () => {
+          overlayEl.style.opacity = '1';
+        });
+
+        // 鼠标离开卡片时暂停视频
+        card.addEventListener('mouseleave', () => {
+          if (!videoEl.paused) {
+            videoEl.pause();
+          }
+        });
+      }
+    });
+  });
+</script>

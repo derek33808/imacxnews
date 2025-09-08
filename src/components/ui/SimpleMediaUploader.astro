@@ -1,0 +1,675 @@
+---
+// SimpleMediaUploader.astro - Simple media uploader component
+---
+
+<div class="simple-media-uploader" id="mediaUploader">
+  <!-- Media Type Selection -->
+  <div class="media-type-selector">
+    <h4>Select Media Type</h4>
+    <div class="type-options">
+      <label class="type-option">
+        <input type="radio" name="mediaType" value="image" checked>
+        <div class="option-card">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+          <span>Image</span>
+          <small>Supports JPG, PNG, GIF, WebP</small>
+        </div>
+      </label>
+      <label class="type-option">
+        <input type="radio" name="mediaType" value="video">
+        <div class="option-card">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span>Video</span>
+          <small>Supports MP4, WebM, OGG</small>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- File Upload Area -->
+  <div class="upload-area" id="uploadArea">
+    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display: none;">
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17,8 12,3 7,8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-text">
+        <h3>Click or drag files here</h3>
+        <p class="upload-hint">Supports images and videos</p>
+        <p class="upload-limits">Images max 10MB, Videos max 50MB</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Progress -->
+  <div class="upload-progress" id="uploadProgress" style="display: none;">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text">
+      <span id="progressText">Uploading...</span>
+      <span id="progressPercent">0%</span>
+    </div>
+  </div>
+
+  <!-- Upload Result Display -->
+  <div class="upload-result" id="uploadResult" style="display: none;">
+    <!-- Image Preview -->
+    <div class="image-preview" id="imagePreview" style="display: none;">
+      <img id="previewImage" src="" alt="Preview Image">
+      <div class="preview-info">
+        <h4 id="imageName"></h4>
+        <p id="imageSize"></p>
+        <input type="hidden" id="imageUrl" name="image">
+        <input type="hidden" id="imageType" name="mediaType" value="IMAGE">
+      </div>
+    </div>
+
+    <!-- Video Preview -->
+    <div class="video-preview" id="videoPreview" style="display: none;">
+      <video id="previewVideo" controls>
+        <source id="videoSource" src="" type="">
+        Your browser does not support video playback.
+      </video>
+      <div class="preview-info">
+        <h4 id="videoName"></h4>
+        <p id="videoSize"></p>
+        <p id="videoDuration"></p>
+        <input type="hidden" id="videoUrl" name="videoUrl">
+        <input type="hidden" id="videoType" name="mediaType" value="VIDEO">
+        <!-- Video poster will be auto-generated -->
+        <input type="hidden" id="videoPoster" name="image">
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button type="button" class="btn-secondary" id="removeMedia">Remove File</button>
+      <button type="button" class="btn-primary" id="uploadAnother">Upload Another</button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" id="errorMessage" style="display: none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span id="errorText"></span>
+  </div>
+</div>
+
+<style>
+  .simple-media-uploader {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    box-shadow: 
+      0 4px 16px rgba(139, 92, 246, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .media-type-selector {
+    margin-bottom: 24px;
+  }
+
+  .media-type-selector h4 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .type-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .type-option {
+    cursor: pointer;
+  }
+
+  .type-option input[type="radio"] {
+    display: none;
+  }
+
+  .option-card {
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .type-option input[type="radio"]:checked + .option-card {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  }
+
+  .option-card:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .option-card svg {
+    color: #8b5cf6;
+    margin-bottom: 8px;
+  }
+
+  .option-card span {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+  }
+
+  .option-card small {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .upload-area {
+    margin-bottom: 24px;
+  }
+
+  .upload-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(249, 250, 251, 0.8);
+  }
+
+  .upload-zone:hover {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.05);
+  }
+
+  .upload-zone.dragover {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    transform: scale(1.02);
+  }
+
+  .upload-icon {
+    color: #8b5cf6;
+    margin-bottom: 16px;
+  }
+
+  .upload-text h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .upload-hint {
+    margin: 0 0 4px 0;
+    color: #6b7280;
+  }
+
+  .upload-limits {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #9ca3af;
+  }
+
+  .upload-progress {
+    margin-bottom: 24px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .upload-result {
+    margin-bottom: 24px;
+  }
+
+  .image-preview,
+  .video-preview {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    margin-bottom: 16px;
+  }
+
+  .image-preview img {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .video-preview video {
+    width: 200px;
+    height: 120px;
+    border-radius: 8px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .preview-info {
+    flex: 1;
+  }
+
+  .preview-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .preview-info p {
+    margin: 2px 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: #8b5cf6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(254, 242, 242, 0.95);
+    border: 1px solid #f87171;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .error-message svg {
+    color: #f87171;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .simple-media-uploader {
+      padding: 16px;
+    }
+
+    .type-options {
+      grid-template-columns: 1fr;
+    }
+
+    .upload-zone {
+      padding: 32px 16px;
+    }
+
+    .image-preview,
+    .video-preview {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .result-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script is:inline>
+// Simple media uploader script
+document.addEventListener('DOMContentLoaded', function() {
+  const mediaUploader = document.getElementById('mediaUploader');
+  if (!mediaUploader) return;
+
+  const uploadArea = document.getElementById('uploadArea');
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('mediaFileInput');
+  const uploadProgress = document.getElementById('uploadProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const progressPercent = document.getElementById('progressPercent');
+  const uploadResult = document.getElementById('uploadResult');
+  const errorMessage = document.getElementById('errorMessage');
+  const errorText = document.getElementById('errorText');
+
+  // Media type selectors
+  const mediaTypeInputs = document.querySelectorAll('input[name="mediaType"]');
+  const imagePreview = document.getElementById('imagePreview');
+  const videoPreview = document.getElementById('videoPreview');
+
+  // Update file accept types
+  function updateFileAccept() {
+    const selectedType = document.querySelector('input[name="mediaType"]:checked').value;
+    if (selectedType === 'image') {
+      fileInput.accept = 'image/*';
+    } else if (selectedType === 'video') {
+      fileInput.accept = 'video/*';
+    }
+  }
+
+  // Listen for media type changes
+  mediaTypeInputs.forEach(input => {
+    input.addEventListener('change', updateFileAccept);
+  });
+
+  // Click upload area
+  uploadZone.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  // Drag handling
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelection(files[0]);
+    }
+  });
+
+  // File selection handling
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelection(e.target.files[0]);
+    }
+  });
+
+  // Handle file selection
+  function handleFileSelection(file) {
+    // Reset UI
+    hideError();
+    hideResult();
+    
+    // Validate file type
+    const selectedType = document.querySelector('input[name="mediaType"]:checked').value;
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (selectedType === 'image' && !isImage) {
+      showError('Please select an image file');
+      return;
+    }
+    
+    if (selectedType === 'video' && !isVideo) {
+      showError('Please select a video file');
+      return;
+    }
+
+    // Start upload
+    uploadFile(file);
+  }
+
+  // Upload file
+  async function uploadFile(file) {
+    try {
+      showProgress();
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'TodayNews'); // Default category
+      
+      // Simulate progress updates
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 90) progress = 90;
+        updateProgress(progress);
+      }, 200);
+
+      // Send request
+      const response = await fetch('/api/media/simple-upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      clearInterval(progressInterval);
+
+      const result = await response.json();
+
+      if (response.ok) {
+        updateProgress(100);
+        setTimeout(() => {
+          hideProgress();
+          showResult(result.data, file);
+        }, 500);
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      hideProgress();
+      showError(error.message || 'Upload failed, please try again');
+    }
+  }
+
+  // Show progress
+  function showProgress() {
+    uploadArea.style.display = 'none';
+    uploadProgress.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Uploading...';
+    progressPercent.textContent = '0%';
+  }
+
+  // Update progress
+  function updateProgress(percent) {
+    progressFill.style.width = percent + '%';
+    progressPercent.textContent = Math.round(percent) + '%';
+  }
+
+  // Hide progress
+  function hideProgress() {
+    uploadProgress.style.display = 'none';
+  }
+
+  // Show result
+  function showResult(data, file) {
+    uploadResult.style.display = 'block';
+    
+    if (data.type === 'image') {
+      showImagePreview(data, file);
+    } else if (data.type === 'video') {
+      showVideoPreview(data, file);
+    }
+  }
+
+  // Show image preview
+  function showImagePreview(data, file) {
+    imagePreview.style.display = 'flex';
+    videoPreview.style.display = 'none';
+    
+    document.getElementById('previewImage').src = data.url;
+    document.getElementById('imageName').textContent = data.originalName;
+    document.getElementById('imageSize').textContent = formatFileSize(data.size);
+    document.getElementById('imageUrl').value = data.url;
+    document.getElementById('imageType').value = 'IMAGE';
+  }
+
+  // Show video preview
+  function showVideoPreview(data, file) {
+    videoPreview.style.display = 'flex';
+    imagePreview.style.display = 'none';
+    
+    const video = document.getElementById('previewVideo');
+    const videoSource = document.getElementById('videoSource');
+    
+    videoSource.src = data.url;
+    videoSource.type = file.type;
+    video.load();
+    
+    document.getElementById('videoName').textContent = data.originalName;
+    document.getElementById('videoSize').textContent = formatFileSize(data.size);
+    document.getElementById('videoUrl').value = data.url;
+    document.getElementById('videoType').value = 'VIDEO';
+    
+    // Generate video cover
+    generateVideoThumbnail(video, data.url);
+  }
+
+  // Generate video thumbnail
+  function generateVideoThumbnail(video, videoUrl) {
+    video.addEventListener('loadedmetadata', function() {
+      document.getElementById('videoDuration').textContent = `Duration: ${formatDuration(video.duration)}`;
+      
+      // Set to 1 second
+      video.currentTime = 1;
+      
+      video.addEventListener('seeked', function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to image URL
+        const posterUrl = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById('videoPoster').value = posterUrl;
+      }, { once: true });
+    });
+  }
+
+  // Hide result
+  function hideResult() {
+    uploadResult.style.display = 'none';
+  }
+
+  // Show error
+  function showError(message) {
+    errorText.textContent = message;
+    errorMessage.style.display = 'flex';
+    setTimeout(hideError, 5000);
+  }
+
+  // Hide error
+  function hideError() {
+    errorMessage.style.display = 'none';
+  }
+
+  // Remove media
+  document.getElementById('removeMedia').addEventListener('click', () => {
+    hideResult();
+    uploadArea.style.display = 'block';
+    fileInput.value = '';
+  });
+
+  // Upload other file
+  document.getElementById('uploadAnother').addEventListener('click', () => {
+    hideResult();
+    uploadArea.style.display = 'block';
+    fileInput.value = '';
+  });
+
+  // Format file size
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Format video duration
+  function formatDuration(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Initialize
+  updateFileAccept();
+});
+</script>

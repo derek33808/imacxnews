@@ -1,0 +1,742 @@
+---
+// media-center.astro - Professional media management center for IMACXNews
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import MediaUploader from '../components/ui/MediaUploader.astro';
+import EnhancedArticleCard from '../components/ui/EnhancedArticleCard.astro';
+
+// Mock articles for testing - these will be replaced with real database data
+const testArticles = [
+  {
+    id: 1,
+    title: "Breaking: New Technology Revolutionizes Education",
+    slug: "breaking-technology-revolutionizes-education",
+    excerpt: "A groundbreaking innovation in educational technology is transforming how students learn and teachers engage with their classrooms across the globe.",
+    category: "TodayNews",
+    mediaType: "IMAGE",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80",
+    imageAlt: "Students using modern technology",
+    author: "Sarah Johnson",
+    publishDate: new Date('2024-12-19'),
+    featured: true,
+    readingTime: 5
+  },
+  {
+    id: 2,
+    title: "Exclusive: Behind the Scenes of Innovation Summit",
+    slug: "exclusive-behind-scenes-innovation-summit",
+    excerpt: "Get an exclusive look at the preparation and highlights from this year's most anticipated innovation summit, featuring industry leaders and breakthrough technologies.",
+    category: "TodayNews",
+    mediaType: "VIDEO",
+    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    imageAlt: "Innovation summit stage",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    videoPoster: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    videoDuration: 145,
+    author: "Michael Chen",
+    publishDate: new Date('2024-12-18'),
+    featured: false,
+    readingTime: 8
+  },
+  {
+    id: 3,
+    title: "Research Reveals Surprising Climate Data",
+    slug: "research-reveals-surprising-climate-data",
+    excerpt: "Recent scientific research has uncovered unexpected patterns in climate data that could reshape our understanding of environmental changes.",
+    category: "PastNews",
+    mediaType: "IMAGE",
+    image: "https://images.unsplash.com/photo-1569163139394-de44cee62d60?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    imageAlt: "Climate research visualization",
+    author: "Dr. Emma Wilson",
+    publishDate: new Date('2024-12-17'),
+    featured: false,
+    readingTime: 6
+  }
+];
+---
+
+<Layout title="Media Center - IMACXNews">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Media Management Center</h1>
+        <p class="header-description">
+          Upload, manage, and showcase multimedia content for IMACXNews. 
+          Professional tools for modern journalism.
+        </p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="totalUploads">0</div>
+          <div class="stat-label">Total Uploads</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="storageUsed">0 MB</div>
+          <div class="stat-label">Storage Used</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status Panel -->
+    <section class="status-section">
+      <h2 class="section-title">System Status</h2>
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-icon status-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 9V5a3 3 0 0 0-6 0v4"/>
+              <rect x="2" y="9" width="20" height="11" rx="2" ry="2"/>
+            </svg>
+          </div>
+          <div class="status-content">
+            <h3>Upload Security</h3>
+            <p>Admin authentication active</p>
+            <span class="status-badge active">Secured</span>
+          </div>
+        </div>
+        
+        <div class="status-card">
+          <div class="status-icon status-checking" id="storageIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <div class="status-content">
+            <h3>Cloud Storage</h3>
+            <p>Supabase Storage connection</p>
+            <span class="status-badge checking" id="storageStatus">Checking...</span>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-icon status-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="status-content">
+            <h3>File Validation</h3>
+            <p>Format & size checking</p>
+            <span class="status-badge active">Active</span>
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-icon status-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <div class="status-content">
+            <h3>Media Processing</h3>
+            <p>Thumbnail generation</p>
+            <span class="status-badge active">Ready</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Media Uploader Section -->
+    <section class="uploader-section">
+      <h2 class="section-title">Upload Media</h2>
+      <p class="section-description">
+        Upload images and videos for your articles. Supports high-quality media 
+        with automatic optimization and thumbnail generation.
+      </p>
+      <div class="uploader-wrapper">
+        <MediaUploader />
+      </div>
+    </section>
+
+    <!-- API Testing Section -->
+    <section class="testing-section">
+      <h2 class="section-title">Connection Testing</h2>
+      <div class="testing-controls">
+        <button class="btn btn-secondary" id="testStorageBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v6m0 6v6"/>
+            <path d="M21 12h-6m-6 0H3"/>
+          </svg>
+          Test Storage Connection
+        </button>
+        <button class="btn btn-secondary" id="getUploadInfoBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="l9 12 2 2 4-4"/>
+          </svg>
+          Get Upload Configuration
+        </button>
+      </div>
+      <div class="testing-output" id="testingOutput">
+        <div class="output-placeholder">
+          Test results will appear here...
+        </div>
+      </div>
+    </section>
+
+    <!-- Media Showcase Section -->
+    <section class="showcase-section">
+      <h2 class="section-title">Media Article Showcase</h2>
+      <p class="section-description">
+        Preview how uploaded media will appear in article cards with enhanced 
+        video support and responsive design.
+      </p>
+      <div class="showcase-grid">
+        {testArticles.map(article => (
+          <EnhancedArticleCard article={article} featured={article.featured} />
+        ))}
+      </div>
+    </section>
+
+    <!-- Technical Information -->
+    <section class="tech-info-section">
+      <h2 class="section-title">Technical Specifications</h2>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21,15 16,10 5,21"/>
+            </svg>
+          </div>
+          <h3>Image Support</h3>
+          <ul>
+            <li>Formats: JPG, PNG, GIF, WebP</li>
+            <li>Max size: 10MB per file</li>
+            <li>Auto-optimization enabled</li>
+            <li>CDN delivery included</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+          </div>
+          <h3>Video Support</h3>
+          <ul>
+            <li>Formats: MP4, WebM, OGG</li>
+            <li>Max size: 50MB per file</li>
+            <li>Auto thumbnail generation</li>
+            <li>Responsive video player</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+            </svg>
+          </div>
+          <h3>Performance</h3>
+          <ul>
+            <li>Global CDN distribution</li>
+            <li>Lazy loading support</li>
+            <li>Optimized delivery</li>
+            <li>Cache management</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+    line-height: 1.2;
+  }
+
+  .header-description {
+    font-size: 1.125rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: var(--space-6);
+    flex-shrink: 0;
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: var(--space-4);
+    background-color: var(--color-background-alt);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    min-width: 120px;
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: var(--space-4);
+    color: var(--color-text);
+    position: relative;
+    padding-bottom: var(--space-3);
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--color-primary);
+    border-radius: var(--radius-sm);
+  }
+
+  .section-description {
+    font-size: 1rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+    max-width: 800px;
+  }
+
+  /* Status Section */
+  .status-section {
+    margin-bottom: var(--space-12);
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .status-card {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+  }
+
+  .status-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .status-icon.status-active {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+  }
+
+  .status-icon.status-checking {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+  }
+
+  .status-icon.status-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  .status-content h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+    color: var(--color-text);
+  }
+
+  .status-content p {
+    font-size: 0.9375rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-2);
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+  }
+
+  .status-badge.active {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+  }
+
+  .status-badge.checking {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+  }
+
+  .status-badge.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  /* Uploader Section */
+  .uploader-section {
+    margin-bottom: var(--space-12);
+  }
+
+  .uploader-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Testing Section */
+  .testing-section {
+    margin-bottom: var(--space-12);
+  }
+
+  .testing-controls {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: 1px solid;
+    text-decoration: none;
+    min-width: 180px;
+  }
+
+  .btn-secondary {
+    background-color: var(--color-background);
+    border-color: var(--color-border);
+    color: var(--color-text);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-background-alt);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .testing-output {
+    background-color: var(--color-background-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    min-height: 120px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .output-placeholder {
+    color: var(--color-text-light);
+    font-style: italic;
+  }
+
+  /* Showcase Section */
+  .showcase-section {
+    margin-bottom: var(--space-12);
+  }
+
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-6);
+  }
+
+  /* Technical Info Section */
+  .tech-info-section {
+    margin-bottom: var(--space-8);
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .tech-card {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    transition: all var(--transition);
+  }
+
+  .tech-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+  }
+
+  .tech-icon {
+    margin-bottom: var(--space-4);
+    color: var(--color-primary);
+  }
+
+  .tech-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+  }
+
+  .tech-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tech-card li {
+    font-size: 0.9375rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-2);
+    padding-left: var(--space-4);
+    position: relative;
+  }
+
+  .tech-card li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: bold;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: var(--space-4) var(--space-3);
+    }
+
+    .page-header {
+      flex-direction: column;
+      gap: var(--space-6);
+      text-align: center;
+    }
+
+    .header-content h1 {
+      font-size: 2rem;
+    }
+
+    .header-stats {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+
+    .status-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-card {
+      flex-direction: column;
+      text-align: center;
+      gap: var(--space-3);
+    }
+
+    .testing-controls {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+
+    .showcase-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .tech-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .testing-output {
+      background-color: rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+</style>
+
+<script is:inline>
+  // Media Center Management Script
+  document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const testStorageBtn = document.getElementById('testStorageBtn');
+    const getUploadInfoBtn = document.getElementById('getUploadInfoBtn');
+    const testingOutput = document.getElementById('testingOutput');
+    const storageStatus = document.getElementById('storageStatus');
+    const storageIcon = document.getElementById('storageIcon');
+    const totalUploads = document.getElementById('totalUploads');
+    const storageUsed = document.getElementById('storageUsed');
+
+    // Initialize
+    init();
+
+    function init() {
+      updateStats();
+      setTimeout(testStorageConnection, 1000); // Auto-test on load
+    }
+
+    function updateStats() {
+      // Get stats from localStorage or API
+      const uploads = localStorage.getItem('totalUploads') || '0';
+      const storage = localStorage.getItem('storageUsed') || '0';
+      
+      if (totalUploads) totalUploads.textContent = uploads;
+      if (storageUsed) storageUsed.textContent = storage + ' MB';
+    }
+
+    function updateOutput(message, type = 'info') {
+      if (!testingOutput) return;
+      
+      const timestamp = new Date().toLocaleTimeString();
+      const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      
+      testingOutput.innerHTML = `${prefix} [${timestamp}] ${message}`;
+      testingOutput.classList.remove('output-placeholder');
+    }
+
+    async function testStorageConnection() {
+      if (!storageStatus || !storageIcon) return;
+      
+      try {
+        updateOutput('Testing storage connection...', 'info');
+        storageStatus.textContent = 'Testing...';
+        storageStatus.className = 'status-badge checking';
+        storageIcon.className = 'status-icon status-checking';
+        
+        const response = await fetch('/api/media/simple-upload?action=test');
+        const result = await response.json();
+        
+        if (response.ok) {
+          updateOutput(`Storage connection successful!\n\n${JSON.stringify(result, null, 2)}`, 'success');
+          storageStatus.textContent = 'Connected';
+          storageStatus.className = 'status-badge active';
+          storageIcon.className = 'status-icon status-active';
+        } else {
+          throw new Error(result.error || 'Connection failed');
+        }
+      } catch (error) {
+        updateOutput(`Storage connection failed:\n\n${error.message}`, 'error');
+        storageStatus.textContent = 'Failed';
+        storageStatus.className = 'status-badge error';
+        storageIcon.className = 'status-icon status-error';
+      }
+    }
+
+    async function getUploadInfo() {
+      try {
+        updateOutput('Fetching upload configuration...', 'info');
+        
+        const response = await fetch('/api/media/simple-upload?action=info');
+        const result = await response.json();
+        
+        if (response.ok) {
+          updateOutput(`Upload Configuration:\n\n${JSON.stringify(result, null, 2)}`, 'success');
+        } else {
+          throw new Error(result.error || 'Failed to get configuration');
+        }
+      } catch (error) {
+        updateOutput(`Failed to get configuration:\n\n${error.message}`, 'error');
+      }
+    }
+
+    // Event listeners
+    if (testStorageBtn) {
+      testStorageBtn.addEventListener('click', testStorageConnection);
+    }
+
+    if (getUploadInfoBtn) {
+      getUploadInfoBtn.addEventListener('click', getUploadInfo);
+    }
+
+    // Listen for upload success events from MediaUploader
+    document.addEventListener('mediaUploadSuccess', function(event) {
+      const { data } = event.detail;
+      
+      // Update stats
+      const currentUploads = parseInt(localStorage.getItem('totalUploads') || '0');
+      const currentStorage = parseInt(localStorage.getItem('storageUsed') || '0');
+      const fileSizeMB = Math.round(data.size / 1024 / 1024 * 100) / 100;
+      
+      localStorage.setItem('totalUploads', (currentUploads + 1).toString());
+      localStorage.setItem('storageUsed', (currentStorage + fileSizeMB).toString());
+      
+      updateStats();
+      updateOutput(`✅ Upload successful: ${data.originalName} (${fileSizeMB}MB)`, 'success');
+    });
+  });
+</script>

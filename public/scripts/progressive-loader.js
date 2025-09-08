@@ -128,16 +128,16 @@ class ProgressiveLoader {
     if (!container) return;
     
     const categoryDisplay = article.category === 'TodayNews' ? 'Today News' : 'Past News';
+    const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+    
+    // 🎥 Enhanced media rendering with video support
+    const mediaContent = isVideo ? this.renderVideoContent(article) : this.renderImageContent(article);
     
     container.innerHTML = `
-      <article class="featured-article">
-        <div class="featured-image-container">
-          <img src="${article.image}" alt="${article.title}" class="featured-image" 
-               loading="eager" width="800" height="450" 
-               onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
-               onload="this.style.opacity='1'" 
-               style="opacity:0.7; transition: opacity 0.3s ease">
-          <div class="featured-overlay"></div>
+      <article class="featured-article ${isVideo ? 'featured-video' : 'featured-image'}">
+        <div class="featured-media-container">
+          ${mediaContent}
+          <div class="featured-overlay ${isVideo ? 'video-overlay' : ''}"></div>
         </div>
         
         <div class="featured-content">
@@ -154,14 +154,245 @@ class ProgressiveLoader {
           <div class="featured-meta">
             <span class="featured-author">${article.author}</span>
             <span class="featured-date">${this.formatDate(article.publishDate)}</span>
+            ${isVideo && article.videoDuration ? `<span class="featured-duration">${this.formatDuration(article.videoDuration)}</span>` : ''}
           </div>
           
           <a href="/article/${article.slug}" class="featured-read-more btn">
-            Read Full Story
+            ${isVideo ? 'Watch Video' : 'Read Full Story'}
           </a>
         </div>
       </article>
     `;
+    
+    // 🎬 Initialize video controls after DOM insertion
+    if (isVideo) {
+      setTimeout(() => this.initializeVideoControls(container), 100);
+    }
+  }
+  
+  // 🎥 Render video content with controls
+  renderVideoContent(article) {
+    const videoId = `featured-video-${Date.now()}`;
+    const posterUrl = article.image || article.videoPoster || '/images/placeholder.svg';
+    
+    return `
+      <video 
+        id="${videoId}"
+        class="featured-video-element"
+        poster="${posterUrl}"
+        preload="metadata"
+        width="800" 
+        height="450"
+        data-video-url="${article.videoUrl}"
+        style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;"
+      >
+        <source src="${article.videoUrl}" type="video/mp4">
+        <source src="${article.videoUrl}" type="video/webm">
+        <source src="${article.videoUrl}" type="video/ogg">
+        Your browser does not support video playback.
+      </video>
+      
+      <!-- Custom Video Controls -->
+      <div class="featured-video-controls" id="controls-${videoId}">
+        <!-- Play/Pause Button -->
+        <button class="video-play-btn" data-video="${videoId}" aria-label="Play video">
+          <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg class="pause-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+        
+        <!-- Fullscreen Button -->
+        <button class="video-fullscreen-btn" data-video="${videoId}" aria-label="Toggle fullscreen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <polyline points="15,3 21,3 21,9"/>
+            <polyline points="9,21 3,21 3,15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </button>
+        
+        <!-- Progress Bar -->
+        <div class="video-progress-container">
+          <div class="video-progress-bar">
+            <div class="video-progress-fill"></div>
+          </div>
+        </div>
+        
+        <!-- Time Display -->
+        <div class="video-time-display">
+          <span class="video-current-time">0:00</span>
+          <span class="video-separator">/</span>
+          <span class="video-duration">${article.videoDuration ? this.formatDuration(article.videoDuration) : '0:00'}</span>
+        </div>
+      </div>
+    `;
+  }
+  
+  // 🖼️ Render image content (existing functionality)
+  renderImageContent(article) {
+    return `
+      <img src="${article.image}" alt="${article.title}" class="featured-image" 
+           loading="eager" width="800" height="450" 
+           onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
+           onload="this.style.opacity='1'" 
+           style="opacity:0.7; transition: opacity 0.3s ease">
+    `;
+  }
+  
+  // 🕒 Format video duration
+  formatDuration(seconds) {
+    if (!seconds || seconds <= 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  // 🎬 Initialize video controls
+  initializeVideoControls(container) {
+    const videoElement = container.querySelector('.featured-video-element');
+    const playBtn = container.querySelector('.video-play-btn');
+    const fullscreenBtn = container.querySelector('.video-fullscreen-btn');
+    const progressContainer = container.querySelector('.video-progress-container');
+    const progressBar = container.querySelector('.video-progress-bar');
+    const progressFill = container.querySelector('.video-progress-fill');
+    const currentTimeDisplay = container.querySelector('.video-current-time');
+    const durationDisplay = container.querySelector('.video-duration');
+    const controls = container.querySelector('.featured-video-controls');
+    
+    if (!videoElement || !playBtn || !fullscreenBtn) return;
+    
+    // 🎯 Play/Pause functionality
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.togglePlayPause(videoElement, playBtn);
+    });
+    
+    // 🔲 Fullscreen functionality
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleFullscreen(videoElement);
+    });
+    
+    // 📊 Progress bar functionality
+    if (progressBar && progressContainer) {
+      progressContainer.addEventListener('click', (e) => {
+        this.handleProgressClick(e, videoElement, progressContainer);
+      });
+    }
+    
+    // 🎬 Video event listeners
+    videoElement.addEventListener('loadedmetadata', () => {
+      if (durationDisplay && videoElement.duration) {
+        durationDisplay.textContent = this.formatDuration(videoElement.duration);
+      }
+    });
+    
+    videoElement.addEventListener('timeupdate', () => {
+      this.updateProgress(videoElement, progressFill, currentTimeDisplay);
+    });
+    
+    videoElement.addEventListener('ended', () => {
+      this.handleVideoEnd(playBtn);
+    });
+    
+    // 🎭 Show/hide controls on hover
+    const featuredArticle = container.querySelector('.featured-article');
+    if (featuredArticle && controls) {
+      featuredArticle.addEventListener('mouseenter', () => {
+        controls.style.opacity = '1';
+      });
+      
+      featuredArticle.addEventListener('mouseleave', () => {
+        if (!videoElement.paused) {
+          controls.style.opacity = '0';
+        }
+      });
+    }
+    
+    // 👆 Click to play/pause (anywhere on video)
+    videoElement.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.togglePlayPause(videoElement, playBtn);
+    });
+  }
+  
+  // 🎯 Toggle play/pause
+  togglePlayPause(video, playBtn) {
+    const playIcon = playBtn.querySelector('.play-icon');
+    const pauseIcon = playBtn.querySelector('.pause-icon');
+    
+    if (video.paused) {
+      video.play();
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    } else {
+      video.pause();
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+  }
+  
+  // 🔲 Toggle fullscreen
+  toggleFullscreen(video) {
+    if (!document.fullscreenElement) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.mozRequestFullScreen) {
+        video.mozRequestFullScreen();
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  }
+  
+  // 📊 Handle progress bar click
+  handleProgressClick(e, video, progressContainer) {
+    const rect = progressContainer.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = clickX / width;
+    const newTime = percentage * video.duration;
+    
+    if (isFinite(newTime)) {
+      video.currentTime = newTime;
+    }
+  }
+  
+  // 📈 Update progress bar
+  updateProgress(video, progressFill, currentTimeDisplay) {
+    if (video.duration) {
+      const percentage = (video.currentTime / video.duration) * 100;
+      progressFill.style.width = `${percentage}%`;
+      
+      if (currentTimeDisplay) {
+        currentTimeDisplay.textContent = this.formatDuration(video.currentTime);
+      }
+    }
+  }
+  
+  // 🔚 Handle video end
+  handleVideoEnd(playBtn) {
+    const playIcon = playBtn.querySelector('.play-icon');
+    const pauseIcon = playBtn.querySelector('.pause-icon');
+    
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
   }
   
   renderLatestArticles(articles) {

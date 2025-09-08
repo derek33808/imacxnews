@@ -16,8 +16,29 @@
         </div>
         <div class="header-title">
           <h2>Content Management Center</h2>
-          <p>Create, edit, and manage your articles</p>
+          <p>Create, edit, and manage multimedia articles</p>
         </div>
+      </div>
+      
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" data-tab="articles">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Articles
+        </button>
+        <button class="tab-btn" data-tab="media">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+          Media Center
+        </button>
       </div>
       <div class="header-actions">
         <button class="create-btn modern-btn action-btn edit-btn" id="createArticleBtn">
@@ -40,8 +61,236 @@
     </div>
     
     <div class="modal-body">
-      <div class="articles-list" id="articlesList">
-        <!-- Articles will be populated here -->
+      <!-- Articles Tab Content -->
+      <div class="tab-content active" id="articlesTab">
+        <div class="articles-list" id="articlesList">
+          <!-- Articles will be populated here -->
+        </div>
+      </div>
+      
+      <!-- Media Center Tab Content -->
+      <div class="tab-content" id="mediaTab">
+        <!-- System Status Panel -->
+        <div class="media-section">
+          <div class="section-header">
+            <h3 class="section-title">System Status</h3>
+            <div class="header-stats">
+              <div class="stat-item">
+                <div class="stat-number" id="totalUploads">0</div>
+                <div class="stat-label">Total Uploads</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="storageUsed">0 MB</div>
+                <div class="stat-label">Storage Used</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="status-grid">
+            <div class="status-card">
+              <div class="status-icon status-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 9V5a3 3 0 0 0-6 0v4"/>
+                  <rect x="2" y="9" width="20" height="11" rx="2" ry="2"/>
+                </svg>
+              </div>
+              <div class="status-content">
+                <h4>Upload Security</h4>
+                <p>Admin authentication active</p>
+                <span class="status-badge active">Secured</span>
+              </div>
+            </div>
+            
+            <div class="status-card">
+              <div class="status-icon status-checking" id="storageIcon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+              <div class="status-content">
+                <h4>Cloud Storage</h4>
+                <p>Supabase Storage connection</p>
+                <span class="status-badge checking" id="storageStatus">Checking...</span>
+              </div>
+            </div>
+
+            <div class="status-card">
+              <div class="status-icon status-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="status-content">
+                <h4>File Validation</h4>
+                <p>Format & size checking</p>
+                <span class="status-badge active">Active</span>
+              </div>
+            </div>
+
+            <div class="status-card">
+              <div class="status-icon status-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                  <line x1="8" y1="21" x2="16" y2="21"/>
+                  <line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <div class="status-content">
+                <h4>Media Processing</h4>
+                <p>Thumbnail generation</p>
+                <span class="status-badge active">Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Upload Section -->
+        <div class="media-section">
+          <div class="section-header">
+            <h3 class="section-title">Quick Media Upload</h3>
+            <p class="section-description">Upload images and videos directly to your media library</p>
+          </div>
+          
+          <div class="quick-upload-area">
+            <div class="upload-type-selector">
+              <button class="upload-type-btn active" data-type="image">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21,15 16,10 5,21"/>
+                </svg>
+                <span>Upload Images</span>
+                <small>JPG, PNG, GIF, WebP - Max 10MB</small>
+              </button>
+              
+              <button class="upload-type-btn" data-type="video">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span>Upload Videos</span>
+                <small>MP4, WebM, OGG - Max 50MB</small>
+              </button>
+            </div>
+            
+            <div class="upload-drop-zone" id="quickUploadZone">
+              <div class="upload-drop-content">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17,8 12,3 7,8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <h4>Drop files here or click to browse</h4>
+                <p>Upload multiple files at once</p>
+              </div>
+              <input type="file" id="quickUploadInput" multiple accept="image/*" style="display: none;">
+            </div>
+            
+            <div class="upload-progress-container" id="quickUploadProgress" style="display: none;">
+              <div class="upload-item">
+                <div class="upload-info">
+                  <span class="upload-name">Uploading...</span>
+                  <span class="upload-size"></span>
+                </div>
+                <div class="upload-progress-bar">
+                  <div class="upload-progress-fill"></div>
+                </div>
+                <span class="upload-status">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- API Testing Section -->
+        <div class="media-section">
+          <div class="section-header">
+            <h3 class="section-title">Connection Testing</h3>
+          </div>
+          
+          <div class="testing-controls">
+            <button class="modern-btn secondary" id="testStorageBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6"/>
+                <path d="M21 12h-6m-6 0H3"/>
+              </svg>
+              Test Storage Connection
+            </button>
+            <button class="modern-btn secondary" id="getUploadInfoBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="l9 12 2 2 4-4"/>
+              </svg>
+              Get Upload Configuration
+            </button>
+          </div>
+          
+          <div class="testing-output" id="testingOutput">
+            <div class="output-placeholder">
+              Test results will appear here...
+            </div>
+          </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="media-section">
+          <div class="section-header">
+            <h3 class="section-title">Technical Specifications</h3>
+          </div>
+          
+          <div class="tech-grid">
+            <div class="tech-card">
+              <div class="tech-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21,15 16,10 5,21"/>
+                </svg>
+              </div>
+              <h4>Image Support</h4>
+              <ul>
+                <li>Formats: JPG, PNG, GIF, WebP</li>
+                <li>Max size: 10MB per file</li>
+                <li>Auto-optimization enabled</li>
+                <li>CDN delivery included</li>
+              </ul>
+            </div>
+
+            <div class="tech-card">
+              <div class="tech-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+              </div>
+              <h4>Video Support</h4>
+              <ul>
+                <li>Formats: MP4, WebM, OGG</li>
+                <li>Max size: 50MB per file</li>
+                <li>Auto thumbnail generation</li>
+                <li>Responsive video player</li>
+              </ul>
+            </div>
+
+            <div class="tech-card">
+              <div class="tech-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+                </svg>
+              </div>
+              <h4>Performance</h4>
+              <ul>
+                <li>Global CDN distribution</li>
+                <li>Lazy loading support</li>
+                <li>Optimized delivery</li>
+                <li>Cache management</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -129,6 +378,57 @@
 
   .admin-manager-modal-overlay.active .admin-manager-modal {
     transform: translateY(0) scale(1);
+  }
+
+  /* 🔗 Tab Navigation System */
+  .tab-navigation {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: var(--space-4);
+  }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .tab-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .tab-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Tab Content System */
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
   }
   /* 🎨 Modern Header Design */
   .modal-header {
@@ -325,11 +625,34 @@
 
   .articles-list {
     padding: 32px;
-    max-height: calc(95vh - 120px);
-    overflow-y: visible;
+    max-height: calc(80vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 🎨 Custom Scrollbar Styling */
+  .articles-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .articles-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  .articles-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(139, 92, 246, 0.6));
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .articles-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(139, 92, 246, 0.8));
   }
 
   /* 🎴 Modern Article Cards */
@@ -2920,6 +3243,664 @@
       border-color: rgba(139, 92, 246, 0.2);
       color: #f1f5f9;
     }
+
+    /* Media Center Dark Mode Adjustments */
+    .admin-manager-modal .media-section {
+      background: rgba(30, 41, 59, 0.3);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .admin-manager-modal .status-card {
+      background: rgba(30, 41, 59, 0.4);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .admin-manager-modal .upload-type-btn {
+      background: rgba(30, 41, 59, 0.4);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .admin-manager-modal .upload-drop-zone {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    .admin-manager-modal .testing-output {
+      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+  }
+
+  /* 🎥 Media Center Styles */
+  .media-section {
+    margin-bottom: var(--space-8);
+    padding: var(--space-6);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--modal-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-6);
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: var(--space-2);
+    position: relative;
+    padding-bottom: var(--space-2);
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light));
+    border-radius: 1px;
+  }
+
+  .section-description {
+    font-size: 0.875rem;
+    color: var(--modal-text-light);
+    margin-bottom: var(--space-4);
+  }
+
+  .header-stats {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: var(--space-3);
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    min-width: 100px;
+  }
+
+  .stat-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--modal-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--modal-text-light);
+    font-weight: 500;
+  }
+
+  /* Status Grid */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .status-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+  }
+
+  .status-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .status-icon.status-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+
+  .status-icon.status-checking {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .status-content h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .status-content p {
+    font-size: 0.75rem;
+    color: var(--modal-text-light);
+    margin-bottom: var(--space-2);
+  }
+
+  .status-badge {
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .status-badge.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+
+  .status-badge.checking {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  /* Quick Upload Area */
+  .quick-upload-area {
+    margin-top: var(--space-4);
+  }
+
+  .upload-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .upload-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--modal-text-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .upload-type-btn:hover,
+  .upload-type-btn.active {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: var(--modal-text);
+  }
+
+  .upload-type-btn span {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .upload-type-btn small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-align: center;
+  }
+
+  .upload-drop-zone {
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(139, 92, 246, 0.05);
+  }
+
+  .upload-drop-zone:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    background: rgba(139, 92, 246, 0.08);
+  }
+
+  .upload-drop-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin: var(--space-3) 0 var(--space-2) 0;
+  }
+
+  .upload-drop-content p {
+    font-size: 0.875rem;
+    color: var(--modal-text-light);
+  }
+
+  /* Upload Progress */
+  .upload-progress-container {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .upload-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .upload-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .upload-name {
+    font-weight: 600;
+    color: var(--modal-text);
+    font-size: 0.875rem;
+  }
+
+  .upload-size {
+    font-size: 0.75rem;
+    color: var(--modal-text-light);
+  }
+
+  .upload-progress-bar {
+    flex: 2;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .upload-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light));
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .upload-status {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--modal-primary);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Testing Controls */
+  .testing-controls {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .testing-output {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    min-height: 120px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    overflow-y: auto;
+    max-height: 200px;
+  }
+
+  .output-placeholder {
+    color: var(--modal-text-light);
+    font-style: italic;
+  }
+
+  /* Technical Grid */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .tech-card {
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .tech-icon {
+    margin-bottom: var(--space-3);
+    color: var(--modal-primary);
+  }
+
+  .tech-card h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: var(--space-3);
+  }
+
+  .tech-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tech-card li {
+    font-size: 0.75rem;
+    color: var(--modal-text-light);
+    margin-bottom: var(--space-1);
+    padding-left: var(--space-2);
+    position: relative;
+  }
+
+  .tech-card li::before {
+    content: '•';
+    color: var(--modal-primary);
+    position: absolute;
+    left: 0;
+  }
+
+  /* 🎨 Media Type Selection Styles */
+  .media-type-selection {
+    margin-bottom: var(--space-4);
+  }
+
+  .media-type-label {
+    display: block;
+    margin-bottom: var(--space-3);
+    color: var(--modal-text);
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  .media-type-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  .media-type-option {
+    position: relative;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .media-type-option:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  .media-type-option.media-type-option-active,
+  .media-type-option:has(input[type="radio"]:checked) {
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(139, 92, 246, 0.15);
+    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2);
+  }
+
+  .media-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .media-option-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .media-option-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--modal-primary);
+    flex-shrink: 0;
+  }
+
+  .media-option-text {
+    color: var(--modal-text);
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .tab-navigation {
+      margin-left: 0;
+      margin-right: 0;
+      margin-top: var(--space-3);
+    }
+    
+    .section-header {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    
+    .header-stats {
+      align-self: stretch;
+    }
+    
+    .upload-type-selector {
+      grid-template-columns: 1fr;
+    }
+    
+    .testing-controls {
+      flex-direction: column;
+    }
+    
+    .tech-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .media-type-options {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 🎯 Media Type Section Styles */
+  .media-section-header {
+    margin: var(--space-6) 0 var(--space-4) 0;
+    border-top: 1px solid rgba(139, 92, 246, 0.1);
+    padding-top: var(--space-4);
+  }
+
+  .media-section-header:first-child {
+    margin-top: 0;
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    color: var(--modal-primary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-divider svg {
+    color: var(--modal-primary);
+    opacity: 0.8;
+  }
+
+  /* 🎥 Video Article Styles */
+  .video-article {
+    border-left: 3px solid #8b5cf6;
+    background: rgba(139, 92, 246, 0.02);
+  }
+
+  .video-thumbnail {
+    position: relative;
+  }
+
+  .video-preview-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .video-play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  .video-preview-container:hover .video-play-overlay {
+    opacity: 1;
+    background: rgba(139, 92, 246, 0.8);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  /* 🖼️ Image Article Styles */
+  .image-article {
+    border-left: 3px solid #06b6d4;
+    background: rgba(6, 182, 212, 0.02);
+  }
+
+  /* 🏷️ Media Type Badge Styles */
+  .media-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-2);
+  }
+
+  .video-badge {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .image-badge {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.2);
+  }
+
+  .media-type-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* 🎨 Enhanced Article Item Hover Effects */
+  .video-article:hover {
+    background: rgba(139, 92, 246, 0.05);
+    border-left-color: #7c3aed;
+  }
+
+  .image-article:hover {
+    background: rgba(6, 182, 212, 0.05);
+    border-left-color: #0891b2;
+  }
+
+  /* 📱 Fallback Image Handling */
+  .video-fallback-image {
+    transition: opacity 0.3s ease;
+  }
+
+  .video-fallback-image[src*="placeholder"] {
+    opacity: 0.7;
+    filter: grayscale(20%);
+  }
+
+  /* Dark mode adjustments for media sections */
+  .dark .media-section-header {
+    border-top-color: rgba(139, 92, 246, 0.2);
+  }
+
+  .dark .video-article {
+    background: rgba(139, 92, 246, 0.05);
+  }
+
+  .dark .image-article {
+    background: rgba(6, 182, 212, 0.05);
+  }
+
+  .dark .video-badge {
+    background: rgba(139, 92, 246, 0.25);
+    color: #a855f7;
+  }
+
+  .dark .image-badge {
+    background: rgba(6, 182, 212, 0.25);
+    color: #22d3ee;
+  }
+  
+  /* 📱 Tab Content Scrolling */
+  .tab-content {
+    max-height: calc(80vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 32px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);
+  }
+  
+  .tab-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .tab-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  .tab-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(139, 92, 246, 0.6));
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .tab-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(139, 92, 246, 0.8));
+  }
+  
+  /* 🔄 Hide default padding when tab-content has scrolling */
+  .tab-content.scrollable {
+    padding-right: 24px;
   }
 </style>
 

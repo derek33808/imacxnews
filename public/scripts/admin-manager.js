@@ -212,8 +212,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 <circle cx="9" cy="9" r="2"/>
                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
               </svg>
-              Image Settings
+              Media Settings
             </div>
+            
+            <!-- Media Type Selection -->
+            <div class="media-type-selection">
+              <label class="media-type-label">
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>Content Type
+              </label>
+              <div class="media-type-options">
+                <label class="media-type-option media-type-option-active">
+                  <input type="radio" name="mediaType" value="IMAGE" checked>
+                  <div class="media-option-content">
+                    <svg class="media-option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="9" cy="9" r="2"/>
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                    </svg>
+                    <span class="media-option-text">Image Article</span>
+                  </div>
+                </label>
+                <label class="media-type-option">
+                  <input type="radio" name="mediaType" value="VIDEO">
+                  <div class="media-option-content">
+                    <svg class="media-option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="23 7 16 12 23 17 23 7"/>
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                    </svg>
+                    <span class="media-option-text">Video Article</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Image Upload Section -->
+            <div id="imageUploadSection" class="media-upload-section">
             <label>
               <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -222,21 +259,56 @@ document.addEventListener('DOMContentLoaded', function() {
               </svg>Image URL
               <div style="display:flex; gap:12px; align-items:stretch;">
                 <input name="image" placeholder="/images/placeholder.svg" style="flex:1;" />
-                <button type="button" id="triggerFileSelectBtn" style="white-space:nowrap;">Upload Local...</button>
+                  <button type="button" class="upload-media-btn" data-type="image" style="white-space:nowrap; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Image...</button>
               </div>
-              <input type="file" name="imageFile" accept="image/*" style="display:none;" />
-              <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports jpg/png/webp; automatically fills URL after successful upload</small>
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports JPG, PNG, GIF, WebP (max 10MB)</small>
             </label>
-            <div id="imagePreviewWrap" style="display:none; gap:16px; align-items:center;">
-              <div id="imagePreview" style="width:160px;height:90px;object-fit:cover;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;">
-                <svg style="width:32px;height:32px;color:#9ca3af;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            </div>
+
+            <!-- Video Upload Section -->
+            <div id="videoUploadSection" class="media-upload-section" style="display: none;">
+              <label>
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <polygon points="23 7 16 12 23 17 23 7"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>Video URL
+                <div style="display:flex; gap:12px; align-items:stretch;">
+                  <input name="videoUrl" placeholder="Video will be uploaded here..." style="flex:1;" readonly />
+                  <button type="button" class="upload-media-btn" data-type="video" style="white-space:nowrap; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Video...</button>
+                </div>
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports MP4, WebM, OGG (max 50MB)</small>
+              </label>
+              
+              <label style="margin-top: 12px;">
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="9" cy="9" r="2"/>
                   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                </svg>
-                <span style="font-size:10px;color:#9ca3af;margin-top:4px;">No preview image</span>
+                </svg>Video Poster (Thumbnail)
+                <input name="image" placeholder="Auto-generated from video or custom URL" style="width: 100%;" />
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Poster image will be auto-generated or you can specify a custom one</small>
+              </label>
+              
+              <label style="margin-top: 12px;">
+                <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="10,8 16,12 10,16 10,8"/>
+                </svg>Video Duration (seconds)
+                <input name="videoDuration" type="number" placeholder="Auto-detected from video" style="width: 100%;" />
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Duration will be auto-detected during upload</small>
+              </label>
               </div>
-              <span id="imagePreviewText"></span>
+
+            <!-- Media Preview -->
+            <div id="mediaPreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+              <div id="mediaPreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
+                <span style="color:#64748b;font-size:12px;">No media selected</span>
+              </div>
+              <div id="mediaPreviewInfo" style="flex: 1;">
+                <div id="mediaPreviewTitle" style="font-weight: 600; color: #f8fafc; margin-bottom: 4px;"></div>
+                <div id="mediaPreviewDetails" style="font-size: 12px; color: #94a3b8;"></div>
+                <button type="button" id="clearMediaBtn" style="margin-top: 8px; padding: 4px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">Clear Media</button>
+              </div>
             </div>
           </div>
           
@@ -335,7 +407,17 @@ document.addEventListener('DOMContentLoaded', function() {
     formModal.addEventListener('click', (e) => { if (e.target === formModal) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && formModal.classList.contains('active')) close(); });
     
-    // Handle local image upload when file selected
+    // 🎯 Initialize tab system
+    if (window.initializeTabSystem) {
+      window.initializeTabSystem();
+    }
+    
+    // 🎥 Initialize new media upload functionality
+    if (window.initializeMediaUpload) {
+      window.initializeMediaUpload(formEl);
+    }
+    
+    // Handle local image upload when file selected (legacy support)
     const fileInput = formEl.querySelector('input[name="imageFile"]');
     const imageUrlInput = formEl.querySelector('input[name="image"]');
     const imagePreview = formEl.querySelector('#imagePreview');
@@ -596,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
               <div>🔒 Authentication failed. Please login again to save articles.</div>
               <div style="display: flex; gap: 8px;">
-                <button type="button" onclick="(function(){console.log('Opening login modal...'); try { if(window.openLoginModal) { window.openLoginModal(); } else { console.error('openLoginModal not found'); alert('Login modal not available, refreshing page...'); window.location.reload(); } } catch(e) { console.error('Login modal error:', e); window.location.reload(); }})();" style="
+                <button type="button" id="authErrorLoginBtn" style="
                   padding: 8px 16px; 
                   background: #3b82f6; 
                   color: white; 
@@ -605,10 +687,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   font-size: 12px; 
                   cursor: pointer;
                   transition: background 0.2s ease;
-                " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                ">
                   🔑 Login Now
                 </button>
-                <button type="button" onclick="(function(){console.log('Refreshing page...'); window.location.reload();})();" style="
+                <button type="button" id="authErrorRefreshBtn" style="
                   padding: 8px 16px; 
                   background: #6b7280; 
                   color: white; 
@@ -617,12 +699,59 @@ document.addEventListener('DOMContentLoaded', function() {
                   font-size: 12px; 
                   cursor: pointer;
                   transition: background 0.2s ease;
-                " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+                ">
                   Refresh Page
                 </button>
               </div>
             </div>
           `;
+          
+          // Add event listeners for auth error buttons
+          setTimeout(() => {
+            const loginBtn = document.getElementById('authErrorLoginBtn');
+            const refreshBtn = document.getElementById('authErrorRefreshBtn');
+            
+            if (loginBtn) {
+              loginBtn.addEventListener('click', function() {
+                console.log('Opening login modal...');
+                try {
+                  if (window.openLoginModal) {
+                    window.openLoginModal();
+                  } else {
+                    console.error('openLoginModal not found');
+                    alert('Login modal not available, refreshing page...');
+                    window.location.reload();
+                  }
+                } catch (e) {
+                  console.error('Login modal error:', e);
+                  window.location.reload();
+                }
+              });
+              
+              // Add hover effects
+              loginBtn.addEventListener('mouseenter', function() {
+                this.style.background = '#2563eb';
+              });
+              loginBtn.addEventListener('mouseleave', function() {
+                this.style.background = '#3b82f6';
+              });
+            }
+            
+            if (refreshBtn) {
+              refreshBtn.addEventListener('click', function() {
+                console.log('Refreshing page...');
+                window.location.reload();
+              });
+              
+              // Add hover effects
+              refreshBtn.addEventListener('mouseenter', function() {
+                this.style.background = '#4b5563';
+              });
+              refreshBtn.addEventListener('mouseleave', function() {
+                this.style.background = '#6b7280';
+              });
+            }
+          }, 100);
         }
       } finally {
         // 🔧 Always reset button state
@@ -784,10 +913,73 @@ document.addEventListener('DOMContentLoaded', function() {
       const pd = formEl.querySelector('[name="publishDate"]');
       pd.value = toDatetimeLocalValue(fullArticle.publishDate);
       
-      // Update image preview for editing
+      // 🎥 Fill video-related fields if they exist
+      const mediaType = fullArticle.mediaType || 'IMAGE';
+      const mediaTypeInput = formEl.querySelector(`input[name="mediaType"][value="${mediaType}"]`);
+      if (mediaTypeInput) {
+        mediaTypeInput.checked = true;
+        
+        // Trigger change event to show/hide appropriate sections
+        const changeEvent = new Event('change', { bubbles: true });
+        mediaTypeInput.dispatchEvent(changeEvent);
+      }
+      
+      // Fill video-specific fields
+      const videoUrlInput = formEl.querySelector('[name="videoUrl"]');
+      const videoDurationInput = formEl.querySelector('[name="videoDuration"]');
+      
+      if (videoUrlInput && fullArticle.videoUrl) {
+        videoUrlInput.value = fullArticle.videoUrl;
+      }
+      
+      if (videoDurationInput && fullArticle.videoDuration) {
+        videoDurationInput.value = fullArticle.videoDuration;
+      }
+      
+      // Update media preview for editing
       const imageInput = formEl.querySelector('[name="image"]');
       if (imageInput && window.updateImagePreview) {
         window.updateImagePreview(fullArticle.image || '');
+      }
+      
+      // Show media preview if video
+      if (mediaType === 'VIDEO' && fullArticle.videoUrl) {
+        const mediaData = {
+          url: fullArticle.videoUrl,
+          originalName: 'Existing Video',
+          mediaType: 'VIDEO',
+          size: 0,
+          duration: fullArticle.videoDuration
+        };
+        
+        // Show video preview if the function is available
+        setTimeout(() => {
+          const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+          const mediaPreview = formEl.querySelector('#mediaPreview');
+          const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
+          const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
+          
+          if (mediaPreviewWrap && mediaPreview) {
+            mediaPreviewWrap.style.display = 'flex';
+            mediaPreview.innerHTML = `
+              <video src="${fullArticle.videoUrl}" style="width:100%;height:100%;object-fit:cover;" controls muted>
+                Your browser does not support video playback.
+              </video>
+            `;
+            
+            if (mediaPreviewTitle) {
+              mediaPreviewTitle.textContent = 'Existing Video';
+            }
+            
+            if (mediaPreviewDetails) {
+              mediaPreviewDetails.innerHTML = `
+                <div>Type: VIDEO</div>
+                ${fullArticle.videoDuration ? `<div>Duration: ${Math.floor(fullArticle.videoDuration / 60)}:${(fullArticle.videoDuration % 60).toString().padStart(2, '0')}</div>` : ''}
+                <div>URL: <code style="font-size:10px;">${fullArticle.videoUrl}</code></div>
+              `;
+            }
+          }
+        }, 100);
       }
       
     } catch (error) {
@@ -837,9 +1029,21 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="loading-state">
             <div class="loading-spinner"></div>
             <p>Loading articles...</p>
-            <button onclick="window.debugAuth()" style="margin-top: 16px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Debug Auth</button>
+            <button id="debugAuthBtn" style="margin-top: 16px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Debug Auth</button>
           </div>
         `;
+        
+        // Add event listener for debug auth button
+        setTimeout(() => {
+          const debugAuthBtn = document.getElementById('debugAuthBtn');
+          if (debugAuthBtn) {
+            debugAuthBtn.addEventListener('click', function() {
+              if (window.debugAuth) {
+                window.debugAuth();
+              }
+            });
+          }
+        }, 100);
       }
       
       // Load data asynchronously
@@ -941,11 +1145,43 @@ document.addEventListener('DOMContentLoaded', function() {
               <p>Authentication failed</p>
               <p style="font-size: 14px; color: #6b7280; margin: 8px 0;">You need to login again to manage articles</p>
               <div style="display: flex; gap: 8px; justify-content: center; margin-top: 16px;">
-                <button onclick="(function(){console.log('Opening login modal...'); try { if(window.openLoginModal) { window.openLoginModal(); } else { console.error('openLoginModal not found'); alert('Login modal not available, refreshing page...'); window.location.reload(); } } catch(e) { console.error('Login modal error:', e); window.location.reload(); }})();" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">🔑 Login Now</button>
-                <button onclick="(function(){console.log('Refreshing page...'); window.location.reload();})();" class="retry-btn">Refresh Page</button>
+                <button id="modalAuthLoginBtn" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">🔑 Login Now</button>
+                <button id="modalAuthRefreshBtn" class="retry-btn">Refresh Page</button>
               </div>
             </div>
           `;
+          
+          // Add event listeners for modal auth error buttons
+          setTimeout(() => {
+            const modalLoginBtn = document.getElementById('modalAuthLoginBtn');
+            const modalRefreshBtn = document.getElementById('modalAuthRefreshBtn');
+            
+            if (modalLoginBtn) {
+              modalLoginBtn.addEventListener('click', function() {
+                console.log('Opening login modal...');
+                try {
+                  if (window.openLoginModal) {
+                    window.openLoginModal();
+                  } else {
+                    console.error('openLoginModal not found');
+                    alert('Login modal not available, refreshing page...');
+                    window.location.reload();
+                  }
+                } catch (e) {
+                  console.error('Login modal error:', e);
+                  window.location.reload();
+                }
+              });
+            }
+            
+            if (modalRefreshBtn) {
+              modalRefreshBtn.addEventListener('click', function() {
+                console.log('Refreshing page...');
+                window.location.reload();
+              });
+            }
+          }, 100);
+          
           return;
         }
         throw new Error('Failed to load articles');
@@ -984,9 +1220,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
           <p>Failed to load articles</p>
-          <button onclick="loadArticlesList(true)" class="retry-btn">Retry</button>
+          <button id="retryLoadBtn" class="retry-btn">Retry</button>
         </div>
       `;
+      
+      // Add event listener for retry button
+      setTimeout(() => {
+        const retryBtn = document.getElementById('retryLoadBtn');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', function() {
+            loadArticlesList(true);
+          });
+        }
+      }, 100);
     }
   }
 
@@ -1111,42 +1357,133 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    articlesList.innerHTML = articles.map(article => `
-      <div class="article-item">
-        <div class="article-thumbnail">
-          <img src="${article.image}" alt="${article.title}">
-        </div>
-        
-        <div class="article-info">
-          <h3 class="article-title">${article.title}</h3>
-          <div class="article-meta">
-            <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
-            <span>By ${article.author}</span>
-            <span>${formatRelativeTime(article.publishDate)}</span>
+    // 🎯 Group articles by media type for better organization
+    const imageArticles = articles.filter(article => (article.mediaType || 'IMAGE') === 'IMAGE');
+    const videoArticles = articles.filter(article => article.mediaType === 'VIDEO');
+    
+    let articlesHTML = '';
+    
+    // 🎥 Video articles section
+    if (videoArticles.length > 0) {
+      articlesHTML += `
+        <div class="media-section-header">
+          <div class="section-divider">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            <span>Video Articles (${videoArticles.length})</span>
           </div>
         </div>
-        
-        <div class="article-actions compact-actions article-actions-floating">
-          <button class="translucent-btn edit-btn" data-article-id="${article.id}" title="Edit Article">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-              <path d="m15 5 4 4"/>
-            </svg>
-            <span class="btn-text">Edit</span>
-          </button>
-          <button class="translucent-btn delete-btn" data-article-id="${article.id}" title="Delete Article">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 6h18"/>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-              <line x1="10" y1="11" x2="10" y2="17"/>
-              <line x1="14" y1="11" x2="14" y2="17"/>
-            </svg>
-            <span class="btn-text">Delete</span>
-          </button>
+      `;
+      
+      articlesHTML += videoArticles.map(article => `
+        <div class="article-item video-article">
+          <div class="article-thumbnail video-thumbnail">
+            ${renderVideoPreview(article)}
+          </div>
+          
+          <div class="article-info">
+            <div class="media-type-badge video-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              VIDEO
+              ${article.videoDuration ? ` · ${formatDuration(article.videoDuration)}` : ''}
+            </div>
+            <h3 class="article-title">${article.title}</h3>
+            <div class="article-meta">
+              <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
+              <span>By ${article.author}</span>
+              <span>${formatRelativeTime(article.publishDate)}</span>
+            </div>
+          </div>
+          
+          <div class="article-actions compact-actions article-actions-floating">
+            <button class="translucent-btn edit-btn" data-article-id="${article.id}" title="Edit Video Article">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="translucent-btn delete-btn" data-article-id="${article.id}" title="Delete Video Article">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              <span class="btn-text">Delete</span>
+            </button>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
+    
+    // 🖼️ Image articles section
+    if (imageArticles.length > 0) {
+      articlesHTML += `
+        <div class="media-section-header">
+          <div class="section-divider">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+            <span>Image Articles (${imageArticles.length})</span>
+          </div>
+        </div>
+      `;
+      
+      articlesHTML += imageArticles.map(article => `
+        <div class="article-item image-article">
+          <div class="article-thumbnail image-thumbnail">
+            <img src="${article.image}" alt="${article.title}" class="video-fallback-image">
+          </div>
+          
+          <div class="article-info">
+            <div class="media-type-badge image-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+              </svg>
+              IMAGE
+            </div>
+            <h3 class="article-title">${article.title}</h3>
+            <div class="article-meta">
+              <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
+              <span>By ${article.author}</span>
+              <span>${formatRelativeTime(article.publishDate)}</span>
+            </div>
+          </div>
+          
+          <div class="article-actions compact-actions article-actions-floating">
+            <button class="translucent-btn edit-btn" data-article-id="${article.id}" title="Edit Image Article">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+              <span class="btn-text">Edit</span>
+            </button>
+            <button class="translucent-btn delete-btn" data-article-id="${article.id}" title="Delete Image Article">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              <span class="btn-text">Delete</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    articlesList.innerHTML = articlesHTML;
     
     // Save loaded articles and bind edit events using delegation
     if (window.articlesListClickHandler) {
@@ -1179,8 +1516,77 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     articlesList.addEventListener('click', window.articlesListClickHandler);
+    
+    // 🎥 Add video preview event handlers (CSP compliant)
+    setTimeout(() => {
+      const videoElements = articlesList.querySelectorAll('.video-preview-element');
+      const fallbackImages = articlesList.querySelectorAll('.video-fallback-image');
+      
+      videoElements.forEach(video => {
+        video.addEventListener('loadeddata', function() {
+          this.style.display = 'block';
+        });
+        
+        video.addEventListener('error', function() {
+          this.style.display = 'none';
+          const fallbackImg = this.nextElementSibling;
+          if (fallbackImg && fallbackImg.classList.contains('video-fallback-image')) {
+            fallbackImg.style.display = 'block';
+          }
+        });
+      });
+      
+      fallbackImages.forEach(img => {
+        img.addEventListener('error', function() {
+          this.src = '/images/placeholder.svg';
+        });
+      });
+    }, 100);
   }
   
+  // 🎥 Render video preview function
+  function renderVideoPreview(article) {
+    const videoUrl = article.videoUrl;
+    const posterUrl = article.image || article.videoPoster || '/images/placeholder.svg';
+    
+    if (!videoUrl) {
+      return `<img src="${posterUrl}" alt="${article.title}" class="video-fallback-image">`;
+    }
+    
+    return `
+      <div class="video-preview-container">
+        <video 
+          src="${videoUrl}" 
+          poster="${posterUrl}"
+          preload="metadata"
+          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+          class="video-preview-element"
+        >
+          Your browser does not support video playback.
+        </video>
+        <img 
+          src="${posterUrl}" 
+          alt="${article.title}"
+          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: none;"
+          class="video-fallback-image"
+        >
+        <div class="video-play-overlay">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+  
+  // 🕒 Format duration function (used for video durations)
+  function formatDuration(seconds) {
+    if (!seconds || seconds <= 0) return '';
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+
   // Format relative time function
   function formatRelativeTime(dateString) {
     const date = new Date(dateString);
@@ -1510,5 +1916,623 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key === 'Enter') confirmSelection();
     });
   }
+  
+  // 🎯 Tab System Management
+  window.initializeTabSystem = function() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetTab = this.dataset.tab;
+        
+        // Update button states
+        tabBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update content visibility
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === targetTab + 'Tab') {
+            content.classList.add('active');
+          }
+        });
+        
+        // Initialize Media Center when switching to media tab
+        if (targetTab === 'media') {
+          initializeMediaCenter();
+        }
+      });
+    });
+  };
+
+  // 🎥 Media Center Initialization
+  window.initializeMediaCenter = function() {
+    console.log('🎥 Initializing Media Center...');
+    
+    // Initialize components
+    initializeSystemStatus();
+    initializeQuickUpload();
+    initializeApiTesting();
+    updateStatistics();
+  };
+
+  // 📊 System Status Check
+  function initializeSystemStatus() {
+    checkStorageConnection();
+  }
+
+  async function checkStorageConnection() {
+    const storageIcon = document.getElementById('storageIcon');
+    const storageStatus = document.getElementById('storageStatus');
+    
+    if (!storageIcon || !storageStatus) return;
+    
+    try {
+      storageStatus.textContent = 'Checking...';
+      storageStatus.className = 'status-badge checking';
+      storageIcon.className = 'status-icon status-checking';
+      
+      const response = await fetch('/api/media/simple-upload?action=test');
+      const result = await response.json();
+      
+      if (response.ok && result.connected) {
+        storageStatus.textContent = 'Connected';
+        storageStatus.className = 'status-badge active';
+        storageIcon.className = 'status-icon status-active';
+        console.log('✅ Storage connection successful');
+      } else {
+        throw new Error(result.message || 'Connection failed');
+      }
+    } catch (error) {
+      console.error('❌ Storage connection failed:', error);
+      storageStatus.textContent = 'Disconnected';
+      storageStatus.className = 'status-badge error';
+      storageIcon.className = 'status-icon status-error';
+    }
+  }
+
+  // 🚀 Quick Upload Functionality
+  function initializeQuickUpload() {
+    const uploadTypeBtns = document.querySelectorAll('.upload-type-btn');
+    const uploadZone = document.getElementById('quickUploadZone');
+    const uploadInput = document.getElementById('quickUploadInput');
+    
+    // Upload type selection
+    uploadTypeBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const uploadType = this.dataset.type;
+        
+        // Update button states
+        uploadTypeBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update file input accept
+        if (uploadInput) {
+          uploadInput.accept = uploadType === 'image' ? 'image/*' : 'video/*';
+        }
+        
+        console.log(`🎯 Upload type changed to: ${uploadType}`);
+      });
+    });
+
+    // Drag and drop handling
+    if (uploadZone && uploadInput) {
+      uploadZone.addEventListener('click', () => uploadInput.click());
+      
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'rgba(139, 92, 246, 0.6)';
+        uploadZone.style.background = 'rgba(139, 92, 246, 0.12)';
+      });
+      
+      uploadZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+        uploadZone.style.background = 'rgba(139, 92, 246, 0.05)';
+      });
+      
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+        uploadZone.style.background = 'rgba(139, 92, 246, 0.05)';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleQuickUpload(files);
+        }
+      });
+      
+      uploadInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleQuickUpload(e.target.files);
+        }
+      });
+    }
+  }
+
+  // Handle quick upload files
+  async function handleQuickUpload(files) {
+    const progressContainer = document.getElementById('quickUploadProgress');
+    
+    for (const file of files) {
+      try {
+        showQuickUploadProgress(file);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', 'TodayNews');
+        
+        const response = await fetch('/api/media/simple-upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ Quick upload successful:', result.data);
+          showQuickUploadSuccess(file, result.data);
+          updateStatistics(); // Update stats after successful upload
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('❌ Quick upload failed:', error);
+        showQuickUploadError(file, error.message);
+      }
+    }
+  }
+
+  function showQuickUploadProgress(file) {
+    const progressContainer = document.getElementById('quickUploadProgress');
+    if (!progressContainer) return;
+    
+    progressContainer.style.display = 'block';
+    
+    const uploadName = progressContainer.querySelector('.upload-name');
+    const uploadSize = progressContainer.querySelector('.upload-size');
+    const progressFill = progressContainer.querySelector('.upload-progress-fill');
+    const uploadStatus = progressContainer.querySelector('.upload-status');
+    
+    if (uploadName) uploadName.textContent = file.name;
+    if (uploadSize) uploadSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    if (uploadStatus) uploadStatus.textContent = 'Uploading...';
+    if (progressFill) progressFill.style.width = '60%';
+  }
+
+  function showQuickUploadSuccess(file, data) {
+    const progressContainer = document.getElementById('quickUploadProgress');
+    if (!progressContainer) return;
+    
+    const uploadStatus = progressContainer.querySelector('.upload-status');
+    const progressFill = progressContainer.querySelector('.upload-progress-fill');
+    
+    if (uploadStatus) uploadStatus.textContent = 'Complete';
+    if (progressFill) {
+      progressFill.style.width = '100%';
+      progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+    }
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+      if (progressFill) {
+        progressFill.style.width = '0%';
+        progressFill.style.background = 'linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light))';
+      }
+    }, 3000);
+  }
+
+  function showQuickUploadError(file, error) {
+    const progressContainer = document.getElementById('quickUploadProgress');
+    if (!progressContainer) return;
+    
+    const uploadStatus = progressContainer.querySelector('.upload-status');
+    const progressFill = progressContainer.querySelector('.upload-progress-fill');
+    
+    if (uploadStatus) uploadStatus.textContent = 'Failed';
+    if (progressFill) {
+      progressFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+    }
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+      if (progressFill) {
+        progressFill.style.width = '0%';
+        progressFill.style.background = 'linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light))';
+      }
+    }, 5000);
+  }
+
+  // 🧪 API Testing Functions
+  function initializeApiTesting() {
+    const testStorageBtn = document.getElementById('testStorageBtn');
+    const getUploadInfoBtn = document.getElementById('getUploadInfoBtn');
+    const testingOutput = document.getElementById('testingOutput');
+    
+    if (testStorageBtn) {
+      testStorageBtn.addEventListener('click', async () => {
+        await runStorageTest();
+      });
+    }
+    
+    if (getUploadInfoBtn) {
+      getUploadInfoBtn.addEventListener('click', async () => {
+        await getUploadInfo();
+      });
+    }
+  }
+
+  async function runStorageTest() {
+    const output = document.getElementById('testingOutput');
+    if (!output) return;
+    
+    output.innerHTML = '<div style="color: #f59e0b;">🧪 Testing storage connection...</div>';
+    
+    try {
+      const response = await fetch('/api/media/simple-upload?action=test');
+      const result = await response.json();
+      
+      const status = response.ok ? '✅ SUCCESS' : '❌ FAILED';
+      const timestamp = new Date().toLocaleTimeString();
+      
+      output.innerHTML = `
+        <div style="color: ${response.ok ? '#10b981' : '#ef4444'};">${status}</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${timestamp}</div>
+        <div style="margin-top: 12px;">
+          <div style="font-weight: 600; color: #f8fafc;">Response:</div>
+          <pre style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; overflow-x: auto;">${JSON.stringify(result, null, 2)}</pre>
+        </div>
+      `;
+    } catch (error) {
+      output.innerHTML = `
+        <div style="color: #ef4444;">❌ FAILED</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${new Date().toLocaleTimeString()}</div>
+        <div style="margin-top: 12px;">
+          <div style="font-weight: 600; color: #f8fafc;">Error:</div>
+          <div style="color: #fca5a5; margin-top: 4px;">${error.message}</div>
+        </div>
+      `;
+    }
+  }
+
+  async function getUploadInfo() {
+    const output = document.getElementById('testingOutput');
+    if (!output) return;
+    
+    output.innerHTML = '<div style="color: #f59e0b;">📋 Getting upload configuration...</div>';
+    
+    try {
+      const response = await fetch('/api/media/simple-upload?action=info');
+      const result = await response.json();
+      
+      const status = response.ok ? '✅ SUCCESS' : '❌ FAILED';
+      const timestamp = new Date().toLocaleTimeString();
+      
+      output.innerHTML = `
+        <div style="color: ${response.ok ? '#10b981' : '#ef4444'};">${status}</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${timestamp}</div>
+        <div style="margin-top: 12px;">
+          <div style="font-weight: 600; color: #f8fafc;">Configuration:</div>
+          <pre style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; overflow-x: auto;">${JSON.stringify(result, null, 2)}</pre>
+        </div>
+      `;
+    } catch (error) {
+      output.innerHTML = `
+        <div style="color: #ef4444;">❌ FAILED</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${new Date().toLocaleTimeString()}</div>
+        <div style="margin-top: 12px;">
+          <div style="font-weight: 600; color: #f8fafc;">Error:</div>
+          <div style="color: #fca5a5; margin-top: 4px;">${error.message}</div>
+        </div>
+      `;
+    }
+  }
+
+  // 📊 Statistics Update
+  function updateStatistics() {
+    // This is a simplified version - in a real app, you'd fetch actual data
+    const totalUploads = document.getElementById('totalUploads');
+    const storageUsed = document.getElementById('storageUsed');
+    
+    if (totalUploads) {
+      const currentCount = parseInt(totalUploads.textContent) || 0;
+      totalUploads.textContent = currentCount + 1;
+    }
+    
+    if (storageUsed) {
+      // Simulate storage usage calculation
+      const currentUsage = parseFloat(storageUsed.textContent.replace(' MB', '')) || 0;
+      const newUsage = currentUsage + Math.random() * 10; // Random increase
+      storageUsed.textContent = newUsage.toFixed(1) + ' MB';
+    }
+  }
+
+  // 🎥 Enhanced Media Upload Integration
+  window.initializeMediaUpload = function(formEl) {
+    if (!formEl) return;
+    
+    // Get elements
+    const mediaTypeInputs = formEl.querySelectorAll('input[name="mediaType"]');
+    const imageUploadSection = formEl.querySelector('#imageUploadSection');
+    const videoUploadSection = formEl.querySelector('#videoUploadSection');
+    const uploadBtns = formEl.querySelectorAll('.upload-media-btn');
+    const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+    const mediaPreview = formEl.querySelector('#mediaPreview');
+    const mediaPreviewInfo = formEl.querySelector('#mediaPreviewInfo');
+    const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
+    const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
+    const clearMediaBtn = formEl.querySelector('#clearMediaBtn');
+    
+    // Media type selection handlers
+    mediaTypeInputs.forEach(input => {
+      input.addEventListener('change', function() {
+        const mediaType = this.value;
+        
+        if (mediaType === 'IMAGE') {
+          imageUploadSection.style.display = 'block';
+          videoUploadSection.style.display = 'none';
+          
+          // Update visual states
+          document.querySelectorAll('.media-type-option').forEach(option => {
+            option.classList.remove('media-type-option-active');
+          });
+          this.closest('.media-type-option').classList.add('media-type-option-active');
+          
+        } else if (mediaType === 'VIDEO') {
+          imageUploadSection.style.display = 'none';
+          videoUploadSection.style.display = 'block';
+          
+          // Update visual states
+          document.querySelectorAll('.media-type-option').forEach(option => {
+            option.classList.remove('media-type-option-active');
+          });
+          this.closest('.media-type-option').classList.add('media-type-option-active');
+        }
+        
+        // Clear previous media
+        clearMediaPreview();
+      });
+    });
+    
+    // Upload button handlers
+    uploadBtns.forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const mediaType = this.dataset.type;
+        await handleMediaUpload(mediaType, formEl);
+      });
+    });
+    
+    // Clear media handler
+    if (clearMediaBtn) {
+      clearMediaBtn.addEventListener('click', function() {
+        clearMediaPreview();
+      });
+    }
+    
+    // Image URL input change handler for auto-preview
+    const imageUrlInput = formEl.querySelector('input[name="image"]');
+    if (imageUrlInput) {
+      imageUrlInput.addEventListener('input', function() {
+        const url = this.value.trim();
+        if (url && (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes('supabase.co'))) {
+          // Show preview for image URLs
+          const mediaData = {
+            url: url,
+            originalName: 'Manual Input',
+            mediaType: 'IMAGE',
+            size: 0
+          };
+          showMediaPreview(mediaData, 'image');
+        } else if (!url) {
+          clearMediaPreview();
+        }
+      });
+    }
+    
+    // Handle media upload
+    async function handleMediaUpload(mediaType, formEl) {
+      console.log(`🎥 Starting ${mediaType} upload...`);
+      
+      // Create file input
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = mediaType === 'image' ? 'image/*' : 'video/*';
+      
+      return new Promise((resolve, reject) => {
+        fileInput.onchange = async function(e) {
+          const file = e.target.files[0];
+          if (!file) {
+            resolve(null);
+            return;
+          }
+          
+          try {
+            // Show upload progress
+            showUploadProgress(mediaType, file.name);
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', 'TodayNews');
+            
+            // Upload to API
+            const response = await fetch('/api/media/simple-upload', {
+              method: 'POST',
+              body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              console.log('✅ Upload successful:', result.data);
+              
+              // Update form fields based on media type
+              if (mediaType === 'image') {
+                const imageInput = formEl.querySelector('input[name="image"]');
+                if (imageInput) {
+                  imageInput.value = result.data.url;
+                }
+              } else if (mediaType === 'video') {
+                const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+                const imageInput = formEl.querySelector('input[name="image"]'); // poster
+                const durationInput = formEl.querySelector('input[name="videoDuration"]');
+                
+                if (videoUrlInput) videoUrlInput.value = result.data.url;
+                if (imageInput && !imageInput.value) {
+                  // Use video URL as poster if no custom poster is set
+                  imageInput.value = result.data.url;
+                }
+                if (durationInput && result.data.duration) {
+                  durationInput.value = Math.round(result.data.duration);
+                }
+              }
+              
+              // Show media preview
+              showMediaPreview(result.data, mediaType);
+              
+              resolve(result.data);
+            } else {
+              throw new Error(result.error || 'Upload failed');
+            }
+            
+          } catch (error) {
+            console.error('❌ Upload failed:', error);
+            showUploadError(error.message);
+            reject(error);
+          } finally {
+            hideUploadProgress();
+          }
+        };
+        
+        // Trigger file selection
+        fileInput.click();
+      });
+    }
+    
+    // Show upload progress
+    function showUploadProgress(mediaType, fileName) {
+      const btn = formEl.querySelector(`[data-type="${mediaType}"]`);
+      if (btn) {
+        btn.innerHTML = `
+          <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          Uploading...
+        `;
+        btn.disabled = true;
+      }
+    }
+    
+    // Hide upload progress
+    function hideUploadProgress() {
+      uploadBtns.forEach(btn => {
+        const mediaType = btn.dataset.type;
+        btn.innerHTML = mediaType === 'image' ? 'Upload Image...' : 'Upload Video...';
+        btn.disabled = false;
+      });
+    }
+    
+    // Show upload error
+    function showUploadError(message) {
+      const errorDiv = formEl.querySelector('#formError') || document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = `Upload failed: ${message}`;
+      
+      if (!formEl.contains(errorDiv)) {
+        formEl.appendChild(errorDiv);
+      }
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Show media preview
+    function showMediaPreview(mediaData, mediaType) {
+      if (!mediaPreviewWrap || !mediaPreview || !mediaPreviewTitle || !mediaPreviewDetails) return;
+      
+      // Show preview container
+      mediaPreviewWrap.style.display = 'flex';
+      
+      // Update preview content
+      if (mediaType === 'image') {
+        mediaPreview.innerHTML = `
+          <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" />
+        `;
+      } else if (mediaType === 'video') {
+        mediaPreview.innerHTML = `
+          <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
+            Your browser does not support video playback.
+          </video>
+        `;
+      }
+      
+      // Update info
+      mediaPreviewTitle.textContent = mediaData.originalName || 'Uploaded Media';
+      mediaPreviewDetails.innerHTML = `
+        <div>Type: ${mediaData.mediaType}</div>
+        <div>Size: ${formatFileSize(mediaData.size)}</div>
+        ${mediaData.duration ? `<div>Duration: ${formatDuration(mediaData.duration)}</div>` : ''}
+        <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
+      `;
+    }
+    
+    // Clear media preview
+    function clearMediaPreview() {
+      if (mediaPreviewWrap) {
+        mediaPreviewWrap.style.display = 'none';
+      }
+      
+      // Clear form inputs
+      const imageInput = formEl.querySelector('input[name="image"]');
+      const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+      const durationInput = formEl.querySelector('input[name="videoDuration"]');
+      
+      if (imageInput) imageInput.value = '';
+      if (videoUrlInput) videoUrlInput.value = '';
+      if (durationInput) durationInput.value = '';
+    }
+    
+    // Helper functions
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function formatDuration(seconds) {
+      if (!seconds || seconds <= 0) return '';
+      const minutes = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Check for existing image URL and show preview on form load
+    function checkExistingImagePreview() {
+      const imageUrlInput = formEl.querySelector('input[name="image"]');
+      if (imageUrlInput && imageUrlInput.value.trim()) {
+        const url = imageUrlInput.value.trim();
+        if (url && (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes('supabase.co'))) {
+          const mediaData = {
+            url: url,
+            originalName: 'Existing Image',
+            mediaType: 'IMAGE',
+            size: 0
+          };
+          showMediaPreview(mediaData, 'image');
+        }
+      }
+    }
+    
+    // Initialize existing image preview check
+    setTimeout(checkExistingImagePreview, 100);
+  };
   
 });

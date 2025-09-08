@@ -1,0 +1,576 @@
+---
+// test-media.astro - 测试媒体上传功能的页面
+import Layout from '../layouts/Layout.astro';
+import SimpleMediaUploader from '../components/ui/SimpleMediaUploader.astro';
+import VideoArticleCard from '../components/ui/VideoArticleCard.astro';
+
+// 模拟文章数据用于测试
+const testArticles = [
+  {
+    id: 1,
+    title: "测试图片文章 - 美丽的风景照片",
+    slug: "test-image-article",
+    excerpt: "这是一篇测试图片文章，展示了美丽的自然风景。文章包含精美的图片和详细的描述，为读者带来视觉享受。",
+    category: "TodayNews",
+    mediaType: "IMAGE" as const,
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    imageAlt: "美丽的山景",
+    author: "张三",
+    publishDate: new Date('2024-12-19'),
+    featured: true,
+    readingTime: 5
+  },
+  {
+    id: 2,
+    title: "测试视频文章 - 精彩的教学视频",
+    slug: "test-video-article",
+    excerpt: "这是一篇包含视频的测试文章。视频内容丰富，包含详细的教学内容和实际演示，是学习新技能的绝佳资源。",
+    category: "PastNews",
+    mediaType: "VIDEO" as const,
+    image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
+    imageAlt: "视频封面",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    videoDuration: 596, // 9分56秒
+    author: "李四",
+    publishDate: new Date('2024-12-18'),
+    featured: false,
+    readingTime: 10
+  },
+  {
+    id: 3,
+    title: "另一个图片文章测试",
+    slug: "another-image-test",
+    excerpt: "又一篇图片文章，用于测试不同类型的媒体展示。展示了系统对多种媒体格式的良好支持。",
+    category: "TodayNews",
+    mediaType: "IMAGE" as const,
+    image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    imageAlt: "森林小径",
+    author: "王五",
+    publishDate: new Date('2024-12-17'),
+    featured: false,
+    readingTime: 3
+  }
+];
+---
+
+<Layout title="媒体上传测试 - IMACXNews">
+  <div class="test-media-page">
+    <div class="container">
+      <!-- 页面头部 -->
+      <div class="page-header">
+        <h1>🎬 媒体上传功能测试</h1>
+        <p class="page-description">
+          测试图片和视频上传功能，以及媒体文章展示组件。这个页面包含了完整的媒体处理流程演示。
+        </p>
+      </div>
+
+      <!-- 功能状态检查 -->
+      <div class="status-panel">
+        <h2>📊 功能状态检查</h2>
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-icon">🖼️</div>
+            <div class="status-info">
+              <h3>图片上传</h3>
+              <p>支持 JPG, PNG, GIF, WebP</p>
+              <span class="status-badge active">已启用</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-icon">🎥</div>
+            <div class="status-info">
+              <h3>视频上传</h3>
+              <p>支持 MP4, WebM, OGG</p>
+              <span class="status-badge active">已启用</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-icon">☁️</div>
+            <div class="status-info">
+              <h3>云存储</h3>
+              <p>Supabase Storage</p>
+              <span class="status-badge pending">检查中</span>
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-icon">🔒</div>
+            <div class="status-info">
+              <h3>权限验证</h3>
+              <p>仅管理员可上传</p>
+              <span class="status-badge active">已启用</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 媒体上传器 -->
+      <div class="uploader-section">
+        <h2>📤 媒体上传器</h2>
+        <p class="section-description">
+          选择图片或视频文件进行上传测试。支持拖拽上传，自动生成缩略图和预览。
+        </p>
+        <SimpleMediaUploader />
+      </div>
+
+      <!-- 测试API连接 -->
+      <div class="api-test-section">
+        <h2>🔌 API连接测试</h2>
+        <div class="api-tests">
+          <button id="testStorageConnection" class="test-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11H1v3h8v3l3-3-3-3z"/>
+              <path d="M22 12h-4"/>
+              <path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2h10l4 4v2"/>
+            </svg>
+            测试存储连接
+          </button>
+          <button id="testUploadInfo" class="test-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="l9 12 2 2 4-4"/>
+            </svg>
+            获取上传信息
+          </button>
+        </div>
+        <div id="apiTestResults" class="api-results"></div>
+      </div>
+
+      <!-- 文章卡片展示 -->
+      <div class="cards-section">
+        <h2>🎨 文章卡片展示</h2>
+        <p class="section-description">
+          展示支持图片和视频的文章卡片组件，包含交互式视频播放和响应式设计。
+        </p>
+        <div class="articles-grid">
+          {testArticles.map(article => (
+            <VideoArticleCard {...article} />
+          ))}
+        </div>
+      </div>
+
+      <!-- 开发信息 -->
+      <div class="dev-info">
+        <h2>🔧 开发信息</h2>
+        <div class="dev-details">
+          <div class="detail-group">
+            <h3>文件限制</h3>
+            <ul>
+              <li>图片最大大小: 10MB</li>
+              <li>视频最大大小: 50MB</li>
+              <li>支持拖拽上传</li>
+              <li>自动生成缩略图</li>
+            </ul>
+          </div>
+          <div class="detail-group">
+            <h3>存储配置</h3>
+            <ul>
+              <li>存储服务: Supabase Storage</li>
+              <li>存储桶: imacx-media</li>
+              <li>CDN加速: 已启用</li>
+              <li>公共访问: 已配置</li>
+            </ul>
+          </div>
+          <div class="detail-group">
+            <h3>技术栈</h3>
+            <ul>
+              <li>前端: Astro + TypeScript</li>
+              <li>上传API: Astro API Routes</li>
+              <li>存储: Supabase Storage</li>
+              <li>数据库: PostgreSQL</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .test-media-page {
+      min-height: 100vh;
+      background: 
+        radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1f2937;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-description {
+      font-size: 1.125rem;
+      color: #6b7280;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .status-panel,
+    .uploader-section,
+    .api-test-section,
+    .cards-section,
+    .dev-info {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(229, 231, 235, 0.8);
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .status-panel h2,
+    .uploader-section h2,
+    .api-test-section h2,
+    .cards-section h2,
+    .dev-info h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-description {
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(139, 92, 246, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.15);
+    }
+
+    .status-icon {
+      font-size: 2rem;
+      width: 48px;
+      text-align: center;
+    }
+
+    .status-info h3 {
+      margin: 0 0 4px 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .status-info p {
+      margin: 0 0 8px 0;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-badge.active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .api-tests {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .test-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .test-btn:hover {
+      background: #7c3aed;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    .api-results {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      min-height: 60px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .dev-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .detail-group {
+      background: rgba(139, 92, 246, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.15);
+    }
+
+    .detail-group h3 {
+      margin: 0 0 12px 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .detail-group ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .detail-group li {
+      padding: 6px 0;
+      color: #4b5563;
+      font-size: 0.875rem;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .detail-group li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .test-media-page {
+        padding: 20px 10px;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .status-panel,
+      .uploader-section,
+      .api-test-section,
+      .cards-section,
+      .dev-info {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 16px;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .articles-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .dev-details {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .api-tests {
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .test-media-page {
+        background: 
+          radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+          radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+          linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
+
+      .status-panel,
+      .uploader-section,
+      .api-test-section,
+      .cards-section,
+      .dev-info {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(75, 85, 99, 0.8);
+      }
+
+      .page-header h1 {
+        color: #f1f5f9;
+      }
+
+      .status-panel h2,
+      .uploader-section h2,
+      .api-test-section h2,
+      .cards-section h2,
+      .dev-info h2 {
+        color: #f1f5f9;
+      }
+
+      .page-description,
+      .section-description {
+        color: #94a3b8;
+      }
+
+      .status-item {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.2);
+      }
+
+      .status-info h3 {
+        color: #f1f5f9;
+      }
+
+      .status-info p {
+        color: #94a3b8;
+      }
+
+      .detail-group {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.2);
+      }
+
+      .detail-group h3 {
+        color: #f1f5f9;
+      }
+
+      .detail-group li {
+        color: #cbd5e1;
+      }
+
+      .api-results {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(75, 85, 99, 0.5);
+        color: #e2e8f0;
+      }
+    }
+  </style>
+
+  <script>
+    // API测试脚本
+    document.addEventListener('DOMContentLoaded', function() {
+      const testStorageBtn = document.getElementById('testStorageConnection');
+      const testUploadInfoBtn = document.getElementById('testUploadInfo');
+      const apiResults = document.getElementById('apiTestResults');
+      const storageStatusBadge = document.querySelector('.status-item:nth-child(3) .status-badge');
+
+      // 测试存储连接
+      testStorageBtn?.addEventListener('click', async function() {
+        apiResults.textContent = '正在测试存储连接...';
+        testStorageBtn.disabled = true;
+
+        try {
+          const response = await fetch('/api/media/simple-upload?action=test');
+          const result = await response.json();
+
+          if (response.ok) {
+            apiResults.textContent = `✅ 存储连接成功!\n\n${JSON.stringify(result, null, 2)}`;
+            if (storageStatusBadge) {
+              storageStatusBadge.textContent = '已连接';
+              storageStatusBadge.className = 'status-badge active';
+            }
+          } else {
+            throw new Error(result.error || '连接失败');
+          }
+        } catch (error) {
+          apiResults.textContent = `❌ 存储连接失败:\n\n${error.message}`;
+          if (storageStatusBadge) {
+            storageStatusBadge.textContent = '连接失败';
+            storageStatusBadge.className = 'status-badge error';
+          }
+        } finally {
+          testStorageBtn.disabled = false;
+        }
+      });
+
+      // 获取上传信息
+      testUploadInfoBtn?.addEventListener('click', async function() {
+        apiResults.textContent = '正在获取上传信息...';
+        testUploadInfoBtn.disabled = true;
+
+        try {
+          const response = await fetch('/api/media/simple-upload?action=info');
+          const result = await response.json();
+
+          if (response.ok) {
+            apiResults.textContent = `📋 上传配置信息:\n\n${JSON.stringify(result, null, 2)}`;
+          } else {
+            throw new Error(result.error || '获取信息失败');
+          }
+        } catch (error) {
+          apiResults.textContent = `❌ 获取信息失败:\n\n${error.message}`;
+        } finally {
+          testUploadInfoBtn.disabled = false;
+        }
+      });
+
+      // 页面加载时自动测试存储连接
+      setTimeout(() => {
+        testStorageBtn?.click();
+      }, 1000);
+    });
+  </script>
+</Layout>
