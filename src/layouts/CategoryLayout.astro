@@ -479,32 +479,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('📊 找到', articles.length, '篇文章');
     
-    // 🎯 动态计算移动端articles-list最小高度
-    if (window.innerWidth <= 768) {
-      // 计算所有文章的总高度
-      let totalArticlesHeight = 0;
-      articles.forEach(article => {
-        totalArticlesHeight += article.offsetHeight;
-      });
-      
-      // 加上文章间的间距 (articles.length - 1) * gap
-      const articleGap = 32; // var(--space-8) ≈ 32px
-      const totalGapHeight = (articles.length - 1) * articleGap;
-      
-      // 计算动态最小高度：文章总高度 + 间距 + 额外缓冲
-      const dynamicMinHeight = totalArticlesHeight + totalGapHeight + 20; // 移动端减少缓冲到20px
-      
-      // 设置动态最小高度
-      articlesList.style.minHeight = dynamicMinHeight + 'px';
-      
-      console.log('📱 移动端动态设置:');
-      console.log('  文章总高度:', totalArticlesHeight, 'px');
-      console.log('  间距总高度:', totalGapHeight, 'px');
-      console.log('  动态最小高度:', dynamicMinHeight, 'px');
-    } else {
-      // 桌面端清除最小高度限制
-      articlesList.style.minHeight = '';
-    }
+    // 🎯 移除固定最小高度设置，让文章列表自然展开
+    // 清除任何之前设置的最小高度限制，让内容根据实际高度显示
+    articlesList.style.minHeight = '';
+    articlesList.style.height = 'auto';
+    
+    console.log('📱 已移除子滚动条，文章列表自然展开显示');
     
     // 重置Footer的margin-top，让我们重新计算
     footer.style.marginTop = '0px';
