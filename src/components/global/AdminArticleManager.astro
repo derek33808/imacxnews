@@ -920,9 +920,9 @@
     .admin-manager-modal {
       width: 100vw !important; /* 使用全屏宽度 */
       max-width: 100vw !important;
-      max-height: calc(100vh - 60px) !important; /* 减去导航栏和底部条的空间 */
+      max-height: calc(100vh - 100px) !important; /* 增加更多空间给导航栏和底部条 */
       margin: 0 !important; /* 去除所有边距 */
-      padding: max(20px, env(safe-area-inset-top)) 0 max(30px, env(safe-area-inset-bottom)) 0 !important; /* 智能适配安全区域 */
+      padding: max(20px, env(safe-area-inset-top)) 0 max(50px, env(safe-area-inset-bottom)) 0 !important; /* 增加底部安全距离到50px */
       border-radius: 0 !important; /* 去除圆角获取最大空间 */
       box-sizing: border-box !important; /* 确保padding计算在总高度内 */
     }
@@ -989,7 +989,7 @@
     .articles-list {
       padding: 16px 12px !important;
       gap: 24px !important; /* 增加卡片间距 */
-      max-height: calc(100vh - 180px) !important; /* 调整高度，考虑新的padding和导航栏空间 */
+      max-height: calc(100vh - 220px) !important; /* 进一步调整高度，确保底部不被遮挡 */
       overflow-y: auto !important;
     }
 
@@ -2195,13 +2195,13 @@
   /* 📱 Mixed Mobile Responsive Design */
   @media (max-width: 768px) {
     .admin-manager-modal-overlay {
-      padding: 5px;
+      padding: max(20px, env(safe-area-inset-top)) 5px max(50px, env(safe-area-inset-bottom)) 5px; /* 上下适配安全区域，左右保持5px */
     }
     
     .admin-manager-modal {
-      width: 100vw;
-      max-width: 100vw;
-      max-height: 100vh;
+      width: calc(100vw - 10px); /* 减去左右padding */
+      max-width: calc(100vw - 10px);
+      max-height: calc(100vh - 100px); /* 与上面的设置保持一致 */
       margin: 0;
       border-radius: 8px;
     }
