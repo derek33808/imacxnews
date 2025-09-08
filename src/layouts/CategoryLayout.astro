@@ -466,18 +466,29 @@ const description = categoryInfo.description;
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 启动智能Footer自动定位系统...');
   
+  // 添加全局防抖机制，避免函数被频繁调用
+  let footerPositionTimeout;
   function autoPositionFooter() {
-    // 获取关键元素
-    const footer = document.querySelector('.site-footer');
-    const articlesList = document.querySelector('.articles-list');
-    const articles = document.querySelectorAll('.articles-list .large-article-card');
-    
-    if (!footer || !articlesList || articles.length === 0) {
-      console.warn('❌ 找不到必要元素:', { footer: !!footer, articlesList: !!articlesList, articles: articles.length });
-      return;
-    }
-    
-    console.log('📊 找到', articles.length, '篇文章');
+    clearTimeout(footerPositionTimeout);
+    footerPositionTimeout = setTimeout(function() {
+      // 获取关键元素
+      const footer = document.querySelector('.site-footer');
+      const articlesList = document.querySelector('.articles-list');
+      const articles = document.querySelectorAll('.articles-list .large-article-card');
+      
+      if (!footer || !articlesList || articles.length === 0) {
+        console.warn('❌ 找不到必要元素:', { footer: !!footer, articlesList: !!articlesList, articles: articles.length });
+        return;
+      }
+      
+      console.log('📊 找到', articles.length, '篇文章');
+      
+      // 添加运行标记，防止重复执行
+      if (footer.dataset.positioning === 'true') {
+        console.log('🔄 Footer正在定位中，跳过本次执行');
+        return;
+      }
+      footer.dataset.positioning = 'true';
     
     // 🎯 动态计算移动端articles-list最小高度
     if (window.innerWidth <= 768) {
@@ -578,22 +589,43 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           console.log('⚠️ Footer位置可能有重叠，需要调整');
         }
+        
+        // 清除定位标记
+        footer.dataset.positioning = 'false';
       }, 100);
       
     }, 100);
+    }, 150); // 主防抖延迟150ms
   }
   
   // 页面加载完成后执行
   autoPositionFooter();
   
-  // 监听窗口大小变化，重新调整
+  // 监听窗口大小变化，重新调整（优化防抖，避免移动端滚动时的闪动）
   let resizeTimeout;
+  let lastWindowWidth = window.innerWidth;
+  let lastWindowHeight = window.innerHeight;
+  
   window.addEventListener('resize', function() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(function() {
-      console.log('📐 窗口大小改变，重新调整Footer位置...');
-      autoPositionFooter();
-    }, 300);
+      const currentWidth = window.innerWidth;
+      const currentHeight = window.innerHeight;
+      
+      // 只有在宽度或高度显著变化时才重新定位（避免移动端滚动时地址栏引起的小幅变化）
+      const widthChange = Math.abs(currentWidth - lastWindowWidth);
+      const heightChange = Math.abs(currentHeight - lastWindowHeight);
+      
+      if (widthChange > 50 || heightChange > 100) {
+        console.log('📐 窗口大小显著改变，重新调整Footer位置...');
+        console.log(`  宽度变化: ${widthChange}px, 高度变化: ${heightChange}px`);
+        lastWindowWidth = currentWidth;
+        lastWindowHeight = currentHeight;
+        autoPositionFooter();
+      } else {
+        console.log('📱 忽略小幅resize（可能是移动端滚动引起）');
+      }
+    }, 500); // 增加防抖时间到500ms
   });
   
   // 监听图片加载完成，重新调整（因为图片加载可能改变文章高度）
