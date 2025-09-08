@@ -421,28 +421,47 @@ const description = categoryInfo.description;
     });
   }
 
-  // 🚀 Improved real-time update mechanism for better UX
+  // 🚀 ENHANCED real-time update mechanism with Cache Sync Manager
   let updateTimeout: NodeJS.Timeout;
   function debouncedUpdate() {
     clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(() => {
-      // 🧹 Clear ALL related caches using global utility (if available)
-      if ((window as any).clearAllArticleCaches) {
-        (window as any).clearAllArticleCaches();
+    updateTimeout = setTimeout(async () => {
+      console.log('🔄 CategoryLayout: Processing real-time update...');
+      
+      // 🧹 Use Cache Sync Manager for comprehensive cache management
+      if ((window as any).cacheSyncManager) {
+        console.log('✅ Using Cache Sync Manager for cache clearing...');
+        (window as any).cacheSyncManager.clearAllCaches();
+        
+        // Check cache consistency and trigger database sync if needed
+        try {
+          const isConsistent = await (window as any).cacheSyncManager.checkCacheConsistency();
+          if (!isConsistent) {
+            console.log('⚠️ Cache inconsistency detected, triggering database sync...');
+            await (window as any).cacheSyncManager.triggerDatabaseSync();
+          }
+        } catch (e) {
+          console.warn('⚠️ Cache consistency check failed:', e);
+        }
       } else {
-        // Fallback cache clearing if global utility is not loaded yet
-        localStorage.removeItem('category_articles_cache');
-        localStorage.removeItem('category_articles_cache_time');
-        localStorage.removeItem('imacx_articles');
-        localStorage.removeItem('imacx_articles_cache');
-        if ('caches' in window) {
-          caches.delete('api-cache').catch(() => {});
+        // Fallback cache clearing if Cache Sync Manager is not loaded yet
+        console.log('⚠️ Cache Sync Manager not available, using fallback...');
+        if ((window as any).clearAllArticleCaches) {
+          (window as any).clearAllArticleCaches();
+        } else {
+          localStorage.removeItem('category_articles_cache');
+          localStorage.removeItem('category_articles_cache_time');
+          localStorage.removeItem('imacx_articles');
+          localStorage.removeItem('imacx_articles_cache');
+          if ('caches' in window) {
+            caches.delete('api-cache').catch(() => {});
+          }
         }
       }
       
-      console.log('🔄 All caches cleared, reloading page for real-time update...');
+      console.log('🔄 Cache clearing completed, reloading page for real-time update...');
       location.reload();
-    }, 300); // ⚡ Reduced debounce to 300ms for faster response
+    }, 200); // ⚡ Further reduced debounce to 200ms for faster response with Cache Sync Manager
   }
 
   // Page visibility API - only update when page is visible

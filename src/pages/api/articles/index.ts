@@ -20,12 +20,37 @@ export const GET: APIRoute = async ({ request }) => {
     const limit = parseInt(url.searchParams.get('limit') || '20'); // 默认只加载20篇
     const offset = parseInt(url.searchParams.get('offset') || '0');
     
-    // 🚀 设置 HTTP 缓存头
-    const headers = {
+    // 🚀 NEW: Enhanced cache control with force refresh support
+    const forceRefresh = url.searchParams.get('_force') === 'true';
+    const syncRequest = url.searchParams.get('_sync') === 'true';
+    const timestampParam = url.searchParams.get('_t');
+    
+    // 🚀 Dynamic cache headers based on request type
+    let headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // 5分钟缓存，10分钟过期重验证
-      'CDN-Cache-Control': 'public, max-age=1800', // CDN 30分钟缓存
     };
+    
+    if (forceRefresh || syncRequest) {
+      // Force refresh or sync request - disable all caching
+      headers = {
+        ...headers,
+        'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'CDN-Cache-Control': 'no-cache',
+        'X-Cache-Status': 'force-refresh',
+        'Vary': 'Authorization, X-Requested-With'
+      };
+      console.log('🔄 Force refresh/sync request detected - disabling all caches');
+    } else {
+      // Normal request - enable caching
+      headers = {
+        ...headers,
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // 5分钟缓存，10分钟过期重验证
+        'CDN-Cache-Control': 'public, max-age=1800', // CDN 30分钟缓存
+        'X-Cache-Status': 'cacheable'
+      };
+    }
 
     if (slug) {
       try {
@@ -43,32 +68,47 @@ export const GET: APIRoute = async ({ request }) => {
       }
     }
     
-    // 🚀 检查服务端缓存（支持跨路由失效）
+    // 🚀 Enhanced cache checking with force refresh support
     const now = Date.now();
     const globalVersion = GLOBAL.__articles_cache.version || 0;
     const localVersion = (GLOBAL.__articles_cache._localVersion ?? 0) as number;
     const versionChanged = globalVersion !== localVersion;
-    if (versionChanged) {
-      // 有其它路由更新了数据，立即失效本地引用
+    
+    // Clear cache if version changed or force refresh is requested
+    if (versionChanged || forceRefresh || syncRequest) {
+      console.log(`🔄 Cache invalidation: versionChanged=${versionChanged}, forceRefresh=${forceRefresh}, syncRequest=${syncRequest}`);
       articlesCache = null;
       cacheTimestamp = 0;
       GLOBAL.__articles_cache.data = null;
       GLOBAL.__articles_cache.timestamp = 0;
       GLOBAL.__articles_cache._localVersion = globalVersion;
     }
-    if (articlesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    
+    // Only use cache if not forcing refresh and cache is valid
+    if (!forceRefresh && !syncRequest && articlesCache && (now - cacheTimestamp) < CACHE_DURATION) {
       console.log('🚀 Using server-side cache');
       // 应用分页
       const start = offset;
       const end = offset + limit;
       const paginatedArticles = articlesCache.slice(start, end);
       
-      return new Response(JSON.stringify({
+      // Add cache metadata to response
+      const responseData = {
         articles: paginatedArticles,
         total: articlesCache.length,
         hasMore: end < articlesCache.length,
-        fromCache: true
-      }), { headers });
+        fromCache: true,
+        cacheTimestamp: cacheTimestamp,
+        cacheAge: now - cacheTimestamp
+      };
+      
+      return new Response(JSON.stringify(responseData), { 
+        headers: {
+          ...headers,
+          'X-Cache-Hit': 'true',
+          'X-Cache-Age': (now - cacheTimestamp).toString()
+        }
+      });
     }
     
     try {
@@ -110,12 +150,27 @@ export const GET: APIRoute = async ({ request }) => {
       const end = offset + limit;
       const paginatedArticles = articles.slice(start, end);
       
-      return new Response(JSON.stringify({
+      // Add metadata for Cache Sync Manager
+      const responseData = {
         articles: paginatedArticles,
         total: articles.length,
         hasMore: end < articles.length,
-        fromCache: false
-      }), { headers });
+        fromCache: false,
+        fetchTimestamp: now,
+        forceRefresh: forceRefresh,
+        syncRequest: syncRequest,
+        cacheVersion: GLOBAL.__articles_cache.version || 0
+      };
+      
+      return new Response(JSON.stringify(responseData), { 
+        headers: {
+          ...headers,
+          'X-Cache-Hit': 'false',
+          'X-Fetch-Timestamp': now.toString(),
+          'X-Force-Refresh': forceRefresh.toString(),
+          'X-Sync-Request': syncRequest.toString()
+        }
+      });
     } catch (fetchError) {
       console.error('Error fetching articles:', fetchError);
       // 如果获取失败但有缓存，使用过期缓存
@@ -219,14 +274,34 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }, `Create article: ${data.title}`);
     
-    // 清除缓存以确保新文章立即可见，并提升全局版本号
+    // 🚀 Enhanced cache invalidation with version control for Cache Sync Manager
+    const now = Date.now();
     articlesCache = null;
     cacheTimestamp = 0;
     GLOBAL.__articles_cache.data = null;
     GLOBAL.__articles_cache.timestamp = 0;
     GLOBAL.__articles_cache.version = (GLOBAL.__articles_cache.version || 0) + 1;
     
-    return new Response(JSON.stringify(created), { status: 201, headers: { 'Content-Type': 'application/json' } });
+    console.log(`📝 Article created - Cache version updated to ${GLOBAL.__articles_cache.version}`);
+    
+    // Add metadata to response for Cache Sync Manager
+    const responseData = {
+      ...created,
+      cacheVersion: GLOBAL.__articles_cache.version,
+      invalidationTimestamp: now,
+      operation: 'CREATE'
+    };
+    
+    return new Response(JSON.stringify(responseData), { 
+      status: 201, 
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Cache-Invalidated': 'true',
+        'X-Cache-Version': GLOBAL.__articles_cache.version.toString(),
+        'X-Operation': 'CREATE',
+        'X-Invalidation-Timestamp': now.toString()
+      } 
+    });
   } catch (e: any) {
     // Provide clearer errors for known Prisma cases
     const message = e?.message || String(e);

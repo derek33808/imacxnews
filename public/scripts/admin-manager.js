@@ -1,28 +1,34 @@
-// 🚀 Global cache management utility
+// 🚀 Enhanced Global Cache Management with Sync Manager
+// This will be handled by the Cache Sync Manager - legacy function for compatibility
 window.clearAllArticleCaches = function() {
-  console.log('🧹 Clearing all article caches globally...');
+  console.log('🧹 Legacy cache clear function called - delegating to Cache Sync Manager...');
   
-  // Clear localStorage caches
-  const cacheKeys = [
-    'imacx_articles',
-    'imacx_articles_cache', 
-    'category_articles_cache',
-    'category_articles_cache_time'
-  ];
-  
-  cacheKeys.forEach(key => {
-    try {
-      localStorage.removeItem(key);
-      console.log(`✅ Cleared cache: ${key}`);
-    } catch (e) {
-      console.warn(`⚠️ Failed to clear cache: ${key}`, e);
+  if (window.cacheSyncManager) {
+    window.cacheSyncManager.clearAllCaches();
+  } else {
+    // Fallback to old implementation
+    console.log('⚠️ Cache Sync Manager not available, using fallback...');
+    
+    const cacheKeys = [
+      'imacx_articles',
+      'imacx_articles_cache', 
+      'category_articles_cache',
+      'category_articles_cache_time'
+    ];
+    
+    cacheKeys.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+        console.log(`✅ Cleared cache: ${key}`);
+      } catch (e) {
+        console.warn(`⚠️ Failed to clear cache: ${key}`, e);
+      }
+    });
+    
+    if ('caches' in window) {
+      caches.delete('api-cache').catch(() => {});
+      caches.delete('articles-cache').catch(() => {});
     }
-  });
-  
-  // Clear service worker caches if available
-  if ('caches' in window) {
-    caches.delete('api-cache').catch(() => {});
-    caches.delete('articles-cache').catch(() => {});
   }
   
   console.log('✨ All article caches cleared successfully');
@@ -517,51 +523,66 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log(`📝 Article ${isEditing ? 'updated' : 'created'} successfully`);
         
-        // 🚀 GUARANTEED CACHE CLEARING: Clear all possible caches first
+        // 🚀 NEW ENHANCED CACHE SYNC: Use Cache Sync Manager
+        console.log('🔄 Triggering Cache Sync Manager for article operation...');
+        
+        // Clear local cache variables
         articlesCache = null;
         cacheTimestamp = 0;
-        window.clearAllArticleCaches();
-        
-        console.log('🔄 Article saved, closing modal and refreshing list...');
         
         // Close modal first to improve UX
         close();
         
-        // 📡 Trigger global events for other parts of the app
-        if (isEditing) {
-          window.dispatchEvent(new CustomEvent('articleUpdated'));
-        } else {
-          window.dispatchEvent(new CustomEvent('articlePublished'));
-        }
+        // 📡 Trigger Cache Sync Manager events (will handle all cache clearing and syncing)
+        const eventType = isEditing ? 'articleUpdated' : 'articleCreated';
+        const eventDetail = { 
+          articleId: resp.data?.id || resp.id || null,
+          type: eventType,
+          timestamp: Date.now()
+        };
         
-        // ⏱️ Strategic delay: Allow API to fully commit before refresh
-        console.log('⏱️ Waiting for API transaction to fully commit...');
-        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms for reliable API completion
+        console.log(`📢 Dispatching ${eventType} event with detail:`, eventDetail);
+        window.dispatchEvent(new CustomEvent(eventType, { detail: eventDetail }));
         
-        // 🔄 FORCE REFRESH: Multiple strategies to ensure update
-        console.log('🔄 Performing forced refresh of Admin Manager list...');
-        
+        // Cache Sync Manager will handle the rest, but we still ensure local refresh
         try {
-          // Strategy 1: Direct loadArticlesList with all cache-busting
-          await loadArticlesList(true);
-          console.log('✅ Strategy 1: Direct loadArticlesList completed');
+          console.log('⏱️ Allowing Cache Sync Manager to process...');
+          await new Promise(resolve => setTimeout(resolve, 200)); // Reduced delay - Cache Sync Manager handles timing
           
-          // Strategy 2: Additional short delay + second refresh for new articles
-          if (!isEditing) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+          // Verify refresh with cache consistency check
+          if (window.cacheSyncManager) {
+            const syncStatus = await window.cacheSyncManager.checkCacheConsistency();
+            console.log('🔍 Cache consistency status:', syncStatus);
+            
+            if (!syncStatus) {
+              console.log('⚠️ Cache inconsistency detected, forcing additional refresh...');
+              await loadArticlesList(true);
+            }
+          } else {
+            // Fallback to original method
+            console.log('⚠️ Cache Sync Manager not available, using fallback refresh...');
             await loadArticlesList(true);
-            console.log('✅ Strategy 2: Second refresh for new article completed');
+            if (!isEditing) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+              await loadArticlesList(true);
+            }
           }
           
         } catch (refreshError) {
           console.error('⚠️ Refresh error:', refreshError);
-          // Fallback: Reload the entire page if refresh fails
-          console.log('🔄 Fallback: Reloading page...');
-          window.location.reload();
-          return;
+          // Force database sync as last resort
+          if (window.triggerDatabaseSync) {
+            console.log('🔄 Attempting emergency database sync...');
+            await window.triggerDatabaseSync();
+            await loadArticlesList(true);
+          } else {
+            console.log('🔄 Final fallback: Reloading page...');
+            window.location.reload();
+            return;
+          }
         }
         
-        // Show success message AFTER refresh
+        // Show success message AFTER all refresh operations
         alert(`Article ${isEditing ? 'updated' : 'created'} successfully!`);
         console.log('✅ Article operation completed successfully');
       } catch (err) {
@@ -859,13 +880,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Load articles list with cache support
+  // Load articles list with enhanced cache support and consistency checking
   async function loadArticlesList(forceRefresh = false) {
     if (!articlesList) return;
     
-    // Check cache
+    // 🔍 NEW: Cache consistency check with Cache Sync Manager
+    if (window.cacheSyncManager && !forceRefresh) {
+      try {
+        const isConsistent = await window.cacheSyncManager.checkCacheConsistency();
+        if (!isConsistent) {
+          console.log('⚠️ Cache inconsistency detected in loadArticlesList, forcing refresh...');
+          forceRefresh = true;
+        }
+      } catch (e) {
+        console.warn('⚠️ Cache consistency check failed:', e);
+      }
+    }
+    
+    // Check local cache
     const now = Date.now();
     if (!forceRefresh && articlesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+      console.log('📦 Using cached articles data');
       renderArticlesList(articlesCache);
       return;
     }
@@ -968,26 +1003,58 @@ document.addEventListener('DOMContentLoaded', function() {
       if (r.status === 204) {
         console.log(`🗑️ Article ${articleId} deleted successfully from API`);
         
-        // 🚀 ENHANCED: Force complete cache clearing and real-time sync for deletion
+        // 🚀 NEW ENHANCED CACHE SYNC: Use Cache Sync Manager for deletion
+        console.log('🔄 Triggering Cache Sync Manager for article deletion...');
+        
+        // Clear local cache variables
         articlesCache = null;
         cacheTimestamp = 0;
         
-        // 🧹 Clear ALL related caches using global utility
-        window.clearAllArticleCaches();
+        // 📡 Trigger Cache Sync Manager events (will handle all cache clearing and syncing)
+        const eventDetail = { 
+          articleId: articleId,
+          type: 'articleDeleted',
+          timestamp: Date.now()
+        };
         
-        // 📡 Trigger delete event BEFORE local refresh for better timing
-        window.dispatchEvent(new CustomEvent('articleDeleted', { detail: { articleId } }));
+        console.log('📢 Dispatching articleDeleted event with detail:', eventDetail);
+        window.dispatchEvent(new CustomEvent('articleDeleted', { detail: eventDetail }));
         
-        // ⚡ ENHANCED: Small delay to ensure API transaction completes, then force refresh
-        console.log('🔄 Ensuring deletion transaction completes, then force refreshing Admin Manager list...');
+        // Cache Sync Manager will handle cross-page synchronization
+        try {
+          console.log('⏱️ Allowing Cache Sync Manager to process deletion...');
+          await new Promise(resolve => setTimeout(resolve, 150)); // Reduced delay - Cache Sync Manager handles timing
+          
+          // Verify deletion and cache consistency
+          if (window.cacheSyncManager) {
+            const syncStatus = await window.cacheSyncManager.checkCacheConsistency();
+            console.log('🔍 Post-deletion cache consistency status:', syncStatus);
+            
+            // Force additional refresh to ensure the deleted article is gone
+            await loadArticlesList(true);
+            console.log('✅ Post-deletion Admin Manager list refreshed');
+          } else {
+            // Fallback to original method
+            console.log('⚠️ Cache Sync Manager not available, using fallback refresh...');
+            window.clearAllArticleCaches();
+            await loadArticlesList(true);
+          }
+          
+        } catch (refreshError) {
+          console.error('⚠️ Post-deletion refresh error:', refreshError);
+          // Force database sync as last resort
+          if (window.triggerDatabaseSync) {
+            console.log('🔄 Attempting emergency database sync after deletion...');
+            await window.triggerDatabaseSync();
+            await loadArticlesList(true);
+          } else {
+            console.log('🔄 Final fallback: Reloading page...');
+            window.location.reload();
+            return;
+          }
+        }
         
-        // Wait a moment for API to fully commit the deletion
-        await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay for API completion
-        
-        console.log('🔄 Force refreshing Admin Manager list now...');
-        await loadArticlesList(true); // Force refresh admin list with enhanced cache-busting
-        
-        // Show success message AFTER refresh to ensure UI is updated
+        // Show success message AFTER all refresh operations
         alert('Article deleted successfully!');
         
         return;
