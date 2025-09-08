@@ -1,3 +1,49 @@
+// 🚀 Global cache management utility
+window.clearAllArticleCaches = function() {
+  console.log('🧹 Clearing all article caches globally...');
+  
+  // Clear localStorage caches
+  const cacheKeys = [
+    'imacx_articles',
+    'imacx_articles_cache', 
+    'category_articles_cache',
+    'category_articles_cache_time'
+  ];
+  
+  cacheKeys.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+      console.log(`✅ Cleared cache: ${key}`);
+    } catch (e) {
+      console.warn(`⚠️ Failed to clear cache: ${key}`, e);
+    }
+  });
+  
+  // Clear service worker caches if available
+  if ('caches' in window) {
+    caches.delete('api-cache').catch(() => {});
+    caches.delete('articles-cache').catch(() => {});
+  }
+  
+  console.log('✨ All article caches cleared successfully');
+};
+
+// 🚀 Global force refresh utility for Admin Manager
+window.forceRefreshAdminList = async function() {
+  console.log('🔄 Global force refresh Admin Manager list triggered...');
+  
+  // Clear all caches first
+  window.clearAllArticleCaches();
+  
+  // Force refresh if Admin Manager is open
+  if (typeof loadArticlesList === 'function') {
+    await loadArticlesList(true);
+    console.log('✅ Admin Manager list force refreshed');
+  } else {
+    console.warn('⚠️ loadArticlesList function not available');
+  }
+};
+
 // Admin Article Manager functionality
 document.addEventListener('DOMContentLoaded', function() {
   const adminManagerModal = document.getElementById('adminManagerModal');
@@ -469,19 +515,55 @@ document.addEventListener('DOMContentLoaded', function() {
           throw error;
         }
         
-        alert(`Article ${isEditing ? 'updated' : 'created'} successfully!`);
+        console.log(`📝 Article ${isEditing ? 'updated' : 'created'} successfully`);
+        
+        // 🚀 GUARANTEED CACHE CLEARING: Clear all possible caches first
+        articlesCache = null;
+        cacheTimestamp = 0;
+        window.clearAllArticleCaches();
+        
+        console.log('🔄 Article saved, closing modal and refreshing list...');
+        
+        // Close modal first to improve UX
         close();
         
-        // Clear the cache and trigger event
-        articlesCache = null;
-        
+        // 📡 Trigger global events for other parts of the app
         if (isEditing) {
           window.dispatchEvent(new CustomEvent('articleUpdated'));
         } else {
           window.dispatchEvent(new CustomEvent('articlePublished'));
         }
-        try { localStorage.setItem('imacx_articles', String(Date.now())); } catch {}
-        loadArticlesList(true); // Force refresh after save
+        
+        // ⏱️ Strategic delay: Allow API to fully commit before refresh
+        console.log('⏱️ Waiting for API transaction to fully commit...');
+        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms for reliable API completion
+        
+        // 🔄 FORCE REFRESH: Multiple strategies to ensure update
+        console.log('🔄 Performing forced refresh of Admin Manager list...');
+        
+        try {
+          // Strategy 1: Direct loadArticlesList with all cache-busting
+          await loadArticlesList(true);
+          console.log('✅ Strategy 1: Direct loadArticlesList completed');
+          
+          // Strategy 2: Additional short delay + second refresh for new articles
+          if (!isEditing) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            await loadArticlesList(true);
+            console.log('✅ Strategy 2: Second refresh for new article completed');
+          }
+          
+        } catch (refreshError) {
+          console.error('⚠️ Refresh error:', refreshError);
+          // Fallback: Reload the entire page if refresh fails
+          console.log('🔄 Fallback: Reloading page...');
+          window.location.reload();
+          return;
+        }
+        
+        // Show success message AFTER refresh
+        alert(`Article ${isEditing ? 'updated' : 'created'} successfully!`);
+        console.log('✅ Article operation completed successfully');
       } catch (err) {
         console.error('Save error', err);
         errEl.textContent = err.message || 'Network error, please try again.';
@@ -789,9 +871,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     try {
-      const response = await fetch('/api/articles', {
+      // 🚀 Enhanced fetch with cache-busting for force refresh
+      const fetchOptions = {
         credentials: 'include'  // 🔑 Include cookies for authentication
-      });
+      };
+      
+      // ⚡ Add cache-busting headers for force refresh
+      if (forceRefresh) {
+        fetchOptions.headers = {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        };
+        console.log('🔄 Force refresh: bypassing all caches...');
+      }
+      
+      // 🚀 Enhanced cache-busting with timestamp for force refresh
+      const apiUrl = forceRefresh 
+        ? `/api/articles?_t=${Date.now()}&_force=true` 
+        : '/api/articles';
+      
+      console.log(`📡 Fetching articles from: ${apiUrl}`);
+      const response = await fetch(apiUrl, fetchOptions);
       
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -830,9 +931,11 @@ document.addEventListener('DOMContentLoaded', function() {
         articles = [];
       }
       
-      // Update cache
+      // 🔄 Update cache with fresh data
       articlesCache = articles;
       cacheTimestamp = now;
+      
+      console.log(`✅ Loaded ${articles.length} articles ${forceRefresh ? '(force refresh)' : '(from API)'}`);
       
       renderArticlesList(articles);
       
@@ -863,15 +966,30 @@ document.addEventListener('DOMContentLoaded', function() {
         credentials: 'include'  // 🔑 Include cookies for authentication
       });
       if (r.status === 204) {
+        console.log(`🗑️ Article ${articleId} deleted successfully from API`);
+        
+        // 🚀 ENHANCED: Force complete cache clearing and real-time sync for deletion
+        articlesCache = null;
+        cacheTimestamp = 0;
+        
+        // 🧹 Clear ALL related caches using global utility
+        window.clearAllArticleCaches();
+        
+        // 📡 Trigger delete event BEFORE local refresh for better timing
+        window.dispatchEvent(new CustomEvent('articleDeleted', { detail: { articleId } }));
+        
+        // ⚡ ENHANCED: Small delay to ensure API transaction completes, then force refresh
+        console.log('🔄 Ensuring deletion transaction completes, then force refreshing Admin Manager list...');
+        
+        // Wait a moment for API to fully commit the deletion
+        await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay for API completion
+        
+        console.log('🔄 Force refreshing Admin Manager list now...');
+        await loadArticlesList(true); // Force refresh admin list with enhanced cache-busting
+        
+        // Show success message AFTER refresh to ensure UI is updated
         alert('Article deleted successfully!');
         
-        // Clear cache and force refresh the articles list
-        articlesCache = null;
-        loadArticlesList(true);
-        
-        // Trigger delete event for other components
-        window.dispatchEvent(new CustomEvent('articleDeleted', { detail: { articleId } }));
-        try { localStorage.setItem('imacx_articles', String(Date.now())); } catch {}
         return;
       }
 

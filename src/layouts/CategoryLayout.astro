@@ -421,17 +421,28 @@ const description = categoryInfo.description;
     });
   }
 
-  // Debounced update mechanism to prevent frequent API calls
+  // 🚀 Improved real-time update mechanism for better UX
   let updateTimeout: NodeJS.Timeout;
   function debouncedUpdate() {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => {
-      // Clear cache to force fresh data
-      localStorage.removeItem('category_articles_cache');
-      localStorage.removeItem('category_articles_cache_time');
-      console.log('🔄 Cache cleared, reloading page...');
+      // 🧹 Clear ALL related caches using global utility (if available)
+      if ((window as any).clearAllArticleCaches) {
+        (window as any).clearAllArticleCaches();
+      } else {
+        // Fallback cache clearing if global utility is not loaded yet
+        localStorage.removeItem('category_articles_cache');
+        localStorage.removeItem('category_articles_cache_time');
+        localStorage.removeItem('imacx_articles');
+        localStorage.removeItem('imacx_articles_cache');
+        if ('caches' in window) {
+          caches.delete('api-cache').catch(() => {});
+        }
+      }
+      
+      console.log('🔄 All caches cleared, reloading page for real-time update...');
       location.reload();
-    }, 1000); // 1 second debounce
+    }, 300); // ⚡ Reduced debounce to 300ms for faster response
   }
 
   // Page visibility API - only update when page is visible
@@ -442,14 +453,21 @@ const description = categoryInfo.description;
     }
   });
 
-  // Listen for article updates from Admin Manager
+  // 📡 Listen for ALL article events from Admin Manager for real-time sync
   window.addEventListener('articlePublished', () => {
-    console.log('📢 Article published event received');
+    console.log('📢 Article published event received - triggering real-time update');
     debouncedUpdate();
   });
 
   window.addEventListener('articleUpdated', () => {
-    console.log('📢 Article updated event received');
+    console.log('📢 Article updated event received - triggering real-time update');
+    debouncedUpdate();
+  });
+
+  // 🗑️ NEW: Listen for article deletion events  
+  window.addEventListener('articleDeleted', (event: any) => {
+    console.log('📢 Article deleted event received - triggering real-time update');
+    console.log('🗑️ Deleted article ID:', event.detail?.articleId);
     debouncedUpdate();
   });
 
