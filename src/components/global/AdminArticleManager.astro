@@ -630,7 +630,7 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
     scrollbar-width: thin;
     scrollbar-color: rgba(139, 92, 246, 0.3) rgba(255, 255, 255, 0.1);
   }
@@ -660,14 +660,16 @@
     background: var(--modal-bg);
     border: 1px solid var(--modal-border);
     border-radius: var(--modal-radius);
-    padding: 24px;
+    padding: 28px;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
     position: relative;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 100%;
+    max-width: none;
   }
 
   .article-item::before {
@@ -1311,7 +1313,7 @@
 
     .articles-list {
       padding: 16px 12px 80px 12px !important; /* 增加底部padding到80px，确保最后一篇文章按钮完全显示 */
-      gap: 24px !important; /* 增加卡片间距 */
+      gap: 36px !important; /* 增加卡片间距，比桌面版稍大 */
       max-height: calc(100vh - 220px) !important; /* 进一步调整高度，确保底部不被遮挡 */
       overflow-y: auto !important;
     }
