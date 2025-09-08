@@ -230,7 +230,7 @@ const description = categoryInfo.description;
   @media (max-width: 768px) {
     .container {
       flex: 1; /* 移动端保持一致的 flex 设置 */
-      min-height: calc(100vh - 80px); /* 移动端调整，考虑header可能更高 */
+      /* 移除 min-height 设置，让内容自然扩展，避免子滚动条 */
     }
     
     .category-header {
@@ -242,7 +242,7 @@ const description = categoryInfo.description;
     }
     
     .articles-list {
-      min-height: 300px; /* 移动端适当的最小高度 */
+      /* 动态计算最小高度，由JavaScript设置 */
     }
     
     :global(#categoryArticlesList .article-title) {
@@ -479,6 +479,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('📊 找到', articles.length, '篇文章');
     
+    // 🎯 动态计算移动端articles-list最小高度
+    if (window.innerWidth <= 768) {
+      // 计算所有文章的总高度
+      let totalArticlesHeight = 0;
+      articles.forEach(article => {
+        totalArticlesHeight += article.offsetHeight;
+      });
+      
+      // 加上文章间的间距 (articles.length - 1) * gap
+      const articleGap = 32; // var(--space-8) ≈ 32px
+      const totalGapHeight = (articles.length - 1) * articleGap;
+      
+      // 计算动态最小高度：文章总高度 + 间距 + 额外缓冲
+      const dynamicMinHeight = totalArticlesHeight + totalGapHeight + 20; // 移动端减少缓冲到20px
+      
+      // 设置动态最小高度
+      articlesList.style.minHeight = dynamicMinHeight + 'px';
+      
+      console.log('📱 移动端动态设置:');
+      console.log('  文章总高度:', totalArticlesHeight, 'px');
+      console.log('  间距总高度:', totalGapHeight, 'px');
+      console.log('  动态最小高度:', dynamicMinHeight, 'px');
+    } else {
+      // 桌面端清除最小高度限制
+      articlesList.style.minHeight = '';
+    }
+    
     // 重置Footer的margin-top，让我们重新计算
     footer.style.marginTop = '0px';
     footer.style.position = 'relative';
@@ -508,8 +535,11 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('  文章列表底部:', Math.round(articlesListBottom), 'px');
       console.log('  Footer当前顶部:', Math.round(footerTop), 'px');
       
-      // 计算理想的Footer位置（最后一篇文章下方60px）
-      const idealFooterTop = Math.max(lastArticleBottom, articlesListBottom) + 60;
+      // 计算理想的Footer位置（移动端和桌面端使用不同距离）
+      const isMobile = window.innerWidth <= 768;
+      const footerGap = isMobile ? 20 : 60; // 移动端10px，桌面端60px
+      console.log(`📱 设备检测: ${isMobile ? '移动端' : '桌面端'} (宽度: ${window.innerWidth}px, 间距: ${footerGap}px)`);
+      const idealFooterTop = Math.max(lastArticleBottom, articlesListBottom) + footerGap;
       
       // 计算需要的margin-top
       const requiredMarginTop = Math.max(0, idealFooterTop - footerTop);
@@ -521,10 +551,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // 应用计算出的间距
       if (requiredMarginTop > 0) {
         footer.style.marginTop = Math.round(requiredMarginTop) + 'px';
-        console.log('✅ Footer已自动调整到最后文章下方60px');
+        console.log(`✅ Footer已自动调整到最后文章下方${footerGap}px`);
       } else {
-        footer.style.marginTop = '60px'; // 最小间距
-        console.log('✅ Footer使用最小间距60px');
+        footer.style.marginTop = footerGap + 'px'; // 使用相应的最小间距
+        console.log(`✅ Footer使用最小间距${footerGap}px`);
       }
       
       // 验证最终位置
@@ -537,7 +567,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('  Footer最终位置:', Math.round(finalFooterTop), 'px');
         console.log('  与最后文章间距:', Math.round(finalGap), 'px');
         
-        if (finalGap >= 40 && finalGap <= 100) {
+        // 根据移动端/桌面端设置不同的验证标准
+        const minGap = window.innerWidth <= 768 ? 5 : 40; // 移动端最小5px，桌面端40px
+        const maxGap = window.innerWidth <= 768 ? 20 : 100; // 移动端最大20px，桌面端100px
+        
+        if (finalGap >= minGap && finalGap <= maxGap) {
           console.log('🎉 完美！Footer位置自动调整成功');
         } else if (finalGap >= 0) {
           console.log('✅ Footer位置正常，间距稍有偏差');
