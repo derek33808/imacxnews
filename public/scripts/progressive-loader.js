@@ -315,12 +315,12 @@ class ProgressiveLoader {
     
     container.innerHTML = `
       <article class="featured-article ${isVideo ? 'featured-video' : 'featured-image'}">
-        <div class="featured-media-container">
+        <div class="featured-media-container" style="${isVideo && this.isEmbeddableVideo(article.videoUrl) ? 'pointer-events: none;' : ''}">
           ${mediaContent}
-          <div class="featured-overlay ${isVideo ? 'video-overlay' : ''}"></div>
+          ${isVideo && this.isEmbeddableVideo(article.videoUrl) ? '' : `<div class="featured-overlay ${isVideo ? 'video-overlay' : ''}"></div>`}
         </div>
         
-        <div class="featured-content">
+        <div class="featured-content" style="pointer-events: auto; position: relative; z-index: 3;">
           <a href="/category/${article.category}" class="category-tag ${article.category}">
             ${categoryDisplay}
           </a>
@@ -367,14 +367,14 @@ class ProgressiveLoader {
     if (isYouTubeOrVimeo && embedUrl) {
       // 🎥 Render YouTube/Vimeo as iframe
       return `
-        <div class="featured-video-iframe-container" style="position: relative; width: 100%; height: 100%; background: #000;">
+        <div class="featured-video-iframe-container" style="position: relative; width: 100%; height: 100%; background: #000; z-index: 1;">
           <iframe 
             id="${videoId}"
             class="featured-video-iframe"
             src="${embedUrl}"
             width="100%" 
             height="100%"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: auto; z-index: 2;"
             frameborder="0"
             allowfullscreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
