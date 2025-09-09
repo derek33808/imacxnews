@@ -4262,8 +4262,20 @@
     border: 1px solid rgba(6, 182, 212, 0.2) !important;
     color: #06b6d4 !important;
     /* 与VIDEO标签相同的增大尺寸 */
-    padding: 2px 10px !important;
+    padding: 5px 10px !important;
     font-size: 0.8rem !important;
+
+      /* 添加与VIDEO标签相同的位置对齐属性 */
+    vertical-align: middle !important;
+    line-height: 1 !important;
+    transform: translateY(0) !important;
+    top: auto !important;
+    bottom: auto !important;
+    position: relative !important;
+
+    /* 往右偏移一点 */
+    margin-left: 10px !important;
+    margin-right: -10px !important; /* 负边距让标签与标题更近 */
   }
 
   /* 🎯 确保所有标签内的SVG图标尺寸一致 */
