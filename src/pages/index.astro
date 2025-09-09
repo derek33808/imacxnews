@@ -671,6 +671,14 @@ const isLoading = true;
     font-size: 0.75rem;
     font-weight: 600;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  :global(.video-badge svg) {
+    color: white;
+    flex-shrink: 0;
   }
   
   :global(.video-duration-badge) {
@@ -690,6 +698,12 @@ const isLoading = true;
     color: #8b5cf6;
     margin-left: 6px;
     font-size: 0.85em;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :global(.video-indicator svg) {
+    color: #8b5cf6;
   }
   
   :global(.duration-text) {

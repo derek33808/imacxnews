@@ -34,7 +34,13 @@ const description = categoryInfo.description;
                   <source src={article.videoUrl} type="video/webm">
                   Your browser does not support the video tag.
                 </video>
-                <div class="video-type-badge">📹 VIDEO</div>
+                <div class="video-type-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  VIDEO
+                </div>
                 {article.videoDuration && (
                   <div class="video-duration-badge">
                     {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
@@ -193,6 +199,14 @@ const description = categoryInfo.description;
     font-size: 0.8rem;
     font-weight: 600;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  :global(#categoryArticlesList .video-type-badge svg) {
+    color: white;
+    flex-shrink: 0;
   }
 
   :global(#categoryArticlesList .video-duration-badge) {
