@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { createDatabaseConnection, withRetry, checkDatabaseHealth } from '../../lib/database';
+import { createDatabaseConnection, withRetry, checkDatabaseHealth, forceReleaseConnections } from '../../lib/database';
 
 export const GET: APIRoute = async ({ request }) => {
   const startTime = Date.now();
@@ -75,6 +75,38 @@ export const GET: APIRoute = async ({ request }) => {
       message: 'Database health check failed',
       error: error.message,
       databaseUrl: process.env.DATABASE_URL?.replace(/\/\/.*:.*@/, '//***:***@') || 'Not set',
+      timestamp: new Date().toISOString(),
+      responseTime: Date.now() - startTime
+    }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
+  }
+};
+
+// 🔧 POST endpoint to force release database connections
+export const POST: APIRoute = async ({ request }) => {
+  const startTime = Date.now();
+  
+  try {
+    console.log('🔄 Forcing database connection release...');
+    await forceReleaseConnections();
+    
+    return new Response(JSON.stringify({
+      status: 'success',
+      message: 'Database connections forcefully released and recreated',
+      timestamp: new Date().toISOString(),
+      responseTime: Date.now() - startTime
+    }), { 
+      status: 200, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({
+      status: 'error',
+      message: 'Failed to release database connections',
+      error: error.message,
       timestamp: new Date().toISOString(),
       responseTime: Date.now() - startTime
     }), { 

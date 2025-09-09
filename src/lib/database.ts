@@ -6,11 +6,11 @@ let connectionHealthy = true;
 let lastHealthCheck = 0;
 const HEALTH_CHECK_INTERVAL = 30000; // 30秒
 
-// 重试配置
+// 重试配置 - 针对连接池问题优化
 const RETRY_CONFIG = {
-  maxRetries: 2, // 减少重试次数，提高响应速度
-  retryDelay: 800, // 减少延迟
-  backoffMultiplier: 1.5
+  maxRetries: 3, // 增加重试次数以处理连接池耗尽
+  retryDelay: 1000, // 增加延迟给连接池时间恢复
+  backoffMultiplier: 2.0 // 更积极的退避策略
 };
 
 // 优化的连接池配置 - 针对 Netlify + Supabase Pooler
@@ -18,13 +18,15 @@ const CONNECTION_CONFIG: Prisma.PrismaClientOptions = {
   log: process.env.NODE_ENV === 'production' ? ['warn', 'error'] : ['query', 'info', 'warn', 'error'],
   datasources: {
     db: {
-      url: process.env.DATABASE_URL
+      // 🔧 修复连接池配置 - 增加连接限制和超时时间
+      url: process.env.DATABASE_URL?.replace('connection_limit=1', 'connection_limit=10')
+                                   ?.replace('sslmode=require', 'pool_timeout=20&sslmode=require') || process.env.DATABASE_URL
     }
   },
-  // Netlify Functions 优化
+  // 🔧 增强的事务和连接配置
   transactionOptions: {
-    maxWait: 2000,      // 等待事务的最大时间
-    timeout: 5000,      // 事务超时时间
+    maxWait: 10000,     // 增加等待事务的最大时间到10秒
+    timeout: 15000,     // 增加事务超时时间到15秒
   }
 };
 
@@ -32,8 +34,31 @@ const CONNECTION_CONFIG: Prisma.PrismaClientOptions = {
 export function createDatabaseConnection() {
   if (!prisma) {
     prisma = new PrismaClient(CONNECTION_CONFIG);
+    
+    // 🔧 添加连接生命周期管理
+    process.on('beforeExit', async () => {
+      console.log('🔌 Gracefully disconnecting Prisma Client...');
+      await closeDatabaseConnection();
+    });
   }
   return prisma;
+}
+
+// 🔧 强制释放所有连接的函数
+export async function forceReleaseConnections() {
+  if (prisma) {
+    try {
+      console.log('🔄 Force releasing database connections...');
+      await prisma.$disconnect();
+      prisma = null;
+      console.log('✅ Database connections released');
+      // 重新创建连接
+      prisma = new PrismaClient(CONNECTION_CONFIG);
+    } catch (error) {
+      console.error('❌ Error during force release:', error);
+      prisma = null;
+    }
+  }
 }
 
 // 检查是否启用智能备用模式
@@ -82,7 +107,10 @@ export async function withRetry<T>(
       const isConnectionError = lastError.message.includes("Can't reach database server") ||
                                lastError.message.includes("Connection terminated") ||
                                lastError.message.includes("timeout") ||
-                               lastError.message.includes("connection pool");
+                               lastError.message.includes("connection pool") ||
+                               lastError.message.includes("Timed out fetching") ||
+                               lastError.message.includes("connection limit") ||
+                               lastError.message.includes("pool timeout");
       
       if (isConnectionError) {
         connectionHealthy = false;

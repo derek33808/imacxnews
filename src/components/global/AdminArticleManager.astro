@@ -1373,6 +1373,76 @@
       font-size: 0.85rem !important;
     }
     
+    /* 🚀 移动端Badge布局强化 - 确保VIDEO标签位置正确 */
+    .article-item .title-with-badge {
+      display: flex !important;
+      flex-direction: row !important; /* 强制行方向，防止任何覆盖 */
+      align-items: center !important;
+      gap: 12px !important;
+      margin-bottom: 8px !important;
+      justify-content: flex-start !important;
+    }
+    
+    .article-item .title-with-badge .media-type-badge {
+      order: 1 !important; /* 确保badge在第一位 */
+      flex-shrink: 0 !important;
+      margin-bottom: 0 !important;
+      margin-top: 0 !important; /* 移动端也确保顶部对齐 */
+      position: relative !important;
+      align-self: center !important; /* 移动端也强制垂直居中对齐 */
+      display: inline-flex !important; /* 强制内联flex布局 */
+      height: auto !important; /* 确保高度自适应 */
+    }
+    
+    /* 🎯 移动端VIDEO标签位置修复 */
+    .video-article .title-with-badge .video-badge {
+      vertical-align: middle !important;
+      line-height: 1 !important;
+      transform: translateY(0) !important;
+      top: auto !important;
+      bottom: auto !important;
+      position: relative !important;
+      /* 移动端也确保样式一致 - 增大尺寸 */
+      padding: 5px 10px !important;
+      border-radius: 12px !important;
+      font-size: 0.8rem !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+      gap: 4px !important;
+    }
+    
+    /* 🎯 移动端IMAGE标签样式确保一致 - 增大尺寸 */
+    .image-article .title-with-badge .image-badge {
+      padding: 5px 10px !important;
+      border-radius: 12px !important;
+      font-size: 0.8rem !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+      gap: 4px !important;
+    }
+    
+    /* 🎯 移动端所有标签SVG图标尺寸一致 */
+    .article-item .title-with-badge .media-type-badge svg {
+      width: 12px !important;
+      height: 12px !important;
+    }
+
+    /* 🎨 移动端VIDEO标签中的三角图标使用紫色 */
+    .video-article .title-with-badge .video-badge svg {
+      stroke: #8b5cf6 !important;
+      fill: #8b5cf6 !important;
+      color: #8b5cf6 !important;
+    }
+    
+    .article-item .title-with-badge .article-title {
+      order: 2 !important; /* 确保标题在第二位 */
+      flex: 1 !important;
+      margin: 0 !important;
+      line-height: 1.4 !important; /* 移动端也确保行高一致 */
+    }
+    
     /* 手机版分类标签优化 */
     .category-tag {
       padding: 6px 10px !important;
@@ -3814,15 +3884,33 @@
   }
 
   .video-badge {
-    background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #8b5cf6 !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    /* 强制确保与IMAGE标签完全对齐 */
+    vertical-align: baseline !important;
+    align-self: center !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    transform: translateY(0px) !important; /* 强制重置任何Y轴偏移 */
+  }
+
+  /* 🎨 确保VIDEO标签中的三角图标始终是紫色 */
+  .video-badge svg {
+    stroke: #8b5cf6 !important;
+    fill: #8b5cf6 !important;
+    color: #8b5cf6 !important;
   }
 
   .image-badge {
     background: rgba(6, 182, 212, 0.15);
     color: #06b6d4;
     border: 1px solid rgba(6, 182, 212, 0.2);
+    /* 确保基础对齐属性一致 */
+    vertical-align: baseline;
+    align-self: center;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .media-type-badge svg {
@@ -3830,23 +3918,127 @@
     height: 12px;
   }
 
-  /* 🏷️ Title with Badge Layout */
-  .title-with-badge {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
+  /* 🏷️ Title with Badge Layout - Enhanced Specificity */
+  .article-item .title-with-badge {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 8px !important;
+    flex-direction: row !important; /* 明确指定行方向 */
+    justify-content: flex-start !important; /* 确保从左开始排列 */
   }
 
-  .title-with-badge .article-title {
-    margin: 0;
-    flex: 1;
-    min-width: 0; /* 允许文字换行 */
+  .article-item .title-with-badge .article-title {
+    margin: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important; /* 允许文字换行 */
+    order: 2 !important; /* 确保标题在badge之后 */
+    line-height: 1.4 !important; /* 确保行高一致 */
   }
 
-  .title-with-badge .media-type-badge {
-    margin-bottom: 0;
-    flex-shrink: 0;
+  .article-item .title-with-badge .media-type-badge {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important; /* 确保顶部对齐 */
+    flex-shrink: 0 !important;
+    order: 1 !important; /* 确保badge在标题之前 */
+    position: relative !important; /* 防止绝对定位 */
+    align-self: center !important; /* 强制垂直居中对齐 */
+    display: inline-flex !important; /* 强制内联flex布局 */
+    height: auto !important; /* 确保高度自适应 */
+  }
+
+  /* 🎯 专门针对VIDEO标签的位置修复 */
+  .video-article .title-with-badge .video-badge {
+    vertical-align: middle !important;
+    line-height: 1 !important;
+    transform: translateY(0) !important;
+    top: auto !important;
+    bottom: auto !important;
+    position: relative !important;
+  }
+
+  /* 🔧 强制所有VIDEO标签对齐 - 最高优先级 */
+  .admin-articles-list .video-article .title-with-badge .video-badge {
+    margin: 0 !important;
+    padding: 5px 10px !important; /* 增加padding让VIDEO标签稍大一些 */
+    border-radius: 12px !important; /* 与IMAGE标签相同的圆角 */
+    font-size: 0.8rem !important; /* 稍微增大字体让标签看起来更大 */
+    font-weight: 600 !important; /* 与IMAGE标签相同的字体粗细 */
+    letter-spacing: 0.5px !important; /* 与IMAGE标签相同的字符间距 */
+    text-transform: uppercase !important; /* 与IMAGE标签相同的大写 */
+    gap: 4px !important; /* 与IMAGE标签相同的内部间距 */
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: baseline !important;
+    float: none !important;
+    position: static !important;
+    transform: none !important;
+    /* 强制重置所有可能的位置偏移 */
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    translate: none !important;
+    /* 确保背景和边框与IMAGE标签样式一致 */
+    background: rgba(139, 92, 246, 0.15) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  }
+
+  /* 🎨 最高优先级确保VIDEO标签中的SVG图标使用紫色 */
+  .admin-articles-list .video-article .title-with-badge .video-badge svg {
+    stroke: #8b5cf6 !important;
+    fill: #8b5cf6 !important;
+    color: #8b5cf6 !important;
+  }
+
+  /* 🎯 确保VIDEO和IMAGE标签完全对齐的通用规则 */
+  .admin-articles-list .article-item .title-with-badge {
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+  }
+
+  .admin-articles-list .article-item .title-with-badge .media-type-badge {
+    flex-shrink: 0 !important;
+    align-self: center !important;
+    margin: 0 !important;
+    order: 1 !important;
+    /* 确保所有badge使用相同的增大基础样式 */
+    padding: 5px 10px !important;
+    border-radius: 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    gap: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* 🎯 确保IMAGE标签也使用一致的样式 */
+  .admin-articles-list .image-article .title-with-badge .image-badge {
+    background: rgba(6, 182, 212, 0.15) !important;
+    border: 1px solid rgba(6, 182, 212, 0.2) !important;
+    color: #06b6d4 !important;
+    /* 与VIDEO标签相同的增大尺寸 */
+    padding: 2px 10px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* 🎯 确保所有标签内的SVG图标尺寸一致 */
+  .admin-articles-list .article-item .title-with-badge .media-type-badge svg {
+    width: 12px !important;
+    height: 12px !important;
+    flex-shrink: 0 !important;
+  }
+
+
+  .admin-articles-list .article-item .title-with-badge .article-title {
+    flex: 1 !important;
+    order: 2 !important;
+    margin: 0 !important;
+    align-self: center !important;
   }
 
   /* 🎨 Enhanced Article Item Hover Effects */

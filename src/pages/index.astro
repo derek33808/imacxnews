@@ -681,6 +681,40 @@ const isLoading = true;
     flex-shrink: 0;
   }
   
+  /* 🎯 增强视频标识样式 - 纯白色版本 */
+  :global(.video-badge.enhanced) {
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white !important;
+    animation: video-badge-glow 2s infinite;
+  }
+  
+  :global(.video-badge.enhanced svg) {
+    color: white !important;
+    stroke: white !important;
+    fill: white !important;
+  }
+  
+  :global(.video-badge.enhanced span) {
+    color: white !important;
+  }
+  
+  @keyframes video-badge-glow {
+    0%, 100% { 
+      border-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+      border-color: white;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
   :global(.video-duration-badge) {
     position: absolute;
     bottom: 8px;
@@ -704,6 +738,28 @@ const isLoading = true;
 
   :global(.video-indicator svg) {
     color: #8b5cf6;
+  }
+  
+  /* 🎯 增强内联视频指示器 */
+  :global(.video-indicator.enhanced) {
+    color: #7c3aed;
+    margin-left: 8px;
+    padding: 2px 6px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1));
+    border-radius: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  :global(.video-indicator.enhanced svg) {
+    color: #7c3aed;
+    filter: drop-shadow(0 1px 2px rgba(139, 92, 246, 0.3));
+  }
+  
+  :global(.index-row:hover .video-indicator.enhanced) {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.2));
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: scale(1.05);
   }
   
   :global(.duration-text) {

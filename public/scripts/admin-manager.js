@@ -75,6 +75,9 @@ window.forceRefreshAdminList = async function() {
 
 // Admin Article Manager functionality
 document.addEventListener('DOMContentLoaded', function() {
+  // 🎨 Initialize enhanced upload animations
+  addUploadAnimations();
+  
   const adminManagerModal = document.getElementById('adminManagerModal');
   const closeAdminManagerModalBtn = document.getElementById('closeAdminManagerModal');
   const articlesList = document.getElementById('articlesList');
@@ -279,8 +282,9 @@ document.addEventListener('DOMContentLoaded', function() {
                   <input type="radio" name="mediaType" value="VIDEO">
                   <div class="media-option-content">
                     <svg class="media-option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polygon points="23 7 16 12 23 17 23 7"/>
-                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                      <path d="m23 7-6 5 6 5V7z" fill="none"/>
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="none"/>
+                      <circle cx="8.5" cy="12" r="3" fill="none"/>
                     </svg>
                     <span class="media-option-text">Video Article</span>
                   </div>
@@ -308,8 +312,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="videoUploadSection" class="media-upload-section" style="display: none;">
               <label>
                 <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                  <polygon points="23 7 16 12 23 17 23 7"/>
-                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  <path d="m23 7-6 5 6 5V7z" fill="none"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="none"/>
+                  <circle cx="8.5" cy="12" r="3" fill="none"/>
                 </svg>Video URL
                 <div style="display:flex; gap:12px; align-items:stretch;">
                   <input name="videoUrl" placeholder="Video will be uploaded here..." style="flex:1;" readonly />
@@ -496,9 +501,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle local image upload when file selected (legacy support)
     const fileInput = formEl.querySelector('input[name="imageFile"]');
     const imageUrlInput = formEl.querySelector('input[name="image"]');
-    const imagePreview = formEl.querySelector('#imagePreview');
-    const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
-    const imagePreviewText = formEl.querySelector('#imagePreviewText');
+    const imagePreview = formEl.querySelector('#mediaPreview');
+    const imagePreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+    const imagePreviewText = formEl.querySelector('#mediaPreviewTitle');
     const triggerFileBtn = formEl.querySelector('#triggerFileSelectBtn');
     if (triggerFileBtn && fileInput) {
       triggerFileBtn.addEventListener('click', () => fileInput.click());
@@ -509,17 +514,28 @@ document.addEventListener('DOMContentLoaded', function() {
       const trimmedUrl = url.trim();
       console.log('🖼️ Updating image preview with URL:', trimmedUrl);
       
+      // 🔧 Safety check: get elements dynamically to avoid null reference  
+      const currentImagePreview = formEl ? formEl.querySelector('#mediaPreview') : document.querySelector('#mediaPreview');
+      const currentImagePreviewWrap = formEl ? formEl.querySelector('#mediaPreviewWrap') : document.querySelector('#mediaPreviewWrap');
+      
+      if (!currentImagePreview) {
+        console.warn('⚠️ imagePreview element not found, skipping image preview update');
+        return;
+      }
+      
       if (!trimmedUrl) {
         // Show placeholder
-        imagePreview.innerHTML = `
+        currentImagePreview.innerHTML = `
           <svg style="width:32px;height:32px;color:#9ca3af;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="9" cy="9" r="2"/>
             <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
           <span style="font-size:10px;color:#9ca3af;margin-top:4px;">No preview image</span>`;
-        imagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
-        imagePreviewWrap.style.display = 'none';
+        currentImagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
+        if (currentImagePreviewWrap) {
+          currentImagePreviewWrap.style.display = 'none';
+        }
         return;
       }
       
@@ -532,34 +548,46 @@ document.addEventListener('DOMContentLoaded', function() {
       // Handle successful load
       img.onload = function() {
         console.log('✅ Image loaded successfully:', trimmedUrl);
-        imagePreview.innerHTML = '';
-        imagePreview.appendChild(img);
-        imagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;';
-        imagePreviewWrap.style.display = 'flex';
+        if (currentImagePreview) {
+          currentImagePreview.innerHTML = '';
+          currentImagePreview.appendChild(img);
+          currentImagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;';
+        }
+        if (currentImagePreviewWrap) {
+          currentImagePreviewWrap.style.display = 'flex';
+        }
       };
       
       // Handle load error
       img.onerror = function() {
         console.log('❌ Image failed to load:', trimmedUrl);
-        imagePreview.innerHTML = `
-          <svg style="width:32px;height:32px;color:#ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="9" cy="9" r="2"/>
-            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-          </svg>
-          <span style="font-size:10px;color:#ef4444;margin-top:4px;">Failed to load</span>`;
-        imagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #fca5a5;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fef2f2;';
-        imagePreviewWrap.style.display = 'flex';
+        if (currentImagePreview) {
+          currentImagePreview.innerHTML = `
+            <svg style="width:32px;height:32px;color:#ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+            <span style="font-size:10px;color:#ef4444;margin-top:4px;">Failed to load</span>`;
+          currentImagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #fca5a5;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fef2f2;';
+        }
+        if (currentImagePreviewWrap) {
+          currentImagePreviewWrap.style.display = 'flex';
+        }
       };
       
       // Show loading state initially
-      imagePreview.innerHTML = `
-        <svg style="width:24px;height:24px;color:#8b5cf6;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12a9 9 0 11-6.219-8.56"/>
-        </svg>
-        <span style="font-size:10px;color:#8b5cf6;margin-top:4px;">Loading...</span>`;
-      imagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
-      imagePreviewWrap.style.display = 'flex';
+      if (currentImagePreview) {
+        currentImagePreview.innerHTML = `
+          <svg style="width:24px;height:24px;color:#8b5cf6;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 11-6.219-8.56"/>
+          </svg>
+          <span style="font-size:10px;color:#8b5cf6;margin-top:4px;">Loading...</span>`;
+        currentImagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
+      }
+      if (currentImagePreviewWrap) {
+        currentImagePreviewWrap.style.display = 'flex';
+      }
     }
     
     // Expose function for edit form usage
@@ -596,9 +624,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show preview immediately with uploaded file
         const fileUrl = URL.createObjectURL(file);
         updateImagePreview(fileUrl);
-        imagePreviewText.textContent = 'Uploading...';
         
         try {
+          // Show enhanced upload progress
+          showLegacyImageUploadProgress(file.name, file.size);
+          
           const fd = new FormData();
           fd.append('file', file);
           // Try to derive slug from title
@@ -606,21 +636,24 @@ document.addEventListener('DOMContentLoaded', function() {
           const categoryVal = formEl.querySelector('[name="category"]').value || 'uploads';
           fd.append('slug', titleVal);
           fd.append('category', categoryVal);
-          const resp = await fetch('/api/upload', { method: 'POST', body: fd });
-          if (!resp.ok) throw new Error('Upload failed');
-          const json = await resp.json();
+          
+          // Use XMLHttpRequest for progress tracking
+          const result = await uploadLegacyImageWithProgress('/api/upload', fd);
+          
           if (imageUrlInput) {
-            imageUrlInput.value = json.url;
+            imageUrlInput.value = result.url;
             // Update preview with server URL
-            updateImagePreview(json.url);
+            updateImagePreview(result.url);
           }
-          imagePreviewText.textContent = `Uploaded: ${json.name}`;
+          
+          // Show success message with enhanced UI
+          showLegacyImageUploadSuccess(result.name || 'image');
           
           // Clean up blob URL
           URL.revokeObjectURL(fileUrl);
         } catch (err) {
           console.error('Upload error', err);
-          imagePreviewText.textContent = 'Upload failed, please try again';
+          showLegacyImageUploadError(err.message || 'Upload failed, please try again');
           // Show error state
           updateImagePreview('');
           URL.revokeObjectURL(fileUrl);
@@ -643,8 +676,21 @@ document.addEventListener('DOMContentLoaded', function() {
         content: String(fd.get('content') || ''),
         chineseContent: String(fd.get('chineseContent') || ''),
         featured: Boolean(fd.get('featured')),
-        publishDate: fd.get('publishDate') ? String(fd.get('publishDate')) : undefined
+        publishDate: fd.get('publishDate') ? String(fd.get('publishDate')) : undefined,
+        // 🎥 Include media type and video-related fields
+        mediaType: String(fd.get('mediaType') || 'IMAGE'),
+        videoUrl: String(fd.get('videoUrl') || ''),
+        videoDuration: fd.get('videoDuration') ? Number(fd.get('videoDuration')) : null
       };
+      
+      // 🐛 Debug logging for media type
+      console.log('📋 Article submission data:', {
+        title: data.title,
+        mediaType: data.mediaType,
+        videoUrl: data.videoUrl,
+        hasVideo: !!data.videoUrl,
+        image: data.image
+      });
       if (!data.title.trim() || !data.author.trim() || !data.excerpt.trim() || !data.content.trim()) {
         errEl.textContent = 'Please fill in all required fields.';
         errEl.style.display = 'block';
@@ -652,7 +698,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       try {
         submitBtnEl.disabled = true;
-        submitBtnEl.textContent = 'Saving...';
+        // Enhanced Save button with progress indicator
+        showSaveProgress(submitBtnEl, 'Saving article...');
         const url = isEditing ? `/api/articles/${editingId}` : '/api/articles';
         const method = isEditing ? 'PATCH' : 'POST';
         const resp = await fetch(url, { 
@@ -830,21 +877,279 @@ document.addEventListener('DOMContentLoaded', function() {
           }, 100);
         }
       } finally {
-        // 🔧 Always reset button state
-        submitBtnEl.disabled = false;
-        submitBtnEl.innerHTML = isEditing ? `
-          <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-            <polyline points="17,21 17,13 7,13 7,21"/>
-            <polyline points="7,3 7,8 15,8"/>
-          </svg>Update Article` : `
-          <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-            <polyline points="17,21 17,13 7,13 7,21"/>
-            <polyline points="7,3 7,8 15,8"/>
-          </svg>Save Article`;
+        // 🔧 Always reset button state using enhanced UI
+        showSaveSuccess(submitBtnEl, isEditing ? 'Update Article' : 'Save Article');
       }
     });
+  }
+  
+  // 📊 Enhanced Legacy Image Upload Functions
+  async function uploadLegacyImageWithProgress(url, formData) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      let startTime = Date.now();
+      let lastLoaded = 0;
+      let lastTime = startTime;
+
+      // Track upload progress with speed calculation
+      xhr.upload.onprogress = function(event) {
+        if (event.lengthComputable) {
+          const currentTime = Date.now();
+          const timeDiff = currentTime - lastTime;
+          const loadedDiff = event.loaded - lastLoaded;
+          
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          
+          // Calculate speed and ETA (only if enough time has passed for accurate calculation)
+          let speed = 0;
+          let eta = 0;
+          if (timeDiff > 100 && loadedDiff > 0) { // Update every 100ms minimum
+            speed = (loadedDiff * 1000) / timeDiff; // bytes per second
+            const remainingBytes = event.total - event.loaded;
+            eta = Math.round(remainingBytes / speed); // seconds remaining
+            
+            lastLoaded = event.loaded;
+            lastTime = currentTime;
+          }
+          
+          updateLegacyImageProgress(percentComplete, speed, eta, event.loaded, event.total);
+        }
+      };
+
+      // Handle completion
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const result = JSON.parse(xhr.responseText);
+            resolve(result);
+          } catch (error) {
+            reject(new Error('Invalid response format'));
+          }
+        } else {
+          // Try to extract error message from server response
+          let errorMessage = `Upload failed with status: ${xhr.status}`;
+          try {
+            const errorResult = JSON.parse(xhr.responseText);
+            if (errorResult && errorResult.error) {
+              errorMessage = errorResult.error;
+            } else if (errorResult && errorResult.message) {
+              errorMessage = errorResult.message;
+            }
+          } catch (parseError) {
+            // If we can't parse the response, use the response text directly if it looks like an error message
+            if (xhr.responseText && xhr.responseText.length < 200 && !xhr.responseText.includes('<')) {
+              errorMessage = xhr.responseText;
+            }
+          }
+          reject(new Error(errorMessage));
+        }
+      };
+
+      // Handle errors
+      xhr.onerror = function() {
+        reject(new Error('Upload failed due to network error'));
+      };
+
+      // Start upload
+      xhr.open('POST', url);
+      xhr.send(formData);
+    });
+  }
+  
+  function showLegacyImageUploadProgress(fileName, fileSize) {
+    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    if (imagePreviewText) {
+      const fileSizeMB = (fileSize / 1024 / 1024).toFixed(2);
+      imagePreviewText.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+            </svg>
+            <span style="color: #3b82f6; font-weight: 500;">Uploading...</span>
+          </div>
+          <div style="width: 100%; text-align: center;">
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">${fileName} (${fileSizeMB} MB)</div>
+            <div class="legacy-progress-container" style="width: 100%; height: 6px; background: rgba(59, 130, 246, 0.1); border-radius: 3px; overflow: hidden;">
+              <div class="legacy-progress-bar" style="height: 100%; background: linear-gradient(90deg, #3b82f6, #1d4ed8); width: 0%; transition: width 0.3s ease; border-radius: 3px;"></div>
+            </div>
+            <span class="legacy-progress-text" style="font-size: 12px; color: #6b7280; margin-top: 4px; display: block;">0%</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+  
+  function updateLegacyImageProgress(percentage, speed = 0, eta = 0, loaded = 0, total = 0) {
+    const progressBar = document.querySelector('.legacy-progress-bar');
+    const progressText = document.querySelector('.legacy-progress-text');
+    
+    if (progressBar) {
+      progressBar.style.width = `${percentage}%`;
+      
+      // Add shimmer effect for visual appeal
+      if (percentage > 0 && percentage < 100) {
+        progressBar.classList.add('progress-bar-shimmer');
+      } else {
+        progressBar.classList.remove('progress-bar-shimmer');
+      }
+    }
+    
+    if (progressText) {
+      let statusText = `${percentage}%`;
+      
+      // Add speed and ETA information if available
+      if (speed > 0 && eta > 0 && percentage > 5) { // Only show after 5% to allow speed calculation
+        const speedMBps = (speed / 1024 / 1024).toFixed(1);
+        const loadedMB = (loaded / 1024 / 1024).toFixed(1);
+        const totalMB = (total / 1024 / 1024).toFixed(1);
+        
+        // Format ETA
+        let etaText = '';
+        if (eta < 60) {
+          etaText = `${eta}s`;
+        } else {
+          const minutes = Math.floor(eta / 60);
+          const seconds = eta % 60;
+          etaText = `${minutes}m ${seconds}s`;
+        }
+        
+        statusText = `${percentage}% • ${speedMBps} MB/s • ${etaText} remaining`;
+        
+        // Update file size info as well
+        const sizeInfo = document.querySelector('.legacy-progress-text').parentNode.querySelector('div');
+        if (sizeInfo && sizeInfo.style.fontSize === '13px') {
+          sizeInfo.innerHTML = `${sizeInfo.textContent.split(' (')[0]} • ${loadedMB}/${totalMB} MB`;
+        }
+      }
+      
+      progressText.textContent = statusText;
+    }
+  }
+  
+  function showLegacyImageUploadSuccess(fileName) {
+    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    if (imagePreviewText) {
+      imagePreviewText.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px; color: #10b981;">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          <span style="font-weight: 500;">Uploaded: ${fileName}</span>
+        </div>
+      `;
+      
+      // Reset to normal after 3 seconds
+      setTimeout(() => {
+        if (imagePreviewText) {
+          imagePreviewText.textContent = fileName;
+        }
+      }, 3000);
+    }
+  }
+  
+  function showLegacyImageUploadError(errorMessage) {
+    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    if (imagePreviewText) {
+      imagePreviewText.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px; color: #ef4444;">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <span style="font-weight: 500;">${errorMessage}</span>
+        </div>
+      `;
+    }
+  }
+  
+  // 📝 Enhanced Save Button Functions
+  function showSaveProgress(submitBtn, message) {
+    if (submitBtn) {
+      submitBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+          <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          <span>${message}</span>
+        </div>
+      `;
+    }
+  }
+  
+  function showSaveSuccess(submitBtn, originalText) {
+    if (submitBtn) {
+      // Show success animation
+      submitBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          <span>Saved!</span>
+        </div>
+      `;
+      
+      // Reset to original text after 2 seconds
+      setTimeout(() => {
+        if (submitBtn) {
+          submitBtn.innerHTML = `
+            <svg style="width:16px;height:16px;display:inline;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17,21 17,13 7,13 7,21"/>
+            <polyline points="7,3 7,8 15,8"/>
+            </svg>${originalText}
+          `;
+          submitBtn.disabled = false;
+        }
+      }, 2000);
+    }
+  }
+
+  // 🎨 Add CSS animations for enhanced upload experience
+  function addUploadAnimations() {
+    if (!document.querySelector('#upload-animations-css')) {
+      const style = document.createElement('style');
+      style.id = 'upload-animations-css';
+      style.textContent = `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        @keyframes progress-shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+        }
+        
+        .upload-success-animation {
+          animation: pulse 0.6s ease-in-out;
+        }
+        
+        .progress-bar-shimmer {
+          background: linear-gradient(90deg, #3b82f6, #1d4ed8, #3b82f6);
+          background-size: 200px 100%;
+          animation: progress-shimmer 1.5s infinite;
+        }
+        
+        @keyframes errorSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
   function ensureConfirmModal() {
@@ -1117,32 +1422,46 @@ document.addEventListener('DOMContentLoaded', function() {
           duration: fullArticle.videoDuration
         };
         
-        // Show video preview if the function is available
+        // Show video preview with safety checks
         setTimeout(() => {
-          const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-          const mediaPreview = formEl.querySelector('#mediaPreview');
-          const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
-          const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
-          
-          if (mediaPreviewWrap && mediaPreview) {
-            mediaPreviewWrap.style.display = 'flex';
-            mediaPreview.innerHTML = `
-              <video src="${fullArticle.videoUrl}" style="width:100%;height:100%;object-fit:cover;" controls muted>
-                Your browser does not support video playback.
-              </video>
-            `;
+          try {
+            const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+            const mediaPreview = formEl.querySelector('#mediaPreview');
+            const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
+            const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
             
-            if (mediaPreviewTitle) {
-              mediaPreviewTitle.textContent = 'Existing Video';
-            }
+            console.log('🎥 Attempting to show video preview:', {
+              mediaPreviewWrap: !!mediaPreviewWrap,
+              mediaPreview: !!mediaPreview,
+              mediaPreviewTitle: !!mediaPreviewTitle,
+              mediaPreviewDetails: !!mediaPreviewDetails
+            });
             
-            if (mediaPreviewDetails) {
-              mediaPreviewDetails.innerHTML = `
-                <div>Type: VIDEO</div>
-                ${fullArticle.videoDuration ? `<div>Duration: ${Math.floor(fullArticle.videoDuration / 60)}:${(fullArticle.videoDuration % 60).toString().padStart(2, '0')}</div>` : ''}
-                <div>URL: <code style="font-size:10px;">${fullArticle.videoUrl}</code></div>
+            if (mediaPreviewWrap && mediaPreview) {
+              mediaPreviewWrap.style.display = 'flex';
+              mediaPreview.innerHTML = `
+                <video src="${fullArticle.videoUrl}" style="width:100%;height:100%;object-fit:cover;" controls muted>
+                  Your browser does not support video playback.
+                </video>
               `;
+              
+              if (mediaPreviewTitle) {
+                mediaPreviewTitle.textContent = 'Existing Video';
+              }
+              
+              if (mediaPreviewDetails) {
+                mediaPreviewDetails.innerHTML = `
+                  <div>Type: VIDEO</div>
+                  ${fullArticle.videoDuration ? `<div>Duration: ${Math.floor(fullArticle.videoDuration / 60)}:${(fullArticle.videoDuration % 60).toString().padStart(2, '0')}</div>` : ''}
+                  <div>URL: <code style="font-size:10px;">${fullArticle.videoUrl}</code></div>
+                `;
+              }
+              console.log('✅ Video preview updated successfully');
+            } else {
+              console.warn('⚠️ Media preview elements not found, skipping video preview');
             }
+          } catch (mediaError) {
+            console.error('❌ Error updating media preview:', mediaError);
           }
         }, 100);
       }
@@ -1562,8 +1881,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="media-section-header">
           <div class="section-divider">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="23 7 16 12 23 17 23 7"/>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              <path d="m23 7-6 5 6 5V7z" fill="none"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="none"/>
+              <circle cx="8.5" cy="12" r="3" fill="none"/>
             </svg>
             <span>Video Articles (${videoArticles.length})</span>
           </div>
@@ -1580,7 +1900,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="title-with-badge">
               <div class="media-type-badge video-badge">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
+                  <path d="m23 7-6 5 6 5V7z" fill="none"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="none"/>
+                  <circle cx="8.5" cy="12" r="3" fill="none"/>
                 </svg>
                 VIDEO
                 ${article.videoDuration ? ` · ${formatDuration(article.videoDuration)}` : ''}
@@ -2581,6 +2903,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const imageInput = formEl.querySelector('input[name="image"]');
                 if (imageInput) {
                   imageInput.value = result.data.url;
+                  
+                  // 🖼️ Trigger preview update for image
+                  if (window.updateImagePreview) {
+                    window.updateImagePreview(result.data.url);
+                  }
                 }
               } else if (mediaType === 'video') {
                 const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
@@ -2656,7 +2983,15 @@ document.addEventListener('DOMContentLoaded', function() {
               const imageInput = formEl.querySelector('input[name="image"]');
               if (imageInput) {
                 imageInput.value = result.data.url;
+                
+                // 🖼️ Trigger preview update for poster
+                if (window.updateImagePreview) {
+                  window.updateImagePreview(result.data.url);
+                }
               }
+              
+              // Show media preview for poster
+              showMediaPreview(result.data, 'image');
               
               // Show success message
               showUploadSuccess('Poster uploaded successfully!');
@@ -2678,21 +3013,41 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // 📊 Upload with progress tracking
+    // 📊 Upload with progress tracking with enhanced speed calculation
     function uploadWithProgress(url, formData, uploadType) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        let startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = startTime;
 
-        // Track upload progress
+        // Track upload progress with speed and ETA calculation
         xhr.upload.onprogress = function(event) {
           if (event.lengthComputable) {
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastTime;
+            const loadedDiff = event.loaded - lastLoaded;
+            
             const percentComplete = Math.round((event.loaded / event.total) * 100);
-            updateUploadProgress(uploadType, percentComplete);
+            
+            // Calculate speed and ETA
+            let speed = 0;
+            let eta = 0;
+            if (timeDiff > 100 && loadedDiff > 0) {
+              speed = (loadedDiff * 1000) / timeDiff; // bytes per second
+              const remainingBytes = event.total - event.loaded;
+              eta = Math.round(remainingBytes / speed);
+              
+              lastLoaded = event.loaded;
+              lastTime = currentTime;
+            }
+            
+            updateUploadProgress(uploadType, percentComplete, speed, eta, event.loaded, event.total);
           }
         };
 
         // Ensure progress starts at 0
-        updateUploadProgress(uploadType, 0);
+        updateUploadProgress(uploadType, 0, 0, 0, 0, 0);
 
         // Handle completion
         xhr.onload = function() {
@@ -2704,7 +3059,22 @@ document.addEventListener('DOMContentLoaded', function() {
               reject(new Error('Invalid response format'));
             }
           } else {
-            reject(new Error(`Upload failed with status: ${xhr.status}`));
+            // Try to extract error message from server response
+            let errorMessage = `Upload failed with status: ${xhr.status}`;
+            try {
+              const errorResult = JSON.parse(xhr.responseText);
+              if (errorResult && errorResult.error) {
+                errorMessage = errorResult.error;
+              } else if (errorResult && errorResult.message) {
+                errorMessage = errorResult.message;
+              }
+            } catch (parseError) {
+              // If we can't parse the response, use the response text directly if it looks like an error message
+              if (xhr.responseText && xhr.responseText.length < 200 && !xhr.responseText.includes('<')) {
+                errorMessage = xhr.responseText;
+              }
+            }
+            reject(new Error(errorMessage));
           }
         };
 
@@ -2746,8 +3116,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Update upload progress
-    function updateUploadProgress(uploadType, percentage) {
+    // Update upload progress with enhanced information
+    function updateUploadProgress(uploadType, percentage, speed = 0, eta = 0, loaded = 0, total = 0) {
       let btn;
       if (uploadType === 'poster') {
         btn = formEl.querySelector('.upload-poster-btn');
@@ -2761,9 +3131,38 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (progressBar) {
           progressBar.style.width = `${percentage}%`;
+          
+          // Add shimmer effect during upload
+          if (percentage > 0 && percentage < 100) {
+            progressBar.classList.add('progress-bar-shimmer');
+          } else {
+            progressBar.classList.remove('progress-bar-shimmer');
+          }
         }
+        
         if (progressText) {
-          progressText.textContent = `${percentage}%`;
+          let statusText = `${percentage}%`;
+          
+          // Add speed and ETA information if available
+          if (speed > 0 && eta > 0 && percentage > 5) {
+            const speedMBps = (speed / 1024 / 1024).toFixed(1);
+            
+            // Format ETA
+            let etaText = '';
+            if (eta < 60) {
+              etaText = `${eta}s`;
+            } else if (eta < 3600) {
+              const minutes = Math.floor(eta / 60);
+              const seconds = eta % 60;
+              etaText = `${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}`;
+            } else {
+              etaText = 'calculating...';
+            }
+            
+            statusText = `${percentage}% • ${speedMBps} MB/s • ${etaText}`;
+          }
+          
+          progressText.textContent = statusText;
         }
       }
     }
@@ -2777,36 +3176,95 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Show upload error
+    // Show upload error with enhanced messaging
     function showUploadError(message) {
+      console.error('📤 Upload Error:', message);
+      
       const errorDiv = formEl.querySelector('#formError') || document.createElement('div');
       errorDiv.id = 'formError';
-      errorDiv.className = 'error-message';
+      errorDiv.className = 'error-message upload-error';
+      
+      // Enhanced styling for better visibility
       errorDiv.style.cssText = `
         display: block;
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
-        padding: 12px;
-        border-radius: 8px;
-        margin: 8px 0;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+        border: 2px solid rgba(239, 68, 68, 0.4);
+        color: #dc2626;
+        padding: 16px;
+        border-radius: 12px;
+        margin: 12px 0;
         font-size: 14px;
+        font-weight: 500;
         z-index: 1000;
         position: relative;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        animation: errorSlideIn 0.3s ease-out;
       `;
-      errorDiv.textContent = `❌ Upload failed: ${message}`;
+      
+      // Enhanced error message with file size guidance
+      let errorContent = '';
+      if (message.toLowerCase().includes('too large') || message.toLowerCase().includes('maximum') || message.toLowerCase().includes('50mb')) {
+        errorContent = `
+          <div style="display: flex; align-items: start; gap: 10px;">
+            <svg style="width:20px;height:20px;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <div style="font-weight: 600; margin-bottom: 4px;">File Too Large</div>
+              <div style="font-size: 13px; opacity: 0.9; margin-bottom: 8px;">${message}</div>
+              <div style="font-size: 12px; opacity: 0.8;">
+                💡 <strong>Tips:</strong> 
+                • Images: max 10MB (JPG, PNG, GIF, WebP)
+                • Videos: max 50MB (MP4, WebM, OGG)
+                • Consider compressing your file before uploading
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        errorContent = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <span>Upload failed: ${message}</span>
+          </div>
+        `;
+      }
+      
+      errorDiv.innerHTML = errorContent;
       
       if (!formEl.contains(errorDiv)) {
         // Insert error div at the top of the form for better visibility
         formEl.insertBefore(errorDiv, formEl.firstChild);
       }
       
-      // Clear error after 8 seconds
+      // Scroll error into view
+      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Clear error after 12 seconds (longer for file size errors so users can read tips)
+      const clearDelay = message.toLowerCase().includes('too large') ? 15000 : 8000;
       setTimeout(() => {
         if (errorDiv && errorDiv.parentNode) {
+          errorDiv.style.opacity = '0';
+          errorDiv.style.transform = 'translateY(-10px)';
+          errorDiv.style.transition = 'all 0.3s ease-out';
+          setTimeout(() => {
+            if (errorDiv.parentNode) {
           errorDiv.style.display = 'none';
         }
-      }, 8000);
+          }, 300);
+        }
+      }, clearDelay);
+      
+      // Also show as browser alert for critical errors like file size
+      if (message.toLowerCase().includes('too large') || message.toLowerCase().includes('maximum')) {
+        alert(`❌ ${message}\n\n💡 File size limits:\n• Images: max 10MB\n• Videos: max 50MB\n\nPlease compress your file and try again.`);
+      }
     }
 
     // Show poster upload progress with progress bar
@@ -2875,32 +3333,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show media preview
     function showMediaPreview(mediaData, mediaType) {
       console.log('🖼️ showMediaPreview called:', { mediaData, mediaType });
+      
+      // 🔧 Get DOM elements dynamically to avoid scope issues
+      const currentMediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+      const currentMediaPreview = formEl.querySelector('#mediaPreview');
+      const currentMediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
+      const currentMediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
+      
       console.log('📦 DOM elements:', { 
-        mediaPreviewWrap: !!mediaPreviewWrap, 
-        mediaPreview: !!mediaPreview, 
-        mediaPreviewTitle: !!mediaPreviewTitle, 
-        mediaPreviewDetails: !!mediaPreviewDetails 
+        mediaPreviewWrap: !!currentMediaPreviewWrap, 
+        mediaPreview: !!currentMediaPreview, 
+        mediaPreviewTitle: !!currentMediaPreviewTitle, 
+        mediaPreviewDetails: !!currentMediaPreviewDetails 
       });
       
-      if (!mediaPreviewWrap || !mediaPreview || !mediaPreviewTitle || !mediaPreviewDetails) {
+      if (!currentMediaPreviewWrap || !currentMediaPreview || !currentMediaPreviewTitle || !currentMediaPreviewDetails) {
         console.error('❌ Missing DOM elements for media preview');
         return;
       }
       
       // Show preview container
-      mediaPreviewWrap.style.display = 'flex';
+      currentMediaPreviewWrap.style.display = 'flex';
       
       // Update preview content
       if (mediaType === 'image') {
         console.log('🖼️ Showing image preview with URL:', mediaData.url);
-        mediaPreview.innerHTML = `
+        currentMediaPreview.innerHTML = `
           <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" 
                onload="console.log('✅ Image loaded successfully')" 
                onerror="console.error('❌ Image failed to load:', this.src)" />
         `;
       } else if (mediaType === 'video') {
         console.log('🎥 Showing video preview with URL:', mediaData.url);
-        mediaPreview.innerHTML = `
+        currentMediaPreview.innerHTML = `
           <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
             Your browser does not support video playback.
           </video>
@@ -2908,8 +3373,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Update info
-      mediaPreviewTitle.textContent = mediaData.originalName || 'Uploaded Media';
-      mediaPreviewDetails.innerHTML = `
+      currentMediaPreviewTitle.textContent = mediaData.originalName || 'Uploaded Media';
+      currentMediaPreviewDetails.innerHTML = `
         <div>Type: ${mediaData.mediaType}</div>
         <div>Size: ${formatFileSize(mediaData.size)}</div>
         ${mediaData.duration ? `<div>Duration: ${formatDuration(mediaData.duration)}</div>` : ''}
@@ -2919,8 +3384,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Clear media preview
     function clearMediaPreview() {
-      if (mediaPreviewWrap) {
-        mediaPreviewWrap.style.display = 'none';
+      const currentMediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+      if (currentMediaPreviewWrap) {
+        currentMediaPreviewWrap.style.display = 'none';
       }
       
       // Clear form inputs

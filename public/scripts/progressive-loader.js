@@ -128,7 +128,12 @@ class ProgressiveLoader {
     if (!container) return;
     
     const categoryDisplay = article.category === 'TodayNews' ? 'Today News' : 'Past News';
-    const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+    const isVideo = article.mediaType === 'VIDEO';
+    const hasVideoUrl = article.videoUrl && article.videoUrl.trim() !== '';
+    
+    // 🐛 调试日志：检查特色文章数据
+    console.log(`🌟 Featured Article "${article.title}": mediaType="${article.mediaType}", hasVideoUrl=${hasVideoUrl}, videoUrl="${article.videoUrl}"`);
+    console.log(`🔗 Video controls will be ${(isVideo && hasVideoUrl) ? 'enabled' : 'disabled'} for this article`);
     
     // 🎥 Enhanced media rendering with video support
     const mediaContent = isVideo ? this.renderVideoContent(article) : this.renderImageContent(article);
@@ -164,8 +169,8 @@ class ProgressiveLoader {
       </article>
     `;
     
-    // 🎬 Initialize video controls after DOM insertion
-    if (isVideo) {
+    // 🎬 Initialize video controls after DOM insertion (只有在有实际视频URL时才初始化控件)
+    if (isVideo && hasVideoUrl) {
       setTimeout(() => this.initializeVideoControls(container), 100);
     }
   }
@@ -401,9 +406,25 @@ class ProgressiveLoader {
     if (!container || articles.length === 0) return;
     
     container.innerHTML = articles.map(article => {
-      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      // 🎬 修复视频判断条件：只需要 mediaType === 'VIDEO' 即可显示视频标识
+      const isVideo = article.mediaType === 'VIDEO';
+      const hasVideoUrl = article.videoUrl && article.videoUrl.trim() !== '';
+      
+      // 🐛 调试日志：检查文章数据
+      console.log(`📹 Article "${article.title}": mediaType="${article.mediaType}", hasVideoUrl=${hasVideoUrl}, videoUrl="${article.videoUrl}"`);
+      
       const mediaUrl = isVideo ? (article.videoPoster || article.image || '/images/placeholder.svg') : article.image;
-      const videoBadge = isVideo ? `<div class="video-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> VIDEO</div>` : '';
+      
+      // 🎯 改进视频标识：纯白色样式
+      const videoBadge = isVideo ? `
+        <div class="video-badge enhanced">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: white;">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span style="color: white;">VIDEO</span>
+        </div>` : '';
+      
       const videoDuration = isVideo && article.videoDuration ? `<div class="video-duration-badge">${this.formatDuration(article.videoDuration)}</div>` : '';
       
       return `
@@ -429,9 +450,26 @@ class ProgressiveLoader {
     if (!container || articles.length === 0) return;
     
     container.innerHTML = articles.map(article => {
-      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      // 🎬 修复视频判断条件：只需要 mediaType === 'VIDEO' 即可显示视频标识
+      const isVideo = article.mediaType === 'VIDEO';
+      const hasVideoUrl = article.videoUrl && article.videoUrl.trim() !== '';
+      
+      // 🐛 调试日志：检查文章数据（仅在首次渲染时显示，避免日志过多）
+      if (this.currentPage === 0) {
+        console.log(`📋 List Article "${article.title}": mediaType="${article.mediaType}", hasVideoUrl=${hasVideoUrl}`);
+      }
+      
       const mediaUrl = isVideo ? (article.videoPoster || article.image || '/images/placeholder.svg') : article.image;
-      const videoBadge = isVideo ? `<span class="video-indicator"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>` : '';
+      
+      // 🎯 改进视频标识：更明显的内联视频图标
+      const videoBadge = isVideo ? `
+        <span class="video-indicator enhanced">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </span>` : '';
+      
       const videoDuration = isVideo && article.videoDuration ? `<span class="duration-text">${this.formatDuration(article.videoDuration)}</span>` : '';
       
       return `
