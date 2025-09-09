@@ -2493,9 +2493,12 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         };
 
+        // Ensure progress starts at 0
+        updateUploadProgress(uploadType, 0);
+
         // Handle completion
         xhr.onload = function() {
-          if (xhr.status === 200) {
+          if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const result = JSON.parse(xhr.responseText);
               resolve(result);
@@ -2537,6 +2540,11 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
         btn.disabled = true;
+        
+        // Ensure progress starts at 0
+        setTimeout(() => {
+          updateUploadProgress(mediaType, 0);
+        }, 50);
       }
     }
 
@@ -2574,18 +2582,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show upload error
     function showUploadError(message) {
       const errorDiv = formEl.querySelector('#formError') || document.createElement('div');
+      errorDiv.id = 'formError';
       errorDiv.className = 'error-message';
-      errorDiv.style.display = 'block';
-      errorDiv.textContent = `Upload failed: ${message}`;
+      errorDiv.style.cssText = `
+        display: block;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 12px;
+        border-radius: 8px;
+        margin: 8px 0;
+        font-size: 14px;
+        z-index: 1000;
+        position: relative;
+      `;
+      errorDiv.textContent = `❌ Upload failed: ${message}`;
       
       if (!formEl.contains(errorDiv)) {
-        formEl.appendChild(errorDiv);
+        // Insert error div at the top of the form for better visibility
+        formEl.insertBefore(errorDiv, formEl.firstChild);
       }
       
-      // Clear error after 5 seconds
+      // Clear error after 8 seconds
       setTimeout(() => {
-        errorDiv.style.display = 'none';
-      }, 5000);
+        if (errorDiv && errorDiv.parentNode) {
+          errorDiv.style.display = 'none';
+        }
+      }, 8000);
     }
 
     // Show poster upload progress with progress bar
@@ -2607,6 +2630,11 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
         btn.disabled = true;
+        
+        // Ensure progress starts at 0
+        setTimeout(() => {
+          updateUploadProgress('poster', 0);
+        }, 50);
       }
     }
 
