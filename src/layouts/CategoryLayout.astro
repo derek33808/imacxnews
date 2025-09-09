@@ -20,16 +20,38 @@ const description = categoryInfo.description;
     <div class="articles-list" id="categoryArticlesList">
       {/** @type {any[]} */ (articles as any[]).map((article: any, index: number) => (
         <div class="large-article-card">
-          <div class="article-image-container">
-            <img 
-              src={article.image} 
-              alt={article.title}
-              class="article-image"
-              loading="lazy"
-              width="800"
-              height="450"
-              onerror="this.onerror=null; this.src='/images/placeholder.svg'"
-            />
+          <div class="article-media-container">
+            {article.mediaType === 'VIDEO' && article.videoUrl ? (
+              <div class="article-video-wrapper">
+                <video 
+                  controls 
+                  poster={article.videoPoster || article.image || '/images/placeholder.svg'}
+                  class="article-video"
+                  width="800"
+                  height="450"
+                >
+                  <source src={article.videoUrl} type="video/mp4">
+                  <source src={article.videoUrl} type="video/webm">
+                  Your browser does not support the video tag.
+                </video>
+                <div class="video-type-badge">📹 VIDEO</div>
+                {article.videoDuration && (
+                  <div class="video-duration-badge">
+                    {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <img 
+                src={article.image} 
+                alt={article.title}
+                class="article-image"
+                loading="lazy"
+                width="800"
+                height="450"
+                onerror="this.onerror=null; this.src='/images/placeholder.svg'"
+              />
+            )}
           </div>
           
           <div class="article-content">
@@ -49,7 +71,7 @@ const description = categoryInfo.description;
             <div class="article-footer">
               <span class="author">By {article.author}</span>
               <a href={`/article/${article.slug}`} class="read-more-btn">
-                Read more
+                {article.mediaType === 'VIDEO' ? 'Watch Video' : 'Read more'}
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </a>
             </div>
@@ -132,7 +154,7 @@ const description = categoryInfo.description;
     box-shadow: var(--shadow-lg);
   }
 
-  :global(#categoryArticlesList .article-image-container) {
+  :global(#categoryArticlesList .article-media-container) {
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -145,6 +167,45 @@ const description = categoryInfo.description;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+  }
+
+  :global(#categoryArticlesList .article-video-wrapper) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  :global(#categoryArticlesList .article-video) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+  }
+
+  :global(#categoryArticlesList .video-type-badge) {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 2;
+  }
+
+  :global(#categoryArticlesList .video-duration-badge) {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 2;
     display: block;
   }
 

@@ -29,6 +29,10 @@ type Article = {
   featured: boolean;
   contentLength: number | null;
   readingTime: number | null;
+  mediaType: string;
+  videoUrl: string | null;
+  videoPoster: string | null;
+  videoDuration: number | null;
 };
 
 let initialArticles: Article[] = [];
@@ -37,6 +41,27 @@ try {
   initialArticles = await withRetry(async () => {
     return await prisma.article.findMany({
       where: { category },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        chineseContent: true,
+        category: true,
+        image: true,
+        imageAlt: true,
+        imageCaption: true,
+        author: true,
+        publishDate: true,
+        featured: true,
+        contentLength: true,
+        readingTime: true,
+        mediaType: true,
+        videoUrl: true,
+        videoPoster: true,
+        videoDuration: true,
+      },
       orderBy: { publishDate: 'desc' }
     });
   }, `Get articles for category: ${category}`);

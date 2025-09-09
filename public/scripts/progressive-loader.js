@@ -315,6 +315,7 @@ class ProgressiveLoader {
     
     // 👆 Click to play/pause (anywhere on video)
     videoElement.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       this.togglePlayPause(videoElement, playBtn);
     });
