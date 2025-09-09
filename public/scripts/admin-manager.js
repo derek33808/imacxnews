@@ -285,8 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
                   <circle cx="9" cy="9" r="2"/>
                   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                 </svg>Video Poster (Thumbnail)
-                <input name="image" placeholder="Auto-generated from video or custom URL" style="width: 100%;" />
-                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Poster image will be auto-generated or you can specify a custom one</small>
+                <div style="display:flex; gap:12px; align-items:stretch; margin-top:8px;">
+                  <input name="image" placeholder="Auto-generated from video or custom URL" style="flex:1;" />
+                  <button type="button" class="upload-poster-btn" style="white-space:nowrap; background: linear-gradient(135deg, #06b6d4, #0891b2); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Poster...</button>
+                </div>
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Poster image will be auto-generated or you can specify a custom one or upload your own</small>
               </label>
               
               <label style="margin-top: 12px;">
@@ -2308,6 +2311,14 @@ document.addEventListener('DOMContentLoaded', function() {
         await handleMediaUpload(mediaType, formEl);
       });
     });
+
+    // 🖼️ Poster upload handler
+    const posterUploadBtn = formEl.querySelector('.upload-poster-btn');
+    if (posterUploadBtn) {
+      posterUploadBtn.addEventListener('click', async function() {
+        await handlePosterUpload(formEl);
+      });
+    }
     
     // Clear media handler
     if (clearMediaBtn) {
@@ -2415,6 +2426,69 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.click();
       });
     }
+
+    // 🖼️ Handle poster upload
+    async function handlePosterUpload(formEl) {
+      console.log('🖼️ Starting poster upload...');
+      
+      // Create file input
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      
+      return new Promise((resolve, reject) => {
+        fileInput.onchange = async function(e) {
+          const file = e.target.files[0];
+          if (!file) {
+            resolve(null);
+            return;
+          }
+          
+          try {
+            // Show upload progress
+            showPosterUploadProgress();
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', 'TodayNews');
+            
+            // Upload to API
+            const response = await fetch('/api/media/simple-upload', {
+              method: 'POST',
+              body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              console.log('✅ Poster upload successful:', result.data);
+              
+              // Update poster input field
+              const imageInput = formEl.querySelector('input[name="image"]');
+              if (imageInput) {
+                imageInput.value = result.data.url;
+              }
+              
+              // Show success message
+              showUploadSuccess('Poster uploaded successfully!');
+              resolve(result.data);
+            } else {
+              throw new Error(result.error || 'Upload failed');
+            }
+          } catch (error) {
+            console.error('❌ Poster upload failed:', error);
+            showUploadError(error.message);
+            reject(error);
+          } finally {
+            hidePosterUploadProgress();
+          }
+        };
+        
+        // Trigger file selection
+        fileInput.click();
+      });
+    }
     
     // Show upload progress
     function showUploadProgress(mediaType, fileName) {
@@ -2454,6 +2528,56 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
         errorDiv.style.display = 'none';
       }, 5000);
+    }
+
+    // Show poster upload progress
+    function showPosterUploadProgress() {
+      const btn = formEl.querySelector('.upload-poster-btn');
+      if (btn) {
+        btn.innerHTML = `
+          <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          Uploading...
+        `;
+        btn.disabled = true;
+      }
+    }
+
+    // Hide poster upload progress
+    function hidePosterUploadProgress() {
+      const btn = formEl.querySelector('.upload-poster-btn');
+      if (btn) {
+        btn.innerHTML = 'Upload Poster...';
+        btn.disabled = false;
+      }
+    }
+
+    // Show upload success message
+    function showUploadSuccess(message) {
+      const successDiv = formEl.querySelector('#formSuccess') || document.createElement('div');
+      successDiv.id = 'formSuccess';
+      successDiv.className = 'success-message';
+      successDiv.style.cssText = `
+        display: block; 
+        background: rgba(34, 197, 94, 0.1); 
+        border: 1px solid rgba(34, 197, 94, 0.3); 
+        color: #22c55e; 
+        padding: 12px; 
+        border-radius: 8px; 
+        margin: 8px 0; 
+        font-size: 14px;
+      `;
+      successDiv.textContent = message;
+      
+      if (!formEl.contains(successDiv)) {
+        formEl.appendChild(successDiv);
+      }
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 3000);
     }
     
     // Show media preview
