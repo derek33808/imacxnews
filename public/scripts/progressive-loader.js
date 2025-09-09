@@ -399,35 +399,51 @@ class ProgressiveLoader {
     const container = document.getElementById('latestArticlesGrid');
     if (!container || articles.length === 0) return;
     
-    container.innerHTML = articles.map(article => `
-      <a href="/article/${article.slug}" class="thumb-card overlay">
-        <div class="thumb-image-wrap">
-          <img src="${article.image}" alt="${article.title}" class="thumb-img"
-               loading="lazy" onerror="this.src='/images/placeholder.svg'">
-          <div class="thumb-gradient"></div>
-          <div class="thumb-text">
-            <div class="thumb-title white">${article.title}</div>
-            <div class="thumb-date white">Updated ${this.formatDate(article.publishDate)}</div>
+    container.innerHTML = articles.map(article => {
+      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      const mediaUrl = isVideo ? (article.videoPoster || article.image || '/images/placeholder.svg') : article.image;
+      const videoBadge = isVideo ? `<div class="video-badge">📹 VIDEO</div>` : '';
+      const videoDuration = isVideo && article.videoDuration ? `<div class="video-duration-badge">${this.formatDuration(article.videoDuration)}</div>` : '';
+      
+      return `
+        <a href="/article/${article.slug}" class="thumb-card overlay ${isVideo ? 'video-card' : ''}">
+          <div class="thumb-image-wrap">
+            <img src="${mediaUrl}" alt="${article.title}" class="thumb-img"
+                 loading="lazy" onerror="this.src='/images/placeholder.svg'">
+            ${videoBadge}
+            ${videoDuration}
+            <div class="thumb-gradient"></div>
+            <div class="thumb-text">
+              <div class="thumb-title white">${article.title}</div>
+              <div class="thumb-date white">Updated ${this.formatDate(article.publishDate)}</div>
+            </div>
           </div>
-        </div>
-      </a>
-    `).join('');
+        </a>
+      `;
+    }).join('');
   }
   
   renderAllArticles(articles) {
     const container = document.getElementById('allArticlesList');
     if (!container || articles.length === 0) return;
     
-    container.innerHTML = articles.map(article => `
-      <a href="/article/${article.slug}" class="index-row">
-        <img src="${article.image}" alt="${article.title}" class="index-thumb"
-             loading="lazy" onerror="this.src='/images/placeholder.svg'">
-        <div class="index-meta">
-          <div class="index-title">${article.title}</div>
-          <div class="index-sub">${this.formatDate(article.publishDate)}</div>
-        </div>
-      </a>
-    `).join('');
+    container.innerHTML = articles.map(article => {
+      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      const mediaUrl = isVideo ? (article.videoPoster || article.image || '/images/placeholder.svg') : article.image;
+      const videoBadge = isVideo ? `<span class="video-indicator">📹</span>` : '';
+      const videoDuration = isVideo && article.videoDuration ? `<span class="duration-text">${this.formatDuration(article.videoDuration)}</span>` : '';
+      
+      return `
+        <a href="/article/${article.slug}" class="index-row ${isVideo ? 'video-row' : ''}">
+          <img src="${mediaUrl}" alt="${article.title}" class="index-thumb"
+               loading="lazy" onerror="this.src='/images/placeholder.svg'">
+          <div class="index-meta">
+            <div class="index-title">${article.title} ${videoBadge}</div>
+            <div class="index-sub">${this.formatDate(article.publishDate)} ${videoDuration}</div>
+          </div>
+        </a>
+      `;
+    }).join('');
   }
   
   transitionToContent() {

@@ -11,7 +11,30 @@ let article = null;
 try {
   const prisma = createDatabaseConnection();
   article = await withRetry(async () => {
-    return await prisma.article.findUnique({ where: { slug } });
+    return await prisma.article.findUnique({ 
+      where: { slug },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        chineseContent: true,
+        category: true,
+        image: true,
+        imageAlt: true,
+        imageCaption: true,
+        author: true,
+        publishDate: true,
+        featured: true,
+        contentLength: true,
+        readingTime: true,
+        mediaType: true,
+        videoUrl: true,
+        videoPoster: true,
+        videoDuration: true,
+      }
+    });
   }, `Find article by slug: ${slug}`);
 } catch (e: any) {
   console.error('数据库连接失败:', e?.message);

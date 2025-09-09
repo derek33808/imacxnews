@@ -88,14 +88,36 @@ const description = article.excerpt;
         </div>
       </header>
       
-      <div class="article-featured-image">
-        <img 
-          src={article.image} 
-          alt={article.title} 
-          loading="eager"
-          width="1200"
-          height="675"
-        />
+      <div class="article-featured-media">
+        {article.mediaType === 'VIDEO' && article.videoUrl ? (
+          <div class="article-video-container">
+            <video 
+              controls 
+              poster={article.videoPoster || article.image}
+              width="1200"
+              height="675"
+              class="article-video"
+            >
+              <source src={article.videoUrl} type="video/mp4">
+              <source src={article.videoUrl} type="video/webm">
+              Your browser does not support the video tag.
+            </video>
+            {article.videoDuration && (
+              <div class="video-duration-info">
+                Duration: {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
+              </div>
+            )}
+          </div>
+        ) : (
+          <img 
+            src={article.image} 
+            alt={article.title} 
+            loading="eager"
+            width="1200"
+            height="675"
+            class="article-image"
+          />
+        )}
       </div>
       
       <div class="article-content">
@@ -163,18 +185,45 @@ const description = article.excerpt;
     font-weight: 500;
   }
   
-  .article-featured-image {
+  .article-featured-media {
     margin-bottom: var(--space-6);
     border-radius: var(--radius-lg);
     overflow: hidden;
     aspect-ratio: 16 / 9;
   }
   
-  .article-featured-image img {
+  .article-image {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
+  }
+
+  .article-video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .article-video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .video-duration-info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 2;
   }
   
   .article-content {

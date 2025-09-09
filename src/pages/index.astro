@@ -655,6 +655,54 @@ const isLoading = true;
     position: relative;
   }
   
+  /* 🎬 Video Card Styles for Lists */
+  :global(.video-card .thumb-image-wrap) {
+    position: relative;
+  }
+  
+  :global(.video-badge) {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 2;
+  }
+  
+  :global(.video-duration-badge) {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 2;
+  }
+  
+  :global(.video-indicator) {
+    color: #8b5cf6;
+    margin-left: 6px;
+    font-size: 0.85em;
+  }
+  
+  :global(.duration-text) {
+    color: #6b7280;
+    margin-left: 8px;
+    font-size: 0.8rem;
+  }
+  
+  :global(.video-row .index-thumb) {
+    border: 2px solid #8b5cf6;
+    border-radius: 6px;
+  }
+  
   :global(.featured-video-element) {
     width: 100%;
     height: 100%;

@@ -125,6 +125,10 @@ export const GET: APIRoute = async ({ request }) => {
             featured: true,
             slug: true,
             excerpt: true,
+            mediaType: true,
+            videoUrl: true,
+            videoPoster: true,
+            videoDuration: true,
             // Only select fields needed for list display to reduce data transfer
             // content and chineseContent are not needed in list, fetch separately when editing
           },
@@ -270,6 +274,10 @@ export const POST: APIRoute = async ({ request }) => {
           featured: Boolean(data.featured),
           contentLength,
           readingTime,
+          mediaType: data.mediaType || 'IMAGE',
+          videoUrl: data.videoUrl ?? null,
+          videoPoster: data.videoPoster ?? null,
+          videoDuration: data.videoDuration ?? null,
         }
       });
     }, `Create article: ${data.title}`);
