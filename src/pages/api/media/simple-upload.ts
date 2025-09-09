@@ -4,6 +4,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getUserFromRequest, requireRole } from '../../../lib/auth';
 import { SimpleMediaUploader, supabaseAdmin, STORAGE_BUCKET } from '../../../lib/simpleCloudStorage';
+import { createDatabaseConnection, withRetry } from '../../../lib/database';
 
 export const POST: APIRoute = async ({ request }) => {
   // Authentication - Only allow admin upload
@@ -62,6 +63,31 @@ export const POST: APIRoute = async ({ request }) => {
       type: uploadResult.type,
       size: uploadResult.size
     });
+
+    // 🆕 保存媒体文件记录到数据库
+    try {
+      const db = createDatabaseConnection();
+      await withRetry(() => 
+        db.mediaFile.create({
+          data: {
+            filename: uploadResult.name,
+            url: uploadResult.url,
+            path: uploadResult.path,
+            mediaType: uploadResult.type.toUpperCase(), // IMAGE | VIDEO
+            mimeType: file.type,
+            fileSize: file.size,
+            title: null, // 初始为空，稍后可通过媒体库编辑
+            category: category,
+            uploadedBy: user?.id || 1 // 如果用户为null，使用默认管理员ID
+          }
+        }), '保存媒体文件记录'
+      );
+      console.log('✅ 媒体文件记录已保存到数据库');
+    } catch (dbError: any) {
+      console.warn('⚠️ 保存媒体记录到数据库失败:', dbError.message);
+      // 不影响上传成功响应，只是记录失败
+      // 文件已经成功上传到Supabase，数据库记录可以后续补充
+    }
 
     // Return success response
     return new Response(JSON.stringify({

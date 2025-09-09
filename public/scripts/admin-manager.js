@@ -74,6 +74,39 @@ window.forceRefreshAdminList = async function() {
 };
 
 // Admin Article Manager functionality
+// 🔧 立即执行的调试函数
+(function() {
+  console.log('🚀 Admin Manager Script Loading...');
+  
+  // 确保全局函数立即可用
+  window.debugMediaCenter = function() {
+    console.log('🔍 Debug Media Center:');
+    console.log('- Media tab exists:', !!document.querySelector('[data-tab="media"]'));
+    console.log('- Media tab content exists:', !!document.getElementById('mediaTab'));
+    console.log('- Tab system initialized:', !!window.initializeTabSystem);
+    console.log('- Media center initialized:', !!window.initializeMediaCenter);
+  };
+  
+  // 立即可用的Media Center点击处理
+  window.forceMediaCenterInit = function() {
+    console.log('🎯 Force Media Center initialization...');
+    setTimeout(() => {
+      const mediaTab = document.getElementById('mediaTab');
+      if (mediaTab) {
+        mediaTab.classList.add('active');
+        console.log('✅ Media tab activated');
+      }
+      
+      if (window.initializeMediaCenter) {
+        window.initializeMediaCenter();
+        console.log('✅ Media center initialized');
+      } else {
+        console.log('❌ initializeMediaCenter not found');
+      }
+    }, 100);
+  };
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
   // 🎨 Initialize enhanced upload animations
   addUploadAnimations();
@@ -316,11 +349,13 @@ document.addEventListener('DOMContentLoaded', function() {
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="none"/>
                   <circle cx="8.5" cy="12" r="3" fill="none"/>
                 </svg>Video URL
+                
                 <div style="display:flex; gap:12px; align-items:stretch;">
-                  <input name="videoUrl" placeholder="Video will be uploaded here..." style="flex:1;" readonly />
+                  <input name="videoUrl" placeholder="Paste video URL or upload file..." style="flex:1; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px;" />
                   <button type="button" class="upload-media-btn" data-type="video" style="white-space:nowrap; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Video...</button>
                 </div>
-                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports MP4, WebM, OGG (max 50MB)</small>
+                
+                <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports MP4, WebM, OGG (max 50MB) or YouTube/Vimeo URLs</small>
               </label>
               
               <label style="margin-top: 12px;">
@@ -667,6 +702,9 @@ document.addEventListener('DOMContentLoaded', function() {
       errEl.style.display = 'none';
       errEl.textContent = '';
       const fd = new FormData(formEl);
+      // 🎥 Get video URL directly from the unified input field
+      let videoUrl = String(fd.get('videoUrl') || '').trim();
+      
       const data = {
         title: String(fd.get('title') || ''),
         author: String(fd.get('author') || ''),
@@ -679,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
         publishDate: fd.get('publishDate') ? String(fd.get('publishDate')) : undefined,
         // 🎥 Include media type and video-related fields
         mediaType: String(fd.get('mediaType') || 'IMAGE'),
-        videoUrl: String(fd.get('videoUrl') || ''),
+        videoUrl: videoUrl,
         videoDuration: fd.get('videoDuration') ? Number(fd.get('videoDuration')) : null
       };
       
@@ -1535,6 +1573,16 @@ document.addEventListener('DOMContentLoaded', function() {
       adminManagerModal.classList.add('active');
       document.body.style.overflow = 'hidden';
       
+      // 🎯 Initialize tab system when opening admin manager
+      setTimeout(() => {
+        if (window.initializeTabSystem) {
+          window.initializeTabSystem();
+          console.log('✅ Tab system initialized');
+        } else {
+          console.error('❌ initializeTabSystem not found');
+        }
+      }, 100);
+      
       // Show loading state immediately
       if (articlesList) {
         articlesList.innerHTML = `
@@ -2070,6 +2118,254 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
   }
   
+  // 🎥 Simple URL format validation
+  function isValidUrlFormat(url) {
+    if (!url || url.length < 4) return false;
+    
+    // Check for common URL patterns
+    return url.includes('youtube.com') || 
+           url.includes('youtu.be') || 
+           url.includes('vimeo.com') || 
+           url.includes('http') || 
+           url.includes('www.') || 
+           url.match(/\.(mp4|webm|ogg|mov|avi)(\?|$)/i);
+  }
+
+  // 🎥 Handle video URL preview and validation
+  function handleVideoUrlPreview(url, formEl) {
+    try {
+      // Basic URL validation
+      let videoUrl = url.trim();
+      if (!videoUrl) {
+        throw new Error('Please enter a video URL');
+      }
+      
+      // Add protocol if missing
+      if (!videoUrl.match(/^https?:\/\//)) {
+        videoUrl = 'https://' + videoUrl;
+      }
+      
+      // Validate URL format
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(videoUrl);
+      } catch (e) {
+        throw new Error('Invalid URL format');
+      }
+      
+      // Extract embed URLs for popular platforms
+      const embedUrl = getEmbedUrl(videoUrl, parsedUrl);
+      const displayUrl = embedUrl || videoUrl;
+      
+      // Set the URL in the form
+      const videoUrlField = formEl.querySelector('input[name="videoUrl"]');
+      if (videoUrlField) {
+        videoUrlField.value = displayUrl;
+      }
+      
+      // Show preview
+      showVideoPreview(displayUrl, formEl, parsedUrl.hostname);
+      
+      console.log('✅ Video URL processed:', { 
+        original: url, 
+        processed: displayUrl,
+        hostname: parsedUrl.hostname,
+        isYouTube: parsedUrl.hostname.includes('youtube.com') || parsedUrl.hostname.includes('youtu.be'),
+        isVimeo: parsedUrl.hostname.includes('vimeo.com')
+      });
+      
+    } catch (error) {
+      console.error('❌ Video URL error:', error);
+      
+      // More detailed error messages for different cases
+      let errorMessage = error.message;
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        errorMessage += '\n\nTip: Make sure the YouTube URL includes a video ID (e.g., youtube.com/watch?v=VIDEO_ID)';
+      } else if (url.includes('vimeo.com')) {
+        errorMessage += '\n\nTip: Make sure the Vimeo URL includes a video ID (e.g., vimeo.com/VIDEO_ID)';
+      }
+      
+      alert('Video URL Error:\n' + errorMessage);
+    }
+  }
+  
+  // 🎥 Get embed URL for popular video platforms
+  function getEmbedUrl(originalUrl, parsedUrl) {
+    const hostname = parsedUrl.hostname.toLowerCase();
+    
+    // YouTube URLs
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+      let videoId;
+      
+      if (hostname.includes('youtu.be')) {
+        videoId = parsedUrl.pathname.slice(1);
+      } else if (parsedUrl.searchParams.has('v')) {
+        videoId = parsedUrl.searchParams.get('v');
+      } else {
+        const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+        if (match) videoId = match[1];
+      }
+      
+      if (videoId) {
+        // Remove parameters that might cause issues and use a simpler approach
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    // Vimeo URLs
+    if (hostname.includes('vimeo.com')) {
+      const match = parsedUrl.pathname.match(/\/(\d+)/);
+      if (match) {
+        return `https://player.vimeo.com/video/${match[1]}`;
+      }
+    }
+    
+    // For direct video files or other platforms, return original URL
+    return originalUrl;
+  }
+  
+  // 🎥 Show video preview in media preview area
+  function showVideoPreview(videoUrl, formEl, hostname) {
+    // Try multiple possible preview element IDs
+    let mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+    let mediaPreview = formEl.querySelector('#mediaPreview');
+    let mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
+    let mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
+    
+    // Fallback to image preview elements if media preview not found
+    if (!mediaPreviewWrap) {
+      mediaPreviewWrap = formEl.querySelector('#imagePreviewWrap');
+      console.log('🔄 Using imagePreviewWrap as fallback');
+    }
+    if (!mediaPreview) {
+      mediaPreview = formEl.querySelector('#imagePreview');
+      console.log('🔄 Using imagePreview as fallback');
+    }
+    if (!mediaPreviewTitle) {
+      mediaPreviewTitle = formEl.querySelector('#imagePreviewTitle');
+    }
+    if (!mediaPreviewDetails) {
+      mediaPreviewDetails = formEl.querySelector('#imagePreviewDetails');
+    }
+    
+    if (!mediaPreviewWrap || !mediaPreview) {
+      console.warn('⚠️ Media preview elements not found', {
+        mediaPreviewWrap: !!mediaPreviewWrap,
+        mediaPreview: !!mediaPreview,
+        availableIds: Array.from(formEl.querySelectorAll('[id]')).map(el => el.id)
+      });
+      return;
+    }
+    
+    // Determine preview type
+    const isEmbed = videoUrl.includes('youtube.com/embed') || videoUrl.includes('player.vimeo.com');
+    const isDirect = videoUrl.match(/\.(mp4|webm|ogg|mov|avi)(\?|$)/i);
+    
+    let previewContent;
+    
+    if (isEmbed) {
+      // Embedded video (YouTube, Vimeo) - with proper sizing
+      previewContent = `
+        <iframe 
+          src="${videoUrl}" 
+          width="100%" 
+          height="280" 
+          style="border:none;border-radius:8px;min-height:280px;" 
+          frameborder="0"
+          allowfullscreen>
+        </iframe>
+      `;
+    } else if (isDirect) {
+      // Direct video file
+      previewContent = `
+        <video 
+          src="${videoUrl}" 
+          style="width:100%;height:100%;object-fit:cover;border-radius:8px;" 
+          controls 
+          preload="metadata">
+          Your browser does not support video playback.
+        </video>
+      `;
+    } else {
+      // Generic preview with link
+      previewContent = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#f3f4f6;border-radius:8px;padding:20px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:12px;">🎥</div>
+          <div style="font-weight:600;margin-bottom:8px;">Video Link</div>
+          <div style="font-size:12px;color:#6b7280;word-break:break-all;">${hostname}</div>
+          <a href="${videoUrl}" target="_blank" style="margin-top:12px;padding:6px 12px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:12px;">Open Video</a>
+        </div>
+      `;
+    }
+    
+    // Update preview
+    mediaPreview.innerHTML = previewContent;
+    
+    // 🐛 Debug: Check if iframe was created and ensure it has proper height
+    setTimeout(() => {
+      const iframe = mediaPreview.querySelector('iframe');
+      if (iframe) {
+        // Ensure the parent container has proper height
+        if (mediaPreview.style) {
+          mediaPreview.style.minHeight = '280px';
+          mediaPreview.style.height = 'auto';
+        }
+        
+        console.log('🎯 iframe created:', {
+          src: iframe.src,
+          width: iframe.width || iframe.style.width,
+          height: iframe.height || iframe.style.height,
+          style: iframe.style.cssText,
+          parentHeight: mediaPreview.offsetHeight
+        });
+        
+        // Check if iframe loads successfully
+        iframe.onload = () => {
+          console.log('✅ iframe loaded successfully');
+          // Additional check after load
+          setTimeout(() => {
+            console.log('📏 iframe size after load:', {
+              offsetWidth: iframe.offsetWidth,
+              offsetHeight: iframe.offsetHeight,
+              clientWidth: iframe.clientWidth,
+              clientHeight: iframe.clientHeight
+            });
+          }, 1000);
+        };
+        iframe.onerror = (e) => console.error('❌ iframe load error:', e);
+      } else {
+        console.warn('⚠️ No iframe found in preview');
+      }
+    }, 100);
+    
+    // Update title and details
+    if (mediaPreviewTitle) {
+      const platform = hostname.includes('youtube') ? 'YouTube' : 
+                      hostname.includes('vimeo') ? 'Vimeo' : 
+                      isDirect ? 'Direct Video' : 'Video Link';
+      mediaPreviewTitle.textContent = `${platform} Video`;
+    }
+    
+    if (mediaPreviewDetails) {
+      mediaPreviewDetails.innerHTML = `
+        <div>Type: VIDEO</div>
+        <div>Source: ${hostname}</div>
+        <div>URL: <code style="font-size:10px;word-break:break-all;">${videoUrl}</code></div>
+        <div style="margin-top:8px;"><strong>Debug:</strong> ${isEmbed ? 'Embed iframe' : isDirect ? 'Direct video' : 'Generic link'}</div>
+      `;
+    }
+    
+    // Show preview
+    mediaPreviewWrap.style.display = 'flex';
+    
+    console.log('✅ Video preview displayed successfully', {
+      videoUrl,
+      isEmbed,
+      isDirect,
+      hostname
+    });
+  }
+  
   // 🎥 Render video preview function
   function renderVideoPreview(article) {
     const videoUrl = article.videoUrl;
@@ -2451,6 +2747,7 @@ document.addEventListener('DOMContentLoaded', function() {
     tabBtns.forEach(btn => {
       btn.addEventListener('click', function() {
         const targetTab = this.dataset.tab;
+        console.log(`🔄 Switching to tab: ${targetTab}`);
         
         // Update button states
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -2461,12 +2758,26 @@ document.addEventListener('DOMContentLoaded', function() {
           content.classList.remove('active');
           if (content.id === targetTab + 'Tab') {
             content.classList.add('active');
+            console.log(`✅ Tab content activated: ${content.id}`);
           }
         });
         
+        // 🔄 Reset initialization flags when switching tabs
+        if (targetTab !== 'media') {
+          window._mediaCenterInitialized = false;
+          console.log('🔄 Reset Media Center initialization flag');
+        }
+        
         // Initialize Media Center when switching to media tab
         if (targetTab === 'media') {
-          initializeMediaCenter();
+          console.log('🎯 Media tab clicked, initializing...');
+          setTimeout(() => {
+            if (window.initializeMediaCenter) {
+              window.initializeMediaCenter();
+            } else {
+              console.error('❌ initializeMediaCenter function not found!');
+            }
+          }, 100); // Small delay to ensure DOM is ready
         }
       });
     });
@@ -2476,11 +2787,35 @@ document.addEventListener('DOMContentLoaded', function() {
   window.initializeMediaCenter = function() {
     console.log('🎥 Initializing Media Center...');
     
-    // Initialize components
-    initializeSystemStatus();
-    initializeQuickUpload();
-    initializeApiTesting();
-    updateStatistics();
+    // Check if we're in the media tab
+    const mediaTab = document.getElementById('mediaTab');
+    if (!mediaTab || !mediaTab.classList.contains('active')) {
+      console.log('⚠️ Media tab not active, skipping initialization');
+      return;
+    }
+    
+    // 🚨 防止重复初始化
+    if (window._mediaCenterInitialized) {
+      console.log('ℹ️ Media Center already initialized, skipping...');
+      return;
+    }
+    
+    try {
+      // Initialize components
+      initializeSystemStatus();
+      initializeQuickUpload();
+      initializeApiTesting();
+      updateStatistics();
+      
+      // 🆕 Initialize Media Library
+      initializeMediaLibrary();
+      
+      // 标记为已初始化
+      window._mediaCenterInitialized = true;
+      console.log('✅ Media Center initialized successfully');
+    } catch (error) {
+      console.error('❌ Media Center initialization failed:', error);
+    }
   };
 
   // 📊 System Status Check
@@ -2599,7 +2934,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success) {
           console.log('✅ Quick upload successful:', result.data);
           showQuickUploadSuccess(file, result.data);
-          updateStatistics(); // Update stats after successful upload
+          
+          // Trigger media upload success event for library refresh
+          document.dispatchEvent(new CustomEvent('mediaUploadSuccess', {
+            detail: result.data
+          }));
+          
+          // Update statistics with a small delay to ensure database is updated
+          setTimeout(() => {
+            updateStatistics();
+          }, 1000);
         } else {
           throw new Error(result.error || 'Upload failed');
         }
@@ -2676,6 +3020,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function initializeApiTesting() {
     const testStorageBtn = document.getElementById('testStorageBtn');
     const getUploadInfoBtn = document.getElementById('getUploadInfoBtn');
+    const refreshStatsBtn = document.getElementById('refreshStatsBtn');
     const testingOutput = document.getElementById('testingOutput');
     
     if (testStorageBtn) {
@@ -2687,6 +3032,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (getUploadInfoBtn) {
       getUploadInfoBtn.addEventListener('click', async () => {
         await getUploadInfo();
+      });
+    }
+    
+    if (refreshStatsBtn) {
+      refreshStatsBtn.addEventListener('click', async () => {
+        await refreshStatistics();
       });
     }
   }
@@ -2757,22 +3108,124 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // 📊 Statistics Update
-  function updateStatistics() {
-    // This is a simplified version - in a real app, you'd fetch actual data
-    const totalUploads = document.getElementById('totalUploads');
-    const storageUsed = document.getElementById('storageUsed');
+  async function refreshStatistics() {
+    const output = document.getElementById('testingOutput');
+    if (!output) return;
     
-    if (totalUploads) {
-      const currentCount = parseInt(totalUploads.textContent) || 0;
-      totalUploads.textContent = currentCount + 1;
+    output.innerHTML = '<div style="color: #f59e0b;">🔄 Refreshing statistics...</div>';
+    
+    try {
+      // Force refresh statistics
+      await updateStatistics();
+      
+      // Also refresh media library if it's initialized
+      if (window.loadMediaFiles) {
+        await window.loadMediaFiles();
+      }
+      if (window.loadStats) {
+        await window.loadStats();
+      }
+      
+      const timestamp = new Date().toLocaleTimeString();
+      const totalUploads = document.getElementById('totalUploads')?.textContent || '0';
+      const storageUsed = document.getElementById('storageUsed')?.textContent || '0 MB';
+      
+      output.innerHTML = `
+        <div style="color: #10b981;">✅ STATISTICS REFRESHED</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${timestamp}</div>
+        <div style="margin-top: 12px;">
+          <div style="font-weight: 600; color: #f8fafc;">Current Statistics:</div>
+          <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 4px;">
+            Total Uploads: ${totalUploads}<br>
+            Storage Used: ${storageUsed}
+          </div>
+        </div>
+      `;
+      
+      console.log('✅ Statistics manually refreshed');
+    } catch (error) {
+      console.error('❌ Failed to refresh statistics:', error);
+      
+      const timestamp = new Date().toLocaleTimeString();
+      output.innerHTML = `
+        <div style="color: #ef4444;">❌ REFRESH FAILED</div>
+        <div style="color: #94a3b8; margin-top: 8px;">Timestamp: ${timestamp}</div>
+        <div style="margin-top: 12px; color: #ef4444;">
+          Error: ${error.message}
+        </div>
+      `;
     }
-    
-    if (storageUsed) {
-      // Simulate storage usage calculation
-      const currentUsage = parseFloat(storageUsed.textContent.replace(' MB', '')) || 0;
-      const newUsage = currentUsage + Math.random() * 10; // Random increase
-      storageUsed.textContent = newUsage.toFixed(1) + ' MB';
+  }
+
+  // 📊 Real Statistics Update - 从真实API获取数据
+  async function updateStatistics() {
+    try {
+      console.log('📊 更新真实统计数据...');
+      const response = await fetch('/api/media/library?action=stats');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load stats');
+      }
+      
+      // Update the main statistics display
+      const totalUploads = document.getElementById('totalUploads');
+      const storageUsed = document.getElementById('storageUsed');
+      const storageStatus = document.getElementById('storageStatus');
+      const storageIcon = document.getElementById('storageIcon');
+      
+      if (totalUploads) {
+        totalUploads.textContent = data.totalFiles || 0;
+      }
+      
+      if (storageUsed) {
+        const sizeMB = (data.totalSizeMB || 0).toFixed(1);
+        storageUsed.textContent = sizeMB + ' MB';
+      }
+      
+      // Update storage connection status to show success
+      if (storageStatus) {
+        storageStatus.textContent = 'Connected';
+        storageStatus.className = 'status-badge active';
+      }
+      
+      if (storageIcon) {
+        storageIcon.className = 'status-icon status-active';
+      }
+      
+      console.log('✅ 统计数据更新:', {
+        totalFiles: data.totalFiles,
+        totalSizeMB: data.totalSizeMB,
+        imageCount: data.imageCount,
+        videoCount: data.videoCount
+      });
+      
+    } catch (error) {
+      console.error('❌ 更新统计数据失败:', error);
+      
+      // Update storage connection status to show error
+      const storageStatus = document.getElementById('storageStatus');
+      const storageIcon = document.getElementById('storageIcon');
+      
+      if (storageStatus) {
+        storageStatus.textContent = 'Connection Failed';
+        storageStatus.className = 'status-badge error';
+      }
+      
+      if (storageIcon) {
+        storageIcon.className = 'status-icon status-error';
+      }
+      
+      // Show error indicators if no data is available
+      const totalUploads = document.getElementById('totalUploads');
+      const storageUsed = document.getElementById('storageUsed');
+      
+      if (totalUploads && totalUploads.textContent === '0') {
+        totalUploads.innerHTML = `<span style="color: #fca5a5;">N/A</span>`;
+      }
+      if (storageUsed && storageUsed.textContent === '0 MB') {
+        storageUsed.innerHTML = `<span style="color: #fca5a5;">N/A</span>`;
+      }
     }
   }
 
@@ -2830,6 +3283,53 @@ document.addEventListener('DOMContentLoaded', function() {
         await handleMediaUpload(mediaType, formEl);
       });
     });
+    
+    // 🎥 Video URL input handler (unified input field)
+    const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+    
+    if (videoUrlInput) {
+      // Handle URL input with auto-preview
+      let previewTimeout;
+      
+      videoUrlInput.addEventListener('input', function() {
+        const url = this.value.trim();
+        
+        // Clear previous timeout
+        if (previewTimeout) {
+          clearTimeout(previewTimeout);
+        }
+        
+        // Auto-preview after user stops typing (800ms delay)
+        if (url && isValidUrlFormat(url)) {
+          previewTimeout = setTimeout(() => {
+            handleVideoUrlPreview(url, formEl);
+          }, 800);
+        }
+      });
+      
+      // Handle Enter key for immediate preview
+      videoUrlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const url = this.value.trim();
+          if (url) {
+            if (previewTimeout) clearTimeout(previewTimeout);
+            handleVideoUrlPreview(url, formEl);
+          }
+        }
+      });
+      
+      // Handle paste events for immediate preview
+      videoUrlInput.addEventListener('paste', function() {
+        setTimeout(() => {
+          const url = this.value.trim();
+          if (url && isValidUrlFormat(url)) {
+            if (previewTimeout) clearTimeout(previewTimeout);
+            handleVideoUrlPreview(url, formEl);
+          }
+        }, 100);
+      });
+    }
 
     // 🖼️ Poster upload handler
     const posterUploadBtn = formEl.querySelector('.upload-poster-btn');
@@ -2914,7 +3414,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const imageInput = formEl.querySelector('input[name="image"]'); // poster
                 const durationInput = formEl.querySelector('input[name="videoDuration"]');
                 
-                if (videoUrlInput) videoUrlInput.value = result.data.url;
+                if (videoUrlInput) {
+                  videoUrlInput.value = result.data.url;
+                  // Trigger preview for uploaded video
+                  handleVideoUrlPreview(result.data.url, formEl);
+                }
                 if (imageInput && !imageInput.value) {
                   // Use video URL as poster if no custom poster is set
                   imageInput.value = result.data.url;
@@ -3435,5 +3939,506 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize existing image preview check
     setTimeout(checkExistingImagePreview, 100);
   };
+
+  // 🆕 Media Library Management System
+  function initializeMediaLibrary() {
+    console.log('📚 Initializing Media Library...');
+    
+    // State management
+    let currentPage = 1;
+    let currentType = '';
+    let currentCategory = '';
+    let currentSearch = '';
+    let currentFiles = [];
+    let totalPages = 1;
+    
+    // Elements
+    const mediaSearch = document.getElementById('mediaSearch');
+    const typeFilter = document.getElementById('typeFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const refreshBtn = document.getElementById('refreshLibrary');
+    const mediaGrid = document.getElementById('mediaGrid');
+    const paginationControls = document.getElementById('paginationControls');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+    
+    // Statistics elements
+    const libraryImageCount = document.getElementById('libraryImageCount');
+    const libraryVideoCount = document.getElementById('libraryVideoCount');
+    const libraryTotalFiles = document.getElementById('libraryTotalFiles');
+    const totalLibrarySize = document.getElementById('totalLibrarySize');
+    const recentUploads = document.getElementById('recentUploads');
+    
+    // Modal elements
+    const previewModal = document.getElementById('mediaPreviewModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closePreview = document.getElementById('closePreview');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const mediaEditForm = document.getElementById('mediaEditForm');
+    const mediaTitle = document.getElementById('mediaTitle');
+    const mediaCategory = document.getElementById('mediaCategory');
+    const fileInfo = document.getElementById('fileInfo');
+    const copyUrlBtn = document.getElementById('copyUrlBtn');
+    const deleteFileBtn = document.getElementById('deleteFileBtn');
+    
+    let currentMediaFile = null;
+    
+    // Initialize
+    loadMediaFiles();
+    loadStats();
+    loadCategories();
+    
+    // Event listeners
+    if (mediaSearch) {
+      mediaSearch.addEventListener('input', debounce((e) => {
+        currentSearch = e.target.value;
+        currentPage = 1;
+        loadMediaFiles();
+      }, 300));
+    }
+    
+    if (typeFilter) {
+      typeFilter.addEventListener('change', (e) => {
+        currentType = e.target.value;
+        currentPage = 1;
+        loadMediaFiles();
+      });
+    }
+    
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', (e) => {
+        currentCategory = e.target.value;
+        currentPage = 1;
+        loadMediaFiles();
+      });
+    }
+    
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        loadMediaFiles();
+        loadStats();
+        loadCategories();
+      });
+    }
+    
+    // Pagination
+    if (prevPageBtn) {
+      prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          loadMediaFiles();
+        }
+      });
+    }
+    
+    if (nextPageBtn) {
+      nextPageBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          loadMediaFiles();
+        }
+      });
+    }
+    
+    // Modal events
+    if (closePreview) {
+      closePreview.addEventListener('click', closePreviewModal);
+    }
+    
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', closePreviewModal);
+    }
+    
+    if (mediaEditForm) {
+      mediaEditForm.addEventListener('submit', handleMediaUpdate);
+    }
+    
+    if (copyUrlBtn) {
+      copyUrlBtn.addEventListener('click', copyMediaUrl);
+    }
+    
+    if (deleteFileBtn) {
+      deleteFileBtn.addEventListener('click', handleMediaDelete);
+    }
+    
+    // Load media files
+    async function loadMediaFiles() {
+      if (!mediaGrid) return;
+      
+      try {
+        showLoading();
+        
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '20'
+        });
+        
+        if (currentType) params.append('type', currentType);
+        if (currentCategory) params.append('category', currentCategory);
+        if (currentSearch) params.append('search', currentSearch);
+        
+        console.log('📋 Loading media files with params:', Object.fromEntries(params));
+        
+        const response = await fetch(`/api/media/library?action=list&${params}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load media files');
+        }
+        
+        currentFiles = data.files || [];
+        totalPages = data.pagination?.pages || 1;
+        
+        renderMediaGrid(currentFiles);
+        updatePagination(data.pagination);
+        
+        console.log(`✅ Loaded ${currentFiles.length} media files`);
+      } catch (error) {
+        console.error('❌ Failed to load media files:', error);
+        showError('Failed to load media files: ' + error.message);
+      }
+    }
+    
+    // Load statistics
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/media/library?action=stats');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load stats');
+        }
+        
+        // Update statistics
+        if (libraryImageCount) libraryImageCount.textContent = data.imageCount || 0;
+        if (libraryVideoCount) libraryVideoCount.textContent = data.videoCount || 0;
+        if (libraryTotalFiles) libraryTotalFiles.textContent = data.totalFiles || 0;
+        if (totalLibrarySize) totalLibrarySize.textContent = (data.totalSizeMB || 0) + ' MB';
+        if (recentUploads) recentUploads.textContent = data.recentUploads || 0;
+        
+        console.log('📊 Stats updated:', data);
+      } catch (error) {
+        console.error('❌ Failed to load stats:', error);
+      }
+    }
+    
+    // Load categories
+    async function loadCategories() {
+      if (!categoryFilter) return;
+      
+      try {
+        const response = await fetch('/api/media/library?action=categories');
+        const data = await response.json();
+        
+        if (!response.ok) return;
+        
+        // Clear and populate categories
+        while (categoryFilter.children.length > 1) {
+          categoryFilter.removeChild(categoryFilter.lastChild);
+        }
+        
+        const categories = data.categories || [];
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category;
+          option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+          categoryFilter.appendChild(option);
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to load categories:', error);
+      }
+    }
+    
+    // Render media grid
+    function renderMediaGrid(files) {
+      if (!mediaGrid) return;
+      
+      if (files.length === 0) {
+        mediaGrid.innerHTML = '<div class="empty-state">No media files found</div>';
+        return;
+      }
+      
+      mediaGrid.innerHTML = files.map(file => `
+        <div class="media-card" data-id="${file.id}" onclick="previewMedia(${file.id})">
+          <div class="media-thumbnail">
+            ${file.mediaType === 'IMAGE' 
+              ? `<img src="${file.url}" alt="${file.title || file.filename}" loading="lazy">`
+              : `<video src="${file.url}" preload="none"></video>`
+            }
+            <div class="media-type-badge">${file.mediaType}</div>
+          </div>
+          <div class="media-info">
+            <h4 class="media-title">${file.title || file.filename}</h4>
+            <div class="media-meta">
+              <span class="file-size">${formatFileSize(file.fileSize)}</span>
+              <span class="upload-date">${formatDate(file.uploadedAt)}</span>
+            </div>
+            <div class="media-category">${file.category}</div>
+          </div>
+          <div class="media-actions">
+            <button class="action-btn" onclick="event.stopPropagation(); previewMedia(${file.id})" title="Preview">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button class="action-btn" onclick="event.stopPropagation(); copyMediaUrl('${file.url}')" title="Copy URL">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Update pagination
+    function updatePagination(pagination) {
+      if (!paginationControls || !pagination) return;
+      
+      totalPages = pagination.pages;
+      
+      if (totalPages <= 1) {
+        paginationControls.style.display = 'none';
+        return;
+      }
+      
+      paginationControls.style.display = 'flex';
+      
+      if (prevPageBtn) {
+        prevPageBtn.disabled = currentPage <= 1;
+      }
+      
+      if (nextPageBtn) {
+        nextPageBtn.disabled = currentPage >= totalPages;
+      }
+      
+      if (pageInfo) {
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      }
+    }
+    
+    // Preview media (moved to global scope)
+    async function previewMedia(fileId) {
+      try {
+        const response = await fetch(`/api/media/library?action=detail&id=${fileId}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load media details');
+        }
+        
+        currentMediaFile = data.file;
+        showPreviewModal(currentMediaFile);
+        
+      } catch (error) {
+        console.error('❌ Failed to preview media:', error);
+        showError('Failed to load media details: ' + error.message);
+      }
+    }
+    
+    // Make it globally available
+    window.previewMedia = previewMedia;
+    
+    // Show preview modal
+    function showPreviewModal(file) {
+      if (!previewModal || !file) return;
+      
+      // Update preview content
+      if (mediaPreview) {
+        if (file.mediaType === 'IMAGE') {
+          mediaPreview.innerHTML = `<img src="${file.url}" alt="${file.title || file.filename}">`;
+        } else {
+          mediaPreview.innerHTML = `<video src="${file.url}" controls></video>`;
+        }
+      }
+      
+      // Update form fields
+      if (mediaTitle) mediaTitle.value = file.title || '';
+      if (mediaCategory) mediaCategory.value = file.category || 'misc';
+      
+      // Update file info
+      if (fileInfo) {
+        fileInfo.innerHTML = `
+          <div><strong>Filename:</strong> ${file.filename}</div>
+          <div><strong>Size:</strong> ${formatFileSize(file.fileSize)}</div>
+          <div><strong>Type:</strong> ${file.mimeType}</div>
+          <div><strong>Uploaded:</strong> ${formatDate(file.uploadedAt)}</div>
+          <div><strong>Usage Count:</strong> ${file.usageCount || 0}</div>
+        `;
+      }
+      
+      // Show modal
+      previewModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Close preview modal
+    function closePreviewModal() {
+      if (previewModal) {
+        previewModal.style.display = 'none';
+        document.body.style.overflow = '';
+        currentMediaFile = null;
+      }
+    }
+    
+    // Handle media update
+    async function handleMediaUpdate(e) {
+      e.preventDefault();
+      
+      if (!currentMediaFile) return;
+      
+      try {
+        const formData = new FormData(mediaEditForm);
+        const updateData = {
+          id: currentMediaFile.id,
+          title: formData.get('title'),
+          category: formData.get('category')
+        };
+        
+        const response = await fetch('/api/media/library', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update media');
+        }
+        
+        showSuccess('Media updated successfully');
+        closePreviewModal();
+        loadMediaFiles(); // Refresh the grid
+        
+      } catch (error) {
+        console.error('❌ Failed to update media:', error);
+        showError('Failed to update media: ' + error.message);
+      }
+    }
+    
+    // Copy media URL (moved to global scope)
+    function copyMediaUrl(url) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          showSuccess('URL copied to clipboard');
+        }).catch(error => {
+          console.error('❌ Failed to copy URL:', error);
+          showError('Failed to copy URL');
+        });
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showSuccess('URL copied to clipboard');
+        } catch (error) {
+          console.error('❌ Failed to copy URL:', error);
+          showError('Failed to copy URL');
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+    
+    // Make it globally available
+    window.copyMediaUrl = copyMediaUrl;
+    
+    // Handle media delete
+    async function handleMediaDelete() {
+      if (!currentMediaFile) return;
+      
+      if (!confirm(`Are you sure you want to delete "${currentMediaFile.filename}"? This action cannot be undone.`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/media/library?id=${currentMediaFile.id}`, {
+          method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete media');
+        }
+        
+        showSuccess('Media deleted successfully');
+        closePreviewModal();
+        loadMediaFiles(); // Refresh the grid
+        loadStats(); // Refresh stats
+        
+      } catch (error) {
+        console.error('❌ Failed to delete media:', error);
+        showError('Failed to delete media: ' + error.message);
+      }
+    }
+    
+    // Utility functions
+    function showLoading() {
+      if (mediaGrid) {
+        mediaGrid.innerHTML = `
+          <div class="loading-placeholder">
+            <div class="loading-spinner"></div>
+            <p>Loading media files...</p>
+          </div>
+        `;
+      }
+    }
+    
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+    
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+    
+    function showSuccess(message) {
+      console.log('✅', message);
+      // You can replace this with a proper toast notification system
+      alert('Success: ' + message);
+    }
+    
+    function showError(message) {
+      console.error('❌', message);
+      // You can replace this with a proper toast notification system
+      alert('Error: ' + message);
+    }
+    
+    // Listen for upload success events to refresh the library
+    document.addEventListener('mediaUploadSuccess', function(event) {
+      console.log('📤 Media upload detected, refreshing library...');
+      setTimeout(() => {
+        loadMediaFiles();
+        loadStats();
+      }, 1000); // Small delay to ensure database is updated
+    });
+  }
   
 });

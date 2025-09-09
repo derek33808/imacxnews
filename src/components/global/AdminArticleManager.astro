@@ -31,7 +31,7 @@
           </svg>
           Articles
         </button>
-        <button class="tab-btn" data-tab="media">
+        <button class="tab-btn" data-tab="media" onclick="console.log('🎯 Media Center clicked!')">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -41,7 +41,8 @@
         </button>
       </div>
       <div class="header-actions">
-        <button class="create-btn modern-btn action-btn edit-btn" id="createArticleBtn">
+        <button class="create-btn modern-btn action-btn edit-btn enhanced-create-btn" id="createArticleBtn" 
+                style="max-width: 240px !important; padding: 14px 20px !important; font-size: 1rem !important; font-weight: 500 !important; min-height: 46px !important; border-radius: 12px !important; width: 100% !important;">
           <div class="btn-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -51,7 +52,8 @@
           <span>Create Article</span>
           <div class="btn-ripple"></div>
         </button>
-        <button class="close-modal modern-close" id="closeAdminManagerModal" aria-label="Close management panel">
+        <button class="close-modal modern-close" id="closeAdminManagerModal" aria-label="Close management panel"
+                style="width: 44px !important; height: 44px !important; min-width: 44px !important; max-width: 44px !important; min-height: 44px !important; max-height: 44px !important; padding: 0 !important; border-radius: 16px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; aspect-ratio: 1/1 !important; box-sizing: border-box !important;">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
@@ -226,12 +228,109 @@
               </svg>
               Get Upload Configuration
             </button>
+            <button class="modern-btn secondary" id="refreshStatsBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+              Refresh Statistics
+            </button>
           </div>
           
           <div class="testing-output" id="testingOutput">
             <div class="output-placeholder">
               Test results will appear here...
             </div>
+          </div>
+        </div>
+
+        <!-- Media Library Management -->
+        <div class="media-section">
+          <div class="section-header">
+            <h3 class="section-title">Media Library</h3>
+            <div class="library-controls">
+              <div class="search-group">
+                <input type="text" id="mediaSearch" placeholder="Search files..." class="search-input">
+                <select id="typeFilter" class="filter-select">
+                  <option value="">All Types</option>
+                  <option value="IMAGE">Images</option>
+                  <option value="VIDEO">Videos</option>
+                </select>
+                <select id="categoryFilter" class="filter-select">
+                  <option value="">All Categories</option>
+                </select>
+                <button class="refresh-btn modern-btn secondary" id="refreshLibrary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+                  </svg>
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Enhanced Statistics -->
+          <div class="library-stats">
+            <div class="stat-card">
+              <div class="stat-icon">📸</div>
+              <div class="stat-content">
+                <div class="stat-number" id="libraryImageCount">0</div>
+                <div class="stat-label">Images</div>
+                <div class="stat-detail" id="imageSize">0 MB</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🎥</div>
+              <div class="stat-content">
+                <div class="stat-number" id="libraryVideoCount">0</div>
+                <div class="stat-label">Videos</div>
+                <div class="stat-detail" id="videoSize">0 MB</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📁</div>
+              <div class="stat-content">
+                <div class="stat-number" id="libraryTotalFiles">0</div>
+                <div class="stat-label">Total Files</div>
+                <div class="stat-detail" id="totalLibrarySize">0 MB</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📈</div>
+              <div class="stat-content">
+                <div class="stat-number" id="recentUploads">0</div>
+                <div class="stat-label">Recent</div>
+                <div class="stat-detail">Last 30 days</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Media Files Grid -->
+          <div class="media-grid-container">
+            <div class="media-grid" id="mediaGrid">
+              <div class="loading-placeholder">
+                <div class="loading-spinner"></div>
+                <p>Loading media files...</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div class="pagination-controls" id="paginationControls" style="display: none;">
+            <button class="page-btn" id="prevPage" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15,18 9,12 15,6"/>
+              </svg>
+              Previous
+            </button>
+            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+            <button class="page-btn" id="nextPage" disabled>
+              Next
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9,18 15,12 9,6"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -288,6 +387,74 @@
                 <li>Optimized delivery</li>
                 <li>Cache management</li>
               </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Media Preview Modal -->
+        <div class="media-preview-modal" id="mediaPreviewModal" style="display: none;">
+          <div class="modal-overlay" id="modalOverlay"></div>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Media Details</h3>
+              <button class="modal-close" id="closePreview">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="media-preview-container">
+                <div class="media-preview" id="mediaPreview">
+                  <!-- Media content will be inserted here -->
+                </div>
+                <div class="media-details">
+                  <form id="mediaEditForm">
+                    <div class="form-group">
+                      <label for="mediaTitle">Title:</label>
+                      <input type="text" id="mediaTitle" name="title" placeholder="Enter media title">
+                    </div>
+                    <div class="form-group">
+                      <label for="mediaCategory">Category:</label>
+                      <select id="mediaCategory" name="category">
+                        <option value="articles">Articles</option>
+                        <option value="thumbnails">Thumbnails</option>
+                        <option value="misc">Miscellaneous</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>File Info:</label>
+                      <div class="file-info" id="fileInfo">
+                        <!-- File information will be shown here -->
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button type="button" id="copyUrlBtn" class="modern-btn secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy URL
+                      </button>
+                      <button type="submit" class="modern-btn primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Save Changes
+                      </button>
+                      <button type="button" id="deleteFileBtn" class="modern-btn danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3,6 5,6 21,6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -509,9 +676,11 @@
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     position: relative;
     z-index: 2;
+    justify-content: flex-end;
+    flex-shrink: 0;
   }
 
   /* 🚀 Modern Button Design - App Icon Style */
@@ -625,7 +794,7 @@
 
   .admin-articles-list {
     padding: 32px 32px 80px 32px; /* 增加底部padding到80px，确保桌面端最后一篇文章也完全显示 */
-    max-height: calc(80vh - 20px); /* 🔧 Increased height to prevent compression */
+    max-height: calc(85vh - 40px); /* 🔧 Increased height for better content visibility */
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
@@ -1276,21 +1445,92 @@
       flex-wrap: wrap;
     }
     
-    /* 确保Create Article按钮在移动端正确显示 */
-    .create-btn {
+    /* 🎯 增强的Create Article按钮 - 更大更醒目 */
+    .modal-header .header-actions #createArticleBtn,
+    .header-actions #createArticleBtn.create-btn,
+    #createArticleBtn.enhanced-create-btn.modern-btn {
       width: 100%;
-      max-width: 200px;
-      padding: 12px 16px !important;
-      font-size: 0.9rem !important;
+      max-width: 240px !important; /* 精致小巧的按钮宽度 */
+      padding: 14px 20px !important; /* 精致小巧的内边距 */
+      font-size: 1rem !important; /* 精致小巧的字体 */
+      font-weight: 500 !important; /* 中等粗细，不会太粗 */
       justify-content: center;
+      background: linear-gradient(135deg, var(--modal-primary), var(--modal-primary-light)) !important;
+      color: white !important;
+      border: 2px solid var(--modal-primary) !important;
+      border-radius: 12px !important; /* 精致小巧的圆角 */
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important; /* 添加阴影 */
+      transition: all 0.3s ease !important;
+      position: relative;
+      overflow: hidden;
+      min-height: 46px !important; /* 精致小巧的按钮高度 */
     }
     
-    /* 移动端关闭按钮优化 */
-    .modern-close {
-      width: 40px !important;
-      height: 40px !important;
-      min-width: 40px;
-      flex-shrink: 0;
+    /* 悬停效果 */
+    .modal-header .header-actions #createArticleBtn:hover,
+    .header-actions #createArticleBtn.create-btn:hover,
+    #createArticleBtn.enhanced-create-btn.modern-btn:hover {
+      transform: translateY(-2px) scale(1.02) !important; /* 轻微上升和放大 */
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4) !important; /* 增强阴影 */
+      background: linear-gradient(135deg, var(--modal-primary-light), var(--modal-primary)) !important;
+    }
+    
+    /* 按钮内的图标 */
+    .modal-header .header-actions #createArticleBtn .btn-icon,
+    .header-actions #createArticleBtn.create-btn .btn-icon,
+    #createArticleBtn.enhanced-create-btn.modern-btn .btn-icon {
+      margin-right: 8px !important;
+    }
+    
+    /* 添加脉冲动画效果 */
+    .create-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    
+    .create-btn:hover::before {
+      transform: translateX(100%);
+    }
+    
+    /* 🔧 强制修复关闭按钮尺寸 - 确保正方形 */
+    #closeAdminManagerModal,
+    .modern-close,
+    .close-modal,
+    button[aria-label="Close management panel"] {
+      width: 44px !important;
+      height: 44px !important;
+      min-width: 44px !important;
+      max-width: 44px !important;
+      min-height: 44px !important;
+      max-height: 44px !important;
+      flex-shrink: 0 !important;
+      flex-grow: 0 !important;
+      border-radius: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+      aspect-ratio: 1/1 !important;
+    }
+    
+    /* 关闭按钮内的SVG图标 */
+    #closeAdminManagerModal svg,
+    .modern-close svg,
+    .close-modal svg,
+    button[aria-label="Close management panel"] svg {
+      width: 20px !important;
+      height: 20px !important;
+      stroke-width: 2 !important;
+      color: white !important;
+      flex-shrink: 0 !important;
     }
     
     /* 移动端header标题优化 */
@@ -1692,7 +1932,7 @@
     flex-direction: column;
     gap: 28px;
     overflow-y: auto;
-    max-height: calc(95vh - 120px); /* 增加可用高度，减少顶部预留 */
+    max-height: calc(88vh - 100px); /* 增加可用高度，减少顶部预留 */
     min-height: auto; /* 确保能自适应内容 */
     background: 
       radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
@@ -4115,6 +4355,494 @@
   /* 🔄 Hide default padding when tab-content has scrolling */
   .tab-content.scrollable {
     padding-right: 24px;
+  }
+
+  /* 🆕 Media Library Styles */
+  .library-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .search-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--modal-border);
+    border-radius: 6px;
+    background: var(--modal-bg);
+    color: var(--modal-text);
+    font-size: 14px;
+  }
+
+  .filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--modal-border);
+    border-radius: 6px;
+    background: var(--modal-bg);
+    color: var(--modal-text);
+    font-size: 14px;
+    min-width: 120px;
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  /* Enhanced Statistics Grid */
+  .library-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .library-stats .stat-card {
+    background: var(--modal-bg);
+    border: 1px solid var(--modal-border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .library-stats .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: var(--modal-primary);
+  }
+
+  .library-stats .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light));
+  }
+
+  .library-stats .stat-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .library-stats .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--modal-primary);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .library-stats .stat-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: 4px;
+  }
+
+  .library-stats .stat-detail {
+    font-size: 12px;
+    color: var(--modal-text-light);
+  }
+
+  /* Media Grid */
+  .media-grid-container {
+    margin-bottom: 24px;
+  }
+
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    min-height: 200px;
+  }
+
+  .loading-placeholder {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--modal-text-light);
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--modal-border);
+    border-top: 3px solid var(--modal-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Media Card */
+  .media-card {
+    background: var(--modal-bg);
+    border: 1px solid var(--modal-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .media-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border-color: var(--modal-primary);
+  }
+
+  .media-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: var(--modal-bg-secondary);
+  }
+
+  .media-thumbnail img,
+  .media-thumbnail video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .media-card:hover .media-thumbnail img,
+  .media-card:hover .media-thumbnail video {
+    transform: scale(1.05);
+  }
+
+  .media-type-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .media-info {
+    padding: 16px;
+  }
+
+  .media-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .media-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--modal-text-light);
+    margin-bottom: 8px;
+  }
+
+  .media-category {
+    display: inline-block;
+    background: var(--modal-bg-secondary);
+    color: var(--modal-text-light);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .media-actions {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .media-card:hover .media-actions {
+    opacity: 1;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: var(--modal-primary);
+    transform: scale(1.1);
+  }
+
+  /* Pagination */
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 0;
+  }
+
+  .page-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--modal-bg);
+    border: 1px solid var(--modal-border);
+    border-radius: 6px;
+    color: var(--modal-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .page-btn:not(:disabled):hover {
+    background: var(--modal-primary);
+    color: white;
+    border-color: var(--modal-primary);
+  }
+
+  .page-info {
+    font-size: 14px;
+    color: var(--modal-text);
+    font-weight: 500;
+  }
+
+  /* Media Preview Modal */
+  .media-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .media-preview-modal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  .media-preview-modal .modal-content {
+    position: relative;
+    background: var(--modal-bg);
+    border-radius: 16px;
+    width: 90vw;
+    max-width: 900px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+  }
+
+  .media-preview-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--modal-border);
+  }
+
+  .media-preview-modal .modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin: 0;
+  }
+
+  .media-preview-modal .modal-close {
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: var(--modal-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .media-preview-modal .modal-close:hover {
+    background: var(--modal-bg-secondary);
+    color: var(--modal-text);
+  }
+
+  .media-preview-modal .modal-body {
+    padding: 0;
+  }
+
+  .media-preview-container {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    max-height: 60vh;
+  }
+
+  .media-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--modal-bg-secondary);
+    min-height: 300px;
+  }
+
+  .media-preview img,
+  .media-preview video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .media-details {
+    padding: 24px;
+    border-left: 1px solid var(--modal-border);
+    background: var(--modal-bg);
+  }
+
+  .media-details .form-group {
+    margin-bottom: 20px;
+  }
+
+  .media-details label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: 6px;
+  }
+
+  .media-details input,
+  .media-details select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--modal-border);
+    border-radius: 6px;
+    background: var(--modal-bg);
+    color: var(--modal-text);
+    font-size: 14px;
+  }
+
+  .file-info {
+    background: var(--modal-bg-secondary);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--modal-text-light);
+    line-height: 1.5;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--modal-text-light);
+    font-size: 16px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .search-group {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .library-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .media-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .media-preview-container {
+      grid-template-columns: 1fr;
+    }
+
+    .media-details {
+      border-left: none;
+      border-top: 1px solid var(--modal-border);
+    }
+
+    .pagination-controls {
+      flex-wrap: wrap;
+    }
   }
 </style>
 

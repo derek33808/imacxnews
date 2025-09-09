@@ -20,6 +20,7 @@ model User {
   createdAt DateTime      @default(now())
   comments  Comment[]
   likes     ArticleLike[]
+  uploadedMedia MediaFile[] // 新增：用户上传的媒体文件
 }
 
 model Article {
@@ -79,4 +80,32 @@ model ArticleLike {
   userId    Int
 
   @@unique([articleId, userId])
+}
+
+// 🆕 媒体文件管理模型
+model MediaFile {
+  id          Int      @id @default(autoincrement())
+  filename    String   // 原始文件名
+  url         String   // Supabase存储URL
+  path        String   // 存储路径
+  
+  // 基本信息
+  mediaType   String   // 'IMAGE' | 'VIDEO'
+  mimeType    String   // image/jpeg, video/mp4
+  fileSize    Int      // 文件大小(bytes)
+  
+  // 元数据（简化版）
+  title       String?  // 文件标题
+  category    String   @default("misc") // 分类
+  
+  // 管理信息
+  uploadedBy  Int      // 上传者ID (管理员)
+  uploader    User     @relation(fields: [uploadedBy], references: [id])
+  uploadedAt  DateTime @default(now())
+  usageCount  Int      @default(0) // 使用次数
+  
+  @@index([mediaType])
+  @@index([uploadedAt])
+  @@index([category])
+  @@index([uploadedBy])
 }

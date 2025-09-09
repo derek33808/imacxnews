@@ -5,9 +5,13 @@ class ProgressiveLoader {
     this.cache = new Map();
     this.cacheExpiry = 60000; // 增加到1分钟缓存
     this.currentPage = 0;
-    this.pageSize = 10; // 分页加载
+    this.pageSize = 10; // 10 articles per page
     this.allArticles = [];
     this.hasMore = true;
+    // 分页相关属性
+    this.totalArticles = 0;
+    this.totalPages = 0;
+    this.allArticlesCache = null; // 缓存所有文章
   }
   
   async loadArticles(page = 0, useCache = true) {
@@ -82,6 +86,8 @@ class ProgressiveLoader {
   handleArticleData(data, page) {
     const articles = data.articles || [];
     this.hasMore = data.hasMore !== undefined ? data.hasMore : true;
+    this.totalArticles = data.total || articles.length;
+    this.totalPages = Math.ceil(this.totalArticles / this.pageSize);
     
     if (page === 0) {
       // 首次加载
@@ -94,6 +100,175 @@ class ProgressiveLoader {
     }
     
     this.currentPage = page;
+    this.updatePaginationUI();
+  }
+
+  // 🚀 加载所有文章用于分页显示
+  async loadAllArticlesForPagination() {
+    if (this.allArticlesCache) {
+      return this.allArticlesCache;
+    }
+
+    try {
+      const response = await fetch('/api/articles?limit=200&offset=0');
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const articles = data.articles || (Array.isArray(data) ? data : []);
+      
+      this.allArticlesCache = articles;
+      this.totalArticles = articles.length;
+      this.totalPages = Math.ceil(this.totalArticles / this.pageSize);
+      
+      return articles;
+    } catch (error) {
+      console.error('Failed to load all articles:', error);
+      return [];
+    }
+  }
+
+  // 🚀 加载指定页面的文章 - 增强版带视觉反馈
+  async loadArticlePage(pageNumber) {
+    if (this.isLoading) return;
+    
+    this.isLoading = true;
+    this.showLoadingStatus('Loading page...');
+    
+    // 🎭 添加加载状态的视觉反馈
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (paginationContainer) {
+      paginationContainer.classList.add('loading');
+    }
+    
+    try {
+      const allArticles = await this.loadAllArticlesForPagination();
+      const startIndex = pageNumber * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      const pageArticles = allArticles.slice(startIndex, endIndex);
+      
+      // 🎨 添加轻微延迟以显示加载动画效果（仅在快速操作时）
+      const minLoadingTime = 300;
+      const startTime = Date.now();
+      
+      // 更新"All Articles"部分
+      this.renderAllArticlesList(pageArticles);
+      this.currentPage = pageNumber;
+      this.updatePaginationUI();
+      
+      // 确保最小加载时间以展示动画
+      const elapsed = Date.now() - startTime;
+      if (elapsed < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
+      }
+      
+      // 滚动到文章列表顶部
+      const allArticlesSection = document.getElementById('allArticlesSection');
+      if (allArticlesSection) {
+        allArticlesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      
+    } catch (error) {
+      console.error('Failed to load page:', error);
+      this.showError(`Failed to load page ${pageNumber + 1}`);
+    } finally {
+      this.isLoading = false;
+      this.hideLoadingStatus();
+      
+      // 🎭 移除加载状态
+      if (paginationContainer) {
+        paginationContainer.classList.remove('loading');
+      }
+    }
+  }
+
+  // 🚀 更新分页UI
+  updatePaginationUI() {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageNumbers = document.getElementById('pageNumbers');
+    
+    if (!paginationContainer || this.totalPages <= 1) {
+      if (paginationContainer) paginationContainer.style.display = 'none';
+      return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    
+    // 更新分页信息
+    if (paginationInfo) {
+      paginationInfo.textContent = `Page ${this.currentPage + 1} of ${this.totalPages} (${this.totalArticles} articles)`;
+    }
+    
+    // Update previous/next buttons
+    if (prevBtn) {
+      prevBtn.disabled = this.currentPage === 0;
+      prevBtn.onclick = () => {
+        if (this.currentPage > 0) {
+          this.loadArticlePage(this.currentPage - 1);
+        }
+      };
+    }
+    
+    if (nextBtn) {
+      nextBtn.disabled = this.currentPage >= this.totalPages - 1;
+      nextBtn.onclick = () => {
+        if (this.currentPage < this.totalPages - 1) {
+          this.loadArticlePage(this.currentPage + 1);
+        }
+      };
+    }
+    
+    // 生成页码
+    if (pageNumbers) {
+      pageNumbers.innerHTML = this.generatePageNumbers();
+    }
+  }
+
+  // 🚀 生成页码HTML
+  generatePageNumbers() {
+    const pages = [];
+    const current = this.currentPage;
+    const total = this.totalPages;
+    
+    if (total <= 7) {
+      // 如果总页数<=7，显示所有页码
+      for (let i = 0; i < total; i++) {
+        pages.push(this.createPageButton(i, i === current));
+      }
+    } else {
+      // 复杂分页逻辑
+      pages.push(this.createPageButton(0, current === 0)); // First page
+      
+      if (current > 2) {
+        pages.push('<span class="page-ellipsis">...</span>');
+      }
+      
+      // 当前页周围的页码
+      const start = Math.max(1, current - 1);
+      const end = Math.min(total - 2, current + 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(this.createPageButton(i, i === current));
+      }
+      
+      if (current < total - 3) {
+        pages.push('<span class="page-ellipsis">...</span>');
+      }
+      
+      pages.push(this.createPageButton(total - 1, current === total - 1)); // Last page
+    }
+    
+    return pages.join('');
+  }
+
+  // 🚀 创建页码按钮 - 新的现代化设计
+  createPageButton(pageNumber, isActive) {
+    const className = isActive ? 'page-number active' : 'page-number';
+    return `<button class="${className}" onclick="progressiveLoader.loadArticlePage(${pageNumber})"><span>${pageNumber + 1}</span></button>`;
   }
   
   renderContent(articles) {
@@ -109,7 +284,7 @@ class ProgressiveLoader {
     // Render featured article
     this.renderFeaturedArticle(mainFeatured);
     
-    // 🚀 只显示最新的8篇文章，减少初始渲染量
+    // 🚀 Only show the latest 8 articles to reduce initial rendering load
     const latestArticles = articles.slice(0, 8);
     this.renderLatestArticles(latestArticles);
     
@@ -171,33 +346,61 @@ class ProgressiveLoader {
     
     // 🎬 Initialize video controls after DOM insertion (只有在有实际视频URL时才初始化控件)
     if (isVideo && hasVideoUrl) {
-      setTimeout(() => this.initializeVideoControls(container), 100);
+      const isEmbeddable = this.isEmbeddableVideo(article.videoUrl);
+      if (!isEmbeddable) {
+        // Only initialize controls for direct video files (not YouTube/Vimeo iframes)
+        setTimeout(() => this.initializeVideoControls(container), 100);
+      }
     }
   }
   
-  // 🎥 Render video content with controls
+  // 🎥 Render video content with controls (supports YouTube, Vimeo, and direct video)
   renderVideoContent(article) {
     const videoId = `featured-video-${Date.now()}`;
     const posterUrl = article.image || article.videoPoster || '/images/placeholder.svg';
+    const videoUrl = article.videoUrl;
     
-    return `
-      <video 
-        id="${videoId}"
-        class="featured-video-element"
-        poster="${posterUrl}"
-        preload="metadata"
-        width="800" 
-        height="450"
-        data-video-url="${article.videoUrl}"
-        style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;"
-      >
-        <source src="${article.videoUrl}" type="video/mp4">
-        <source src="${article.videoUrl}" type="video/webm">
-        <source src="${article.videoUrl}" type="video/ogg">
-        Your browser does not support video playback.
-      </video>
-      
-      <!-- Custom Video Controls -->
+    // 🎬 Check if this is a YouTube or Vimeo URL
+    const isYouTubeOrVimeo = this.isEmbeddableVideo(videoUrl);
+    const embedUrl = isYouTubeOrVimeo ? this.convertToEmbedUrl(videoUrl) : null;
+    
+    if (isYouTubeOrVimeo && embedUrl) {
+      // 🎥 Render YouTube/Vimeo as iframe
+      return `
+        <div class="featured-video-iframe-container" style="position: relative; width: 100%; height: 100%; background: #000;">
+          <iframe 
+            id="${videoId}"
+            class="featured-video-iframe"
+            src="${embedUrl}"
+            width="100%" 
+            height="100%"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+            frameborder="0"
+            allowfullscreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          ></iframe>
+        </div>
+      `;
+    } else {
+      // 🎥 Render direct video file as HTML5 video
+      return `
+        <video 
+          id="${videoId}"
+          class="featured-video-element"
+          poster="${posterUrl}"
+          preload="metadata"
+          width="800" 
+          height="450"
+          data-video-url="${article.videoUrl}"
+          style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;"
+        >
+          <source src="${article.videoUrl}" type="video/mp4">
+          <source src="${article.videoUrl}" type="video/webm">
+          <source src="${article.videoUrl}" type="video/ogg">
+          Your browser does not support video playback.
+        </video>
+        
+        <!-- Custom Video Controls -->
       <div class="featured-video-controls" id="controls-${videoId}">
         <!-- Play/Pause Button -->
         <button class="video-play-btn" data-video="${videoId}" aria-label="Play video">
@@ -234,9 +437,61 @@ class ProgressiveLoader {
           <span class="video-duration">${article.videoDuration ? this.formatDuration(article.videoDuration) : '0:00'}</span>
         </div>
       </div>
-    `;
+      `;
+    }
   }
   
+  // 🎬 Check if URL is embeddable (YouTube, Vimeo)
+  isEmbeddableVideo(url) {
+    if (!url) return false;
+    const hostname = new URL(url.includes('http') ? url : 'https://' + url).hostname.toLowerCase();
+    return hostname.includes('youtube.com') || hostname.includes('youtu.be') || hostname.includes('vimeo.com');
+  }
+  
+  // 🎬 Convert regular video URLs to embed format
+  convertToEmbedUrl(url) {
+    try {
+      let videoUrl = url.trim();
+      if (!videoUrl.match(/^https?:\/\//)) {
+        videoUrl = 'https://' + videoUrl;
+      }
+      
+      const parsedUrl = new URL(videoUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      
+      // YouTube URLs
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        let videoId;
+        
+        if (hostname.includes('youtu.be')) {
+          videoId = parsedUrl.pathname.slice(1);
+        } else if (parsedUrl.searchParams.has('v')) {
+          videoId = parsedUrl.searchParams.get('v');
+        } else {
+          const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+          if (match) videoId = match[1];
+        }
+        
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
+      
+      // Vimeo URLs
+      if (hostname.includes('vimeo.com')) {
+        const match = parsedUrl.pathname.match(/\/(\d+)/);
+        if (match) {
+          return `https://player.vimeo.com/video/${match[1]}`;
+        }
+      }
+      
+      return url; // Return original if conversion fails
+    } catch (error) {
+      console.warn('Failed to convert video URL:', error);
+      return url;
+    }
+  }
+
   // 🖼️ Render image content (existing functionality)
   renderImageContent(article) {
     return `
@@ -484,6 +739,52 @@ class ProgressiveLoader {
       `;
     }).join('');
   }
+
+  // 🚀 专门用于分页的文章列表渲染方法
+  renderAllArticlesList(articles) {
+    const container = document.getElementById('allArticlesList');
+    if (!container) {
+      console.error('All articles container not found');
+      return;
+    }
+    
+    if (!Array.isArray(articles) || articles.length === 0) {
+      container.innerHTML = '<div class="no-articles">No articles on this page</div>';
+      return;
+    }
+    
+    container.innerHTML = articles.map(article => {
+      // 🎬 修复视频判断条件：只需要 mediaType === 'VIDEO' 即可显示视频标识
+      const isVideo = article.mediaType === 'VIDEO';
+      const hasVideoUrl = article.videoUrl && article.videoUrl.trim() !== '';
+      
+      const mediaUrl = isVideo ? (article.videoPoster || article.image || '/images/placeholder.svg') : article.image;
+      
+      // 🎯 改进视频标识：更明显的内联视频图标
+      const videoBadge = isVideo ? `
+        <span class="video-indicator enhanced">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </span>` : '';
+      
+      const videoDuration = isVideo && article.videoDuration ? `<span class="duration-text">${this.formatDuration(article.videoDuration)}</span>` : '';
+      
+      return `
+        <a href="/article/${article.slug}" class="index-row ${isVideo ? 'video-row' : ''}">
+          <img src="${mediaUrl}" alt="${article.title}" class="index-thumb"
+               loading="lazy" onerror="this.src='/images/placeholder.svg'">
+          <div class="index-meta">
+            <div class="index-title">${article.title} ${videoBadge}</div>
+            <div class="index-sub">${this.formatDate(article.publishDate)} ${videoDuration}</div>
+          </div>
+        </a>
+      `;
+    }).join('');
+    
+    console.log(`✅ Page ${this.currentPage + 1} articles rendered successfully (${articles.length} articles)`);
+  }
   
   transitionToContent() {
     // Smooth transition animation
@@ -593,6 +894,9 @@ class ProgressiveLoader {
 async function initProgressiveLoader() {
   const loader = new ProgressiveLoader();
   
+  // 🚀 添加全局引用以便分页按钮调用
+  window.progressiveLoader = loader;
+  
   // Start loading immediately
   await loader.loadArticles();
   
@@ -601,7 +905,7 @@ async function initProgressiveLoader() {
   const allSection = document.getElementById('allArticlesSection');
   
   if (toggleBtn && allSection) {
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', async () => {
       const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
       toggleBtn.setAttribute('aria-expanded', (!expanded).toString());
       allSection.setAttribute('aria-hidden', expanded.toString());
@@ -612,6 +916,11 @@ async function initProgressiveLoader() {
       } else {
         allSection.classList.remove('is-collapsed');
         allSection.classList.add('is-expanded');
+        
+        // 🚀 首次展开时，启用分页功能
+        if (!loader.allArticlesCache) {
+          await loader.loadArticlePage(0);
+        }
       }
     });
   }

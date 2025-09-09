@@ -21,7 +21,8 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; object-src 'none'; base-uri 'self';" />
+    <!-- Temporarily disable CSP for YouTube testing -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="..." /> -->
     <title>{title}</title>
     <style>
       .app-layout {

@@ -90,23 +90,14 @@ const description = article.excerpt;
       
       <div class="article-featured-media">
         {article.mediaType === 'VIDEO' && article.videoUrl ? (
-          <div class="article-video-container">
-            <video 
-              controls 
-              poster={article.videoPoster || article.image}
-              width="1200"
-              height="675"
-              class="article-video"
-            >
-              <source src={article.videoUrl} type="video/mp4">
-              <source src={article.videoUrl} type="video/webm">
-              Your browser does not support the video tag.
-            </video>
-            {article.videoDuration && (
-              <div class="video-duration-info">
-                Duration: {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
-              </div>
-            )}
+          <div 
+            class="article-video-container" 
+            id="articleVideoContainer"
+            data-video-url={article.videoUrl}
+            data-video-poster={article.videoPoster || article.image}
+            data-video-duration={article.videoDuration || 0}
+          >
+            <!-- Video content will be inserted by JavaScript -->
           </div>
         ) : (
           <img 
@@ -282,3 +273,116 @@ const description = article.excerpt;
     }
   }
 </style>
+
+<script>
+  // 🎥 Video rendering for article detail page
+  document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('articleVideoContainer');
+    if (!container) return;
+    
+    // Get article data from the page (use dataset attributes to avoid template literal issues)
+    const videoData = {
+      videoUrl: container.dataset.videoUrl || '{article.videoUrl}',
+      videoPoster: container.dataset.videoPoster || '{article.videoPoster || article.image}',
+      videoDuration: parseInt(container.dataset.videoDuration || '{article.videoDuration || 0}')
+    };
+    
+    if (!videoData.videoUrl || videoData.videoUrl === 'undefined') return;
+    
+    // 🎬 Check if this is a YouTube or Vimeo URL
+    function isEmbeddableVideo(url: string) {
+      if (!url) return false;
+      try {
+        const hostname = new URL(url.includes('http') ? url : 'https://' + url).hostname.toLowerCase();
+        return hostname.includes('youtube.com') || hostname.includes('youtu.be') || hostname.includes('vimeo.com');
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    // 🎬 Convert regular video URLs to embed format
+    function convertToEmbedUrl(url: string) {
+      try {
+        let videoUrl = url.trim();
+        if (!videoUrl.match(/^https?:\/\//)) {
+          videoUrl = 'https://' + videoUrl;
+        }
+        
+        const parsedUrl = new URL(videoUrl);
+        const hostname = parsedUrl.hostname.toLowerCase();
+        
+        // YouTube URLs
+        if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+          let videoId;
+          
+          if (hostname.includes('youtu.be')) {
+            videoId = parsedUrl.pathname.slice(1);
+          } else if (parsedUrl.searchParams.has('v')) {
+            videoId = parsedUrl.searchParams.get('v');
+          } else {
+            const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+            if (match) videoId = match[1];
+          }
+          
+          if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+          }
+        }
+        
+        // Vimeo URLs
+        if (hostname.includes('vimeo.com')) {
+          const match = parsedUrl.pathname.match(/\/(\d+)/);
+          if (match) {
+            return `https://player.vimeo.com/video/${match[1]}`;
+          }
+        }
+        
+        return url; // Return original if conversion fails
+      } catch (error) {
+        console.warn('Failed to convert video URL:', error);
+        return url;
+      }
+    }
+    
+    const isEmbeddable = isEmbeddableVideo(videoData.videoUrl);
+    
+    if (isEmbeddable) {
+      // Render YouTube/Vimeo as iframe
+      const embedUrl = convertToEmbedUrl(videoData.videoUrl);
+      container.innerHTML = `
+        <iframe 
+          src="${embedUrl}"
+          width="100%" 
+          height="100%"
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+          frameborder="0"
+          allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        ></iframe>
+      `;
+      console.log('✅ Article video rendered as iframe:', embedUrl);
+    } else {
+      // Render direct video file as HTML5 video
+      container.innerHTML = `
+        <video 
+          controls 
+          poster="${videoData.videoPoster}"
+          width="1200"
+          height="675"
+          class="article-video"
+          style="width: 100%; height: 100%; object-fit: cover; background: #000;"
+        >
+          <source src="${videoData.videoUrl}" type="video/mp4">
+          <source src="${videoData.videoUrl}" type="video/webm">
+          Your browser does not support the video tag.
+        </video>
+        ${videoData.videoDuration ? `
+          <div class="video-duration-info">
+            Duration: ${Math.floor(videoData.videoDuration / 60)}:${(videoData.videoDuration % 60).toString().padStart(2, '0')}
+          </div>
+        ` : ''}
+      `;
+      console.log('✅ Article video rendered as HTML5 video:', videoData.videoUrl);
+    }
+  });
+</script>
