@@ -2373,13 +2373,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('file', file);
             formData.append('category', 'TodayNews');
             
-            // Upload to API
-            const response = await fetch('/api/media/simple-upload', {
-              method: 'POST',
-              body: formData
-            });
-            
-            const result = await response.json();
+            // Upload to API with progress tracking
+            const result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
             
             if (result.success) {
               console.log('✅ Upload successful:', result.data);
@@ -2453,13 +2448,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('file', file);
             formData.append('category', 'TodayNews');
             
-            // Upload to API
-            const response = await fetch('/api/media/simple-upload', {
-              method: 'POST',
-              body: formData
-            });
-            
-            const result = await response.json();
+            // Upload to API with progress tracking
+            const result = await uploadWithProgress('/api/media/simple-upload', formData, 'poster');
             
             if (result.success) {
               console.log('✅ Poster upload successful:', result.data);
@@ -2489,18 +2479,86 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.click();
       });
     }
-    
-    // Show upload progress
+
+    // 📊 Upload with progress tracking
+    function uploadWithProgress(url, formData, uploadType) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        // Track upload progress
+        xhr.upload.onprogress = function(event) {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            updateUploadProgress(uploadType, percentComplete);
+          }
+        };
+
+        // Handle completion
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              resolve(result);
+            } catch (error) {
+              reject(new Error('Invalid response format'));
+            }
+          } else {
+            reject(new Error(`Upload failed with status: ${xhr.status}`));
+          }
+        };
+
+        // Handle errors
+        xhr.onerror = function() {
+          reject(new Error('Upload failed due to network error'));
+        };
+
+        // Start upload
+        xhr.open('POST', url);
+        xhr.send(formData);
+      });
+    }
+
+    // Show upload progress with progress bar
     function showUploadProgress(mediaType, fileName) {
       const btn = formEl.querySelector(`[data-type="${mediaType}"]`);
       if (btn) {
         btn.innerHTML = `
-          <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-          </svg>
-          Uploading...
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg style="width:14px;height:14px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              <span>Uploading...</span>
+            </div>
+            <div class="progress-container" style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
+              <div class="progress-bar" style="height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); width: 0%; transition: width 0.3s ease; border-radius: 2px;"></div>
+            </div>
+            <span class="progress-text" style="font-size: 11px; opacity: 0.8;">0%</span>
+          </div>
         `;
         btn.disabled = true;
+      }
+    }
+
+    // Update upload progress
+    function updateUploadProgress(uploadType, percentage) {
+      let btn;
+      if (uploadType === 'poster') {
+        btn = formEl.querySelector('.upload-poster-btn');
+      } else {
+        btn = formEl.querySelector(`[data-type="${uploadType}"]`);
+      }
+      
+      if (btn) {
+        const progressBar = btn.querySelector('.progress-bar');
+        const progressText = btn.querySelector('.progress-text');
+        
+        if (progressBar) {
+          progressBar.style.width = `${percentage}%`;
+        }
+        if (progressText) {
+          progressText.textContent = `${percentage}%`;
+        }
       }
     }
     
@@ -2530,15 +2588,23 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 5000);
     }
 
-    // Show poster upload progress
+    // Show poster upload progress with progress bar
     function showPosterUploadProgress() {
       const btn = formEl.querySelector('.upload-poster-btn');
       if (btn) {
         btn.innerHTML = `
-          <svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-          </svg>
-          Uploading...
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg style="width:14px;height:14px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              <span>Uploading...</span>
+            </div>
+            <div class="progress-container" style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
+              <div class="progress-bar" style="height: 100%; background: linear-gradient(90deg, #06b6d4, #0891b2); width: 0%; transition: width 0.3s ease; border-radius: 2px;"></div>
+            </div>
+            <span class="progress-text" style="font-size: 11px; opacity: 0.8;">0%</span>
+          </div>
         `;
         btn.disabled = true;
       }
