@@ -2401,6 +2401,7 @@ document.addEventListener('DOMContentLoaded', function() {
               }
               
               // Show media preview
+              console.log('📤 About to show media preview:', { resultData: result.data, mediaType });
               showMediaPreview(result.data, mediaType);
               
               resolve(result.data);
@@ -2676,17 +2677,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show media preview
     function showMediaPreview(mediaData, mediaType) {
-      if (!mediaPreviewWrap || !mediaPreview || !mediaPreviewTitle || !mediaPreviewDetails) return;
+      console.log('🖼️ showMediaPreview called:', { mediaData, mediaType });
+      console.log('📦 DOM elements:', { 
+        mediaPreviewWrap: !!mediaPreviewWrap, 
+        mediaPreview: !!mediaPreview, 
+        mediaPreviewTitle: !!mediaPreviewTitle, 
+        mediaPreviewDetails: !!mediaPreviewDetails 
+      });
+      
+      if (!mediaPreviewWrap || !mediaPreview || !mediaPreviewTitle || !mediaPreviewDetails) {
+        console.error('❌ Missing DOM elements for media preview');
+        return;
+      }
       
       // Show preview container
       mediaPreviewWrap.style.display = 'flex';
       
       // Update preview content
       if (mediaType === 'image') {
+        console.log('🖼️ Showing image preview with URL:', mediaData.url);
         mediaPreview.innerHTML = `
-          <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" />
+          <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" 
+               onload="console.log('✅ Image loaded successfully')" 
+               onerror="console.error('❌ Image failed to load:', this.src)" />
         `;
       } else if (mediaType === 'video') {
+        console.log('🎥 Showing video preview with URL:', mediaData.url);
         mediaPreview.innerHTML = `
           <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
             Your browser does not support video playback.
