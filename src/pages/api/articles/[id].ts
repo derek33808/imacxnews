@@ -34,7 +34,30 @@ export const GET: APIRoute = async ({ params, request }) => {
     const id = Number(params.id);
     
     const a = await withRetry(async () => {
-      return await prisma.article.findUnique({ where: { id } });
+      return await prisma.article.findUnique({ 
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          content: true,
+          chineseContent: true,
+          category: true,
+          image: true,
+          imageAlt: true,
+          imageCaption: true,
+          author: true,
+          publishDate: true,
+          featured: true,
+          contentLength: true,
+          readingTime: true,
+          mediaType: true,
+          videoUrl: true,
+          videoPoster: true,
+          videoDuration: true,
+        }
+      });
     }, `Find article by ID: ${id}`);
     
     return a ? new Response(JSON.stringify(a), { headers }) : new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
@@ -70,7 +93,31 @@ export const PATCH: APIRoute = async ({ params, request }) => {
       updates.publishDate = d;
     }
 
-    const upd = await prisma.article.update({ where: { id }, data: updates });
+    const upd = await prisma.article.update({ 
+      where: { id }, 
+      data: updates,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        chineseContent: true,
+        category: true,
+        image: true,
+        imageAlt: true,
+        imageCaption: true,
+        author: true,
+        publishDate: true,
+        featured: true,
+        contentLength: true,
+        readingTime: true,
+        mediaType: true,
+        videoUrl: true,
+        videoPoster: true,
+        videoDuration: true,
+      }
+    });
     
     // 🚀 Enhanced cache invalidation with version control for Cache Sync Manager
     const now = Date.now();
