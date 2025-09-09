@@ -1,4 +1,27 @@
 // 🚀 Enhanced Global Cache Management with Sync Manager
+
+// 🔧 Global error handlers for unhandled promises
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('🚨 Unhandled Promise Rejection:', event.reason);
+  console.error('Promise:', event.promise);
+  
+  // Prevent the default behavior (logging to console)
+  event.preventDefault();
+  
+  // Show user-friendly message for certain errors
+  if (event.reason && typeof event.reason === 'object') {
+    if (event.reason.message && event.reason.message.includes('timeout')) {
+      console.warn('⚠️ Request timeout detected - this is usually temporary');
+    } else if (event.reason.message && event.reason.message.includes('fetch')) {
+      console.warn('⚠️ Network error detected - check connection');
+    }
+  }
+});
+
+window.addEventListener('error', function(event) {
+  console.error('🚨 Global Error:', event.error || event.message);
+});
+
 // This will be handled by the Cache Sync Manager - legacy function for compatibility
 window.clearAllArticleCaches = function() {
   console.log('🧹 Legacy cache clear function called - delegating to Cache Sync Manager...');
@@ -74,7 +97,23 @@ document.addEventListener('DOMContentLoaded', function() {
   let confirmResolve;
   
   function ensureFormModal() {
-    if (formModal) return;
+    if (formModal && formTitleEl && formEl && submitBtnEl) {
+      console.log('✅ Modal already initialized');
+      return; // All elements already initialized
+    }
+    
+    console.log('🔧 Initializing form modal...');
+    
+    if (formModal) {
+      // Modal exists but elements may not be initialized
+      console.log('🔄 Re-initializing modal elements...');
+      // Clear existing modal to rebuild it properly
+      if (document.body.contains(formModal)) {
+        document.body.removeChild(formModal);
+      }
+    }
+    
+    // Always create fresh modal
     formModal = document.createElement('div');
     formModal.className = 'admin-manager-modal-overlay';
     formModal.innerHTML = `
@@ -396,13 +435,47 @@ document.addEventListener('DOMContentLoaded', function() {
         </form>
       </div>
     `;
-    document.body.appendChild(formModal);
+    if (!document.body.contains(formModal)) {
+      document.body.appendChild(formModal);
+    }
     
+    // 🔧 Enhanced element initialization with safety checks
     formEl = formModal.querySelector('#articleForm');
     formTitleEl = formModal.querySelector('#formTitle');
     submitBtnEl = formModal.querySelector('#submitFormBtn');
     const closeBtn = formModal.querySelector('#closeFormModal');
     const cancelBtn = formModal.querySelector('#cancelFormBtn');
+    
+    // Verify all critical elements were found
+    if (!formEl || !formTitleEl || !submitBtnEl) {
+      console.error('❌ Critical modal elements not found:', {
+        formEl: !!formEl,
+        formTitleEl: !!formTitleEl,
+        submitBtnEl: !!submitBtnEl,
+        modalInDOM: document.body.contains(formModal)
+      });
+      
+      // Try to find elements again with more specific selectors
+      setTimeout(() => {
+        formEl = document.querySelector('#articleForm');
+        formTitleEl = document.querySelector('#formTitle');
+        submitBtnEl = document.querySelector('#submitFormBtn');
+        
+        console.log('🔄 Retry element search:', {
+          formEl: !!formEl,
+          formTitleEl: !!formTitleEl,
+          submitBtnEl: !!submitBtnEl
+        });
+      }, 100);
+      
+      throw new Error('Modal initialization failed: Missing critical elements');
+    }
+    
+    console.log('✅ Modal elements initialized successfully:', {
+      formEl: !!formEl,
+      formTitleEl: !!formTitleEl,
+      submitBtnEl: !!submitBtnEl
+    });
     
     const close = () => { formModal.classList.remove('active'); document.body.style.overflow = ''; };
     closeBtn.addEventListener('click', close);
@@ -832,14 +905,30 @@ document.addEventListener('DOMContentLoaded', function() {
     ensureFormModal();
     isEditing = false;
     editingId = null;
-    formTitleEl.innerHTML = `
-      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
-        <path d="m15 5 4 4"/>
-      </svg>New Article`;
-    formEl.reset();
-    formModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    
+    // 🔧 Safe innerHTML update with null check
+    if (formTitleEl) {
+      formTitleEl.innerHTML = `
+        <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>New Article`;
+    } else {
+      console.error('❌ formTitleEl is null in openCreateForm');
+    }
+    
+    if (formEl) {
+      formEl.reset();
+    } else {
+      console.error('❌ formEl is null in openCreateForm');
+    }
+    
+    if (formModal) {
+      formModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    } else {
+      console.error('❌ formModal is null in openCreateForm');
+    }
     
     // Initialize image preview for new form
     if (window.updateImagePreview) {
@@ -861,29 +950,102 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   async function openEditForm(article) {
-    ensureFormModal();
-    isEditing = true;
-    editingId = article.id;
-    formTitleEl.innerHTML = `
-      <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
-        <path d="m15 5 4 4"/>
-      </svg>Edit Article`;
-    formEl.reset();
-    formModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Show loading state
-    const contentField = formEl.querySelector('[name="content"]');
-    const chineseContentField = formEl.querySelector('[name="chineseContent"]');
-    contentField.value = 'Loading...';
-    chineseContentField.value = 'Loading...';
-    
     try {
+      ensureFormModal();
+      
+      // 🔧 Wait a moment for DOM to settle if needed
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // 🔧 Enhanced safety checks for DOM elements
+      if (!formTitleEl || !formEl || !formModal) {
+        console.error('❌ Modal elements not properly initialized');
+        
+        // Try one more time with fresh initialization
+        console.log('🔄 Attempting fresh modal initialization...');
+        try {
+          // Reset variables
+          formModal = null;
+          formTitleEl = null;
+          formEl = null;
+          submitBtnEl = null;
+          
+          ensureFormModal();
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          if (!formTitleEl || !formEl || !formModal) {
+            alert('Error: Modal not properly initialized. Please refresh the page.');
+            return;
+          }
+        } catch (retryError) {
+          console.error('❌ Retry failed:', retryError);
+          alert('Error: Modal initialization failed. Please refresh the page.');
+          return;
+        }
+      }
+      
+      isEditing = true;
+      editingId = article.id;
+      
+      // 🔧 Safe innerHTML update with null check
+      if (formTitleEl) {
+        formTitleEl.innerHTML = `
+          <svg style="width:20px;height:20px;display:inline;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 3 22l1.5-4.5Z"/>
+            <path d="m15 5 4 4"/>
+          </svg>Edit Article`;
+      } else {
+        console.error('❌ formTitleEl is null, cannot set title');
+      }
+      formEl.reset();
+      formModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    
+      // Show loading state with safety checks (moved to outer scope for error handling)
+      const contentField = formEl.querySelector('[name="content"]');
+      const chineseContentField = formEl.querySelector('[name="chineseContent"]');
+      
+      if (!contentField || !chineseContentField) {
+        console.error('❌ Content fields not found in form');
+        alert('Error: Form fields not properly initialized. Please refresh the page.');
+        return;
+      }
+      
+      contentField.value = 'Loading...';
+      chineseContentField.value = 'Loading...';
+      
+      console.log(`🔄 Loading article details for ID: ${article.id}`);
+      
+      // 🔧 Pre-flight check: Verify API is accessible (with manual timeout)
+      try {
+        const healthCheckPromise = fetch('/api/health', { 
+          credentials: 'include'
+        });
+        
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Health check timeout')), 5000);
+        });
+        
+        const healthCheck = await Promise.race([healthCheckPromise, timeoutPromise]);
+        if (!healthCheck.ok) {
+          throw new Error('API server is not responding');
+        }
+        console.log('✅ API server is healthy');
+      } catch (healthError) {
+        console.warn('⚠️ API health check failed:', healthError.message);
+        // Don't throw here - continue with article fetch attempt
+        console.log('🔄 Proceeding with article fetch despite health check failure...');
+      }
+      
       // Get complete article data (including content and chineseContent)
-      const response = await fetch(`/api/articles/${article.id}`, {
+      const fetchPromise = fetch(`/api/articles/${article.id}`, {
         credentials: 'include'  // 🔑 Include cookies for authentication
       });
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Article fetch timeout')), 10000);
+      });
+      
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
       
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -986,10 +1148,38 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
     } catch (error) {
-      console.error('Error loading article details:', error);
-      contentField.value = '';
-      chineseContentField.value = '';
-      alert('Failed to load article details, please retry');
+      console.error('❌ Error loading article details:', error);
+      
+      // Enhanced error handling with better user feedback
+      const errorMessage = error.message || 'Unknown error occurred';
+      console.error('Full error details:', error);
+      
+      // Clear loading state safely
+      try {
+        if (contentField && contentField.value === 'Loading...') {
+          contentField.value = '';
+        }
+        if (chineseContentField && chineseContentField.value === 'Loading...') {
+          chineseContentField.value = '';
+        }
+      } catch (fieldError) {
+        console.warn('Warning: Could not clear loading state:', fieldError);
+      }
+      
+      // Show user-friendly error message
+      let userMessage;
+      if (errorMessage.includes('timeout')) {
+        userMessage = 'Request timed out. The server might be busy. Please try again.';
+      } else if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
+        userMessage = 'Failed to connect to server. Please check your internet connection and try again.';
+      } else {
+        userMessage = `Failed to load article details: ${errorMessage}`;
+      }
+      
+      alert(userMessage);
+      
+      // Don't close modal on error - let user try again
+      console.log('💡 You can try editing again or refresh the page if the problem persists.');
     }
   }
   
@@ -1507,7 +1697,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const editBtn = target.closest('.edit-btn, .edit-icon-btn, .modern-action-btn.edit-btn, .circular-btn.edit-btn, .translucent-btn.edit-btn');
       if (editBtn && editBtn instanceof HTMLElement && editBtn.dataset.articleId) {
         const a = idToArticle.get(editBtn.dataset.articleId);
-        if (a) await openEditForm(a);
+        if (a) {
+          try {
+            await openEditForm(a);
+          } catch (error) {
+            console.error('❌ Error in edit button click handler:', error);
+            alert('Failed to open edit form. Please try again or refresh the page.');
+          }
+        }
         return; // Avoid checking delete button
       }
       
