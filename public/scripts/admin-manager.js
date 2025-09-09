@@ -1384,14 +1384,16 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           
           <div class="article-info">
-            <div class="media-type-badge video-badge">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-              VIDEO
-              ${article.videoDuration ? ` · ${formatDuration(article.videoDuration)}` : ''}
+            <div class="title-with-badge">
+              <div class="media-type-badge video-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                VIDEO
+                ${article.videoDuration ? ` · ${formatDuration(article.videoDuration)}` : ''}
+              </div>
+              <h3 class="article-title">${article.title}</h3>
             </div>
-            <h3 class="article-title">${article.title}</h3>
             <div class="article-meta">
               <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
               <span>By ${article.author}</span>
@@ -1444,15 +1446,17 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           
           <div class="article-info">
-            <div class="media-type-badge image-badge">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <circle cx="9" cy="9" r="2"/>
-                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-              </svg>
-              IMAGE
+            <div class="title-with-badge">
+              <div class="media-type-badge image-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                IMAGE
+              </div>
+              <h3 class="article-title">${article.title}</h3>
             </div>
-            <h3 class="article-title">${article.title}</h3>
             <div class="article-meta">
               <span class="category-tag ${article.category}">${article.category === 'TodayNews' ? 'Today News' : 'Past News'}</span>
               <span>By ${article.author}</span>

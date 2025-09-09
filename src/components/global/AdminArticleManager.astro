@@ -3827,6 +3827,25 @@
     height: 12px;
   }
 
+  /* 🏷️ Title with Badge Layout */
+  .title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .title-with-badge .article-title {
+    margin: 0;
+    flex: 1;
+    min-width: 0; /* 允许文字换行 */
+  }
+
+  .title-with-badge .media-type-badge {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
   /* 🎨 Enhanced Article Item Hover Effects */
   .video-article:hover {
     background: rgba(139, 92, 246, 0.05);
