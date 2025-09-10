@@ -745,6 +745,47 @@ const isLoading = true;
     font-weight: 500;
     z-index: 2;
   }
+
+  /* 🕒 主页Featured Article右上角YouTube时长显示 */
+  :global(.featured-video-duration-badge-top-right) {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    animation: duration-badge-glow 3s infinite;
+    transition: all 0.3s ease;
+  }
+
+  :global(.featured-video-duration-badge-top-right:hover) {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  @keyframes duration-badge-glow {
+    0%, 100% { 
+      border-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
   
   :global(.video-indicator) {
     color: #8b5cf6;
@@ -976,6 +1017,15 @@ const isLoading = true;
       right: 16px;
       font-size: 0.75rem;
       padding: 4px 8px;
+    }
+
+    /* 📱 移动端主页Featured Article时长显示适配 */
+    :global(.featured-video-duration-badge-top-right) {
+      top: 16px;
+      right: 16px;
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      border-width: 1px;
     }
   }
   

@@ -8,6 +8,114 @@ const categoryInfo = getCategoryById(category) || { id: category, name: String(c
 
 const title = `${categoryInfo.name} News | GlobalNews`;
 const description = categoryInfo.description;
+
+// 🎬 YouTube/Vimeo URL检测和转换函数
+function isEmbeddableVideo(url: string): boolean {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url.includes('http') ? url : 'https://' + url).hostname.toLowerCase();
+    return hostname.includes('youtube.com') || hostname.includes('youtu.be') || hostname.includes('vimeo.com');
+  } catch {
+    return false;
+  }
+}
+
+function convertToEmbedUrl(url: string): string {
+  try {
+    let videoUrl = url.trim();
+    if (!videoUrl.match(/^https?:\/\//)) {
+      videoUrl = 'https://' + videoUrl;
+    }
+    
+    const parsedUrl = new URL(videoUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    
+    // YouTube URLs
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+      let videoId;
+      
+      if (hostname.includes('youtu.be')) {
+        videoId = parsedUrl.pathname.slice(1);
+      } else if (parsedUrl.searchParams.has('v')) {
+        videoId = parsedUrl.searchParams.get('v');
+      } else {
+        const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+        if (match) videoId = match[1];
+      }
+      
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    // Vimeo URLs
+    if (hostname.includes('vimeo.com')) {
+      const match = parsedUrl.pathname.match(/\/(\d+)/);
+      if (match) {
+        return `https://player.vimeo.com/video/${match[1]}`;
+      }
+    }
+    
+    return url; // Return original if conversion fails
+  } catch (error) {
+    console.warn('Failed to convert video URL:', error);
+    return url;
+  }
+}
+
+// 🕒 Format video duration
+function formatDuration(seconds: number): string {
+  if (!seconds || seconds <= 0) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+// 🎬 Extract YouTube video ID from URL
+function getYouTubeVideoId(url: string): string | null {
+  try {
+    let videoUrl = url.trim();
+    if (!videoUrl.match(/^https?:\/\//)) {
+      videoUrl = 'https://' + videoUrl;
+    }
+    
+    const parsedUrl = new URL(videoUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+      let videoId;
+      
+      if (hostname.includes('youtu.be')) {
+        videoId = parsedUrl.pathname.slice(1);
+      } else if (parsedUrl.searchParams.has('v')) {
+        videoId = parsedUrl.searchParams.get('v');
+      } else {
+        const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+        if (match) videoId = match[1];
+      }
+      
+      return videoId;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('Failed to extract YouTube video ID:', error);
+    return null;
+  }
+}
+
+// 🎬 Get YouTube thumbnail URL
+function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): string | null {
+  const videoId = getYouTubeVideoId(url);
+  if (!videoId) return null;
+  
+  // YouTube缩略图质量选项:
+  // maxresdefault: 1280x720 (最高质量)
+  // hqdefault: 480x360 (高质量)
+  // mqdefault: 320x180 (中等质量)
+  // default: 120x90 (默认质量)
+  return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+}
 ---
 
 <Layout title={title} description={description}>
@@ -23,35 +131,74 @@ const description = categoryInfo.description;
           <div class="article-media-container">
             {article.mediaType === 'VIDEO' && article.videoUrl ? (
               <div class="article-video-wrapper">
-                <video 
-                  controls 
-                  poster={article.videoPoster || article.image || '/images/placeholder.svg'}
-                  class="article-video"
-                  width="800"
-                  height="450"
-                >
-                  <source src={article.videoUrl} type="video/mp4">
-                  <source src={article.videoUrl} type="video/webm">
-                  Your browser does not support the video tag.
-                </video>
-                <div class="video-type-badge">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="23 7 16 12 23 17 23 7"/>
-                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                  </svg>
-                  VIDEO
-                </div>
-                {article.videoDuration && (
-                  <div class="video-duration-badge">
-                    {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
+                {isEmbeddableVideo(article.videoUrl) ? (
+                  // 🎬 YouTube/Vimeo iframe嵌入
+                  <div class="video-iframe-container">
+                    <iframe 
+                      src={convertToEmbedUrl(article.videoUrl)}
+                      class="article-video-iframe"
+                      width="800"
+                      height="450"
+                      frameborder="0"
+                      allowfullscreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title={article.title}
+                    ></iframe>
+                    <div class="video-type-badge enhanced">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                      </svg>
+                      <span>YOUTUBE</span>
+                    </div>
+                    {article.videoDuration && (
+                      <div class="video-duration-badge-top-right">
+                        {formatDuration(article.videoDuration)}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // 🎥 直接视频文件播放
+                  <div class="direct-video-container">
+                    <video 
+                      controls 
+                      poster={article.videoPoster || article.image || '/images/placeholder.svg'}
+                      class="article-video"
+                      width="800"
+                      height="450"
+                    >
+                      <source src={article.videoUrl} type="video/mp4">
+                      <source src={article.videoUrl} type="video/webm">
+                      <source src={article.videoUrl} type="video/ogg">
+                      Your browser does not support the video tag.
+                    </video>
+                    <div class="video-type-badge">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                      </svg>
+                      VIDEO
+                    </div>
+                    {article.videoDuration && (
+                      <div class="video-duration-badge">
+                        {formatDuration(article.videoDuration)}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             ) : (
               <img 
-                src={article.image} 
+                src={article.mediaType === 'VIDEO' && isEmbeddableVideo(article.videoUrl) 
+                     ? (getYouTubeThumbnail(article.videoUrl) || article.videoPoster || article.image || '/images/placeholder.svg')
+                     : (article.mediaType === 'VIDEO' 
+                        ? (article.videoPoster || article.image || '/images/placeholder.svg')
+                        : article.image)} 
                 alt={article.title}
                 class="article-image"
+                data-article-id={article.id}
+                data-video-url={article.mediaType === 'VIDEO' && article.videoUrl ? article.videoUrl : ''}
+                data-needs-thumbnail={article.mediaType === 'VIDEO' && !isEmbeddableVideo(article.videoUrl) && !article.videoPoster && !article.image ? 'true' : 'false'}
                 loading="lazy"
                 width="800"
                 height="450"
@@ -188,6 +335,28 @@ const description = categoryInfo.description;
     background: #000;
   }
 
+  /* 🎬 YouTube iframe 样式 */
+  :global(#categoryArticlesList .video-iframe-container) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+  }
+
+  :global(#categoryArticlesList .article-video-iframe) {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+  }
+
+  /* 🎥 直接视频容器样式 */
+  :global(#categoryArticlesList .direct-video-container) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
   :global(#categoryArticlesList .video-type-badge) {
     position: absolute;
     top: 12px;
@@ -209,6 +378,40 @@ const description = categoryInfo.description;
     flex-shrink: 0;
   }
 
+  /* 🎯 增强的YouTube标识样式 */
+  :global(#categoryArticlesList .video-type-badge.enhanced) {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: youtube-badge-glow 2s infinite;
+  }
+
+  :global(#categoryArticlesList .video-type-badge.enhanced svg) {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+  }
+
+  :global(#categoryArticlesList .video-type-badge.enhanced span) {
+    color: white !important;
+    font-weight: 700;
+  }
+
+  @keyframes youtube-badge-glow {
+    0%, 100% { 
+      border-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+      border-color: white;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+
   :global(#categoryArticlesList .video-duration-badge) {
     position: absolute;
     bottom: 12px;
@@ -222,6 +425,29 @@ const description = categoryInfo.description;
     z-index: 2;
     display: block;
   }
+
+  /* 🕒 右上角YouTube时长显示 - 与左上角YouTube标识形成视觉平衡 */
+  :global(#categoryArticlesList .video-duration-badge-top-right) {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
 
   :global(#categoryArticlesList .large-article-card:hover .article-image) {
     transform: scale(1.05);
@@ -302,6 +528,7 @@ const description = categoryInfo.description;
     font-size: 1.125rem;
   }
   
+  /* 🕒 移动端适配 - 调整右上角时长显示位置和大小 */
   @media (max-width: 768px) {
     .container {
       flex: 1; /* 移动端保持一致的 flex 设置 */
@@ -337,6 +564,16 @@ const description = categoryInfo.description;
     :global(#categoryArticlesList .read-more-btn) {
       align-self: flex-start;
     }
+
+    /* 📱 移动端时长显示适配 */
+    :global(#categoryArticlesList .video-duration-badge-top-right) {
+      top: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      border-width: 1px;
+    }
+
   }
 </style>
 
@@ -352,6 +589,9 @@ const description = categoryInfo.description;
     
     // Count current articles on page
     const currentArticleCount = categoryArticlesList.querySelectorAll('.large-article-card').length;
+    
+    // 🎬 为初始渲染的直接视频文件生成缩略图
+    generateInitialVideoThumbnails();
     
     // Smart caching: Check cache first, then API for latest articles
     try {
@@ -444,47 +684,632 @@ const description = categoryInfo.description;
     }
   });
 
+  // 🎬 客户端YouTube URL检测和转换函数
+  function isEmbeddableVideoClient(url: string): boolean {
+    if (!url) return false;
+    try {
+      const hostname = new URL(url.includes('http') ? url : 'https://' + url).hostname.toLowerCase();
+      return hostname.includes('youtube.com') || hostname.includes('youtu.be') || hostname.includes('vimeo.com');
+    } catch {
+      return false;
+    }
+  }
+
+  function convertToEmbedUrlClient(url: string): string {
+    try {
+      let videoUrl = url.trim();
+      if (!videoUrl.match(/^https?:\/\//)) {
+        videoUrl = 'https://' + videoUrl;
+      }
+      
+      const parsedUrl = new URL(videoUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      
+      // YouTube URLs
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        let videoId;
+        
+        if (hostname.includes('youtu.be')) {
+          videoId = parsedUrl.pathname.slice(1);
+        } else if (parsedUrl.searchParams.has('v')) {
+          videoId = parsedUrl.searchParams.get('v');
+        } else {
+          const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+          if (match) videoId = match[1];
+        }
+        
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
+      
+      // Vimeo URLs
+      if (hostname.includes('vimeo.com')) {
+        const match = parsedUrl.pathname.match(/\/(\d+)/);
+        if (match) {
+          return `https://player.vimeo.com/video/${match[1]}`;
+        }
+      }
+      
+      return url; // Return original if conversion fails
+    } catch (error) {
+      console.warn('Failed to convert video URL:', error);
+      return url;
+    }
+  }
+
+  function formatDurationClient(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // 🎬 客户端YouTube视频ID提取函数
+  function getYouTubeVideoIdClient(url: string): string | null {
+    try {
+      let videoUrl = url.trim();
+      if (!videoUrl.match(/^https?:\/\//)) {
+        videoUrl = 'https://' + videoUrl;
+      }
+      
+      const parsedUrl = new URL(videoUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        let videoId;
+        
+        if (hostname.includes('youtu.be')) {
+          videoId = parsedUrl.pathname.slice(1);
+        } else if (parsedUrl.searchParams.has('v')) {
+          videoId = parsedUrl.searchParams.get('v');
+        } else {
+          const match = parsedUrl.pathname.match(/\/embed\/([^/?]+)/);
+          if (match) videoId = match[1];
+        }
+        
+        return videoId;
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('Failed to extract YouTube video ID:', error);
+      return null;
+    }
+  }
+
+  // 🎬 客户端YouTube缩略图获取函数
+  function getYouTubeThumbnailClient(url: string, quality: string = 'maxresdefault'): string | null {
+    const videoId = getYouTubeVideoIdClient(url);
+    if (!videoId) return null;
+    
+    return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+  }
+
+  // 🎬 客户端视频缩略图生成函数
+  async function generateVideoThumbnailClient(videoUrl: string, width: number = 320, height: number = 180): Promise<string | null> {
+    return new Promise((resolve) => {
+      try {
+        console.log(`🎬 Starting thumbnail generation for: ${videoUrl}`);
+        
+        // Create video element
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        video.style.display = 'none';
+        
+        // Add to DOM temporarily (some browsers require this)
+        document.body.appendChild(video);
+        
+        let isResolved = false;
+        
+        const cleanup = () => {
+          if (video.parentNode) {
+            video.parentNode.removeChild(video);
+          }
+        };
+        
+        const resolveOnce = (result: string | null) => {
+          if (!isResolved) {
+            isResolved = true;
+            cleanup();
+            resolve(result);
+          }
+        };
+        
+        video.onloadedmetadata = () => {
+          console.log(`🎬 Video metadata loaded, duration: ${video.duration}s`);
+          // Try multiple time points to avoid black frames
+          const timePoints = [1, 0.5, 2, 0.1];
+          let currentAttempt = 0;
+          
+          const tryNextTimePoint = () => {
+            if (currentAttempt < timePoints.length) {
+              const timePoint = Math.min(timePoints[currentAttempt], video.duration - 0.1);
+              console.log(`🎬 Attempting thumbnail at ${timePoint}s`);
+              video.currentTime = timePoint;
+              currentAttempt++;
+            } else {
+              console.warn('❌ All time points failed');
+              resolveOnce(null);
+            }
+          };
+          
+          tryNextTimePoint();
+        };
+        
+        video.onseeked = () => {
+          try {
+            console.log(`🎬 Video seeked to ${video.currentTime}s, generating thumbnail...`);
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              console.warn('❌ Cannot get canvas context');
+              resolveOnce(null);
+              return;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw video frame to canvas
+            ctx.drawImage(video, 0, 0, width, height);
+            
+            // Check if the frame is not completely black
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+            let totalBrightness = 0;
+            
+            for (let i = 0; i < pixels.length; i += 4) {
+              totalBrightness += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+            }
+            
+            const averageBrightness = totalBrightness / (pixels.length / 4);
+            console.log(`🎬 Frame brightness: ${averageBrightness}`);
+            
+            if (averageBrightness < 10) {
+              // Frame is too dark, try next time point
+              console.warn('⚠️ Frame too dark, trying next time point');
+              const timePoints = [1, 0.5, 2, 0.1];
+              if (video.currentTime < timePoints[timePoints.length - 1] + 0.1) {
+                video.currentTime = Math.min(video.currentTime + 1, video.duration - 0.1);
+                return;
+              }
+            }
+            
+            // Convert to data URL
+            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+            console.log(`✅ Thumbnail generated successfully (${thumbnailUrl.length} bytes)`);
+            resolveOnce(thumbnailUrl);
+            
+          } catch (error) {
+            console.warn('❌ Failed to generate video thumbnail:', error);
+            resolveOnce(null);
+          }
+        };
+        
+        video.onerror = (e) => {
+          console.warn('❌ Video loading error:', e);
+          resolveOnce(null);
+        };
+        
+        video.onabort = () => {
+          console.warn('❌ Video loading aborted');
+          resolveOnce(null);
+        };
+        
+        // Set video source and load
+        video.src = videoUrl;
+        video.load();
+        
+        // Timeout fallback
+        setTimeout(() => {
+          console.warn('⏰ Thumbnail generation timeout');
+          resolveOnce(null);
+        }, 10000); // 10 second timeout
+        
+      } catch (error) {
+        console.warn('❌ Video thumbnail generation error:', error);
+        resolve(null);
+      }
+    });
+  }
+
+  // 🎬 简化的视频缩略图生成方法（无跨域限制）
+  async function generateSimpleVideoThumbnailClient(videoUrl: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      try {
+        console.log(`🎬 Trying simple method for: ${videoUrl}`);
+        
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.style.display = 'none';
+        // 不设置crossOrigin，避免跨域问题
+        
+        let isResolved = false;
+        const resolveOnce = (result: string | null) => {
+          if (!isResolved) {
+            isResolved = true;
+            resolve(result);
+          }
+        };
+        
+        video.oncanplay = () => {
+          try {
+            console.log(`🎬 Simple method: video can play, attempting capture`);
+            video.currentTime = 1; // 跳转到1秒位置
+          } catch (error) {
+            console.warn('🎬 Simple method seek failed:', error);
+            resolveOnce(null);
+          }
+        };
+        
+        video.onseeked = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              resolveOnce(null);
+              return;
+            }
+            
+            canvas.width = 320;
+            canvas.height = 180;
+            ctx.drawImage(video, 0, 0, 320, 180);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            console.log(`✅ Simple method succeeded`);
+            resolveOnce(dataUrl);
+          } catch (error) {
+            console.warn('🎬 Simple method canvas failed:', error);
+            resolveOnce(null);
+          }
+        };
+        
+        video.onerror = () => {
+          console.warn('🎬 Simple method: video error');
+          resolveOnce(null);
+        };
+        
+        video.src = videoUrl;
+        video.load();
+        
+        setTimeout(() => resolveOnce(null), 5000);
+        
+      } catch (error) {
+        console.warn('🎬 Simple method exception:', error);
+        resolve(null);
+      }
+    });
+  }
+
+  // 🎬 使用video元素的poster属性作为缩略图
+  function useVideoPosterAsThumbClient(videoUrl: string, imgElement: HTMLElement) {
+    try {
+      console.log(`🎬 Using video poster method for: ${videoUrl}`);
+      
+      // 创建一个隐藏的video元素来获取poster
+      const video = document.createElement('video');
+      video.style.display = 'none';
+      video.style.position = 'absolute';
+      video.style.top = '-9999px';
+      video.width = 320;
+      video.height = 180;
+      video.muted = true;
+      video.preload = 'metadata';
+      
+      document.body.appendChild(video);
+      
+      video.onloadedmetadata = () => {
+        try {
+          // 尝试生成poster
+          video.currentTime = 1;
+          
+          setTimeout(() => {
+            try {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                canvas.width = 320;
+                canvas.height = 180;
+                ctx.fillStyle = '#6366f1'; // 使用品牌色作为背景
+                ctx.fillRect(0, 0, 320, 180);
+                
+                // 添加视频图标
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('▶', 160, 110);
+                
+                const posterUrl = canvas.toDataURL('image/jpeg', 0.8);
+                imgElement.src = posterUrl;
+                console.log(`✅ Generated fallback poster for: ${videoUrl}`);
+              }
+            } catch (error) {
+              console.warn('🎬 Fallback poster generation failed:', error);
+            } finally {
+              if (video.parentNode) {
+                video.parentNode.removeChild(video);
+              }
+            }
+          }, 1000);
+          
+        } catch (error) {
+          console.warn('🎬 Video poster metadata error:', error);
+          if (video.parentNode) {
+            video.parentNode.removeChild(video);
+          }
+        }
+      };
+      
+      video.onerror = () => {
+        console.warn('🎬 Video poster loading failed');
+        if (video.parentNode) {
+          video.parentNode.removeChild(video);
+        }
+      };
+      
+      video.src = videoUrl;
+      video.load();
+      
+    } catch (error) {
+      console.warn('🎬 Video poster method failed:', error);
+    }
+  }
+
+  // 🎬 立即生成视频图标缩略图（无延迟）
+  function generateInstantVideoIconClient(imgElement: HTMLElement) {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      canvas.width = 320;
+      canvas.height = 180;
+      
+      // 创建渐变背景
+      const gradient = ctx.createLinearGradient(0, 0, 320, 180);
+      gradient.addColorStop(0, '#8b5cf6'); // 紫色
+      gradient.addColorStop(1, '#3b82f6'); // 蓝色
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 320, 180);
+      
+      // 添加视频播放图标
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      // 绘制三角形播放按钮
+      ctx.moveTo(120, 60);
+      ctx.lineTo(120, 120);
+      ctx.lineTo(180, 90);
+      ctx.closePath();
+      ctx.fill();
+      
+      // 添加文字
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('VIDEO', 160, 140);
+      
+      const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+      imgElement.src = thumbnailUrl;
+      
+      console.log(`✅ Generated instant video icon thumbnail`);
+    } catch (error) {
+      console.warn('Failed to generate instant video icon:', error);
+    }
+  }
+
   function updateCategoryArticles(articles: any[]) {
     const categoryArticlesList = document.getElementById('categoryArticlesList');
     if (!categoryArticlesList) return;
 
-    // Generate new HTML for all articles
-    const articlesHTML = articles.map((article: any) => `
-      <div class="large-article-card">
-        <div class="article-image-container">
-          <img data-src="${article.image}" src="/images/placeholder.svg" alt="${article.title}" class="article-image lazy" loading="lazy" width="800" height="450" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');">
-        </div>
+    // Generate new HTML for all articles with YouTube support
+    const articlesHTML = articles.map((article: any, index: number) => {
+      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      const isYoutube = isVideo && isEmbeddableVideoClient(article.videoUrl);
+      const needsVideoThumbnail = isVideo && !isYoutube && !article.videoPoster && !article.image;
+      
+      // 🎬 生成媒体内容HTML
+      let mediaHTML;
+      if (isVideo) {
+        if (isYoutube) {
+          // YouTube/Vimeo iframe
+          mediaHTML = `
+            <div class="article-video-wrapper">
+              <div class="video-iframe-container">
+                <iframe 
+                  src="${convertToEmbedUrlClient(article.videoUrl)}"
+                  class="article-video-iframe"
+                  width="800"
+                  height="450"
+                  frameborder="0"
+                  allowfullscreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  title="${article.title}"
+                ></iframe>
+                <div class="video-type-badge enhanced">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  <span>YOUTUBE</span>
+                </div>
+                ${article.videoDuration ? `<div class="video-duration-badge-top-right">${formatDurationClient(article.videoDuration)}</div>` : ''}
+              </div>
+            </div>
+          `;
+        } else {
+          // 直接视频文件
+          mediaHTML = `
+            <div class="article-video-wrapper">
+              <div class="direct-video-container">
+                <video 
+                  controls 
+                  poster="${article.videoPoster || article.image || '/images/placeholder.svg'}"
+                  class="article-video"
+                  width="800"
+                  height="450"
+                >
+                  <source src="${article.videoUrl}" type="video/mp4">
+                  <source src="${article.videoUrl}" type="video/webm">
+                  <source src="${article.videoUrl}" type="video/ogg">
+                  Your browser does not support the video tag.
+                </video>
+                <div class="video-type-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  VIDEO
+                </div>
+                ${article.videoDuration ? `<div class="video-duration-badge">${formatDurationClient(article.videoDuration)}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        // 图片 - 如果是视频但不是YouTube，也要尝试获取YouTube缩略图
+        let imageSrc = article.image;
+        if (article.mediaType === 'VIDEO' && isEmbeddableVideoClient(article.videoUrl)) {
+          const youtubeThumbnail = getYouTubeThumbnailClient(article.videoUrl);
+          imageSrc = youtubeThumbnail || article.image || '/images/placeholder.svg';
+        }
         
-        <div class="article-content">
-          <div class="article-meta">
-            <a href="/category/${article.category}" class="category-tag ${article.category}">
-              ${article.category === 'TodayNews' ? 'Today News' : 'Past News'}
-            </a>
-            <span class="publish-date">${formatDate(article.publishDate)}</span>
+        mediaHTML = `
+            <img 
+              src="${imageSrc}" 
+              alt="${article.title}"
+              class="article-image"
+              data-article-id="${article.id}"
+              data-video-url="${isVideo ? article.videoUrl || '' : ''}"
+              data-needs-thumbnail="${needsVideoThumbnail ? 'true' : 'false'}"
+              loading="lazy"
+              width="800"
+              height="450"
+              onerror="this.onerror=null; this.src='/images/placeholder.svg'"
+            />
+        `;
+      }
+
+      return `
+        <div class="large-article-card">
+          <div class="article-media-container">
+            ${mediaHTML}
           </div>
           
-          <h2 class="article-title">
-            <a href="/article/${article.slug}">${article.title}</a>
-          </h2>
-          
-          <p class="article-excerpt">${article.excerpt}</p>
-          
-          <div class="article-footer">
-            <span class="author">By ${article.author}</span>
-            <a href="/article/${article.slug}" class="read-more-btn">
-              Read more
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </a>
+          <div class="article-content">
+            <div class="article-meta">
+              <a href="/category/${article.category}" class="category-tag ${article.category}">
+                ${article.category === 'TodayNews' ? 'Today News' : 'Past News'}
+              </a>
+              <span class="publish-date">${formatDate(article.publishDate)}</span>
+            </div>
+            
+            <h2 class="article-title">
+              <a href="/article/${article.slug}">${article.title}</a>
+            </h2>
+            
+            <p class="article-excerpt">${article.excerpt}</p>
+            
+            <div class="article-footer">
+              <span class="author">By ${article.author}</span>
+              <a href="/article/${article.slug}" class="read-more-btn">
+                ${isVideo ? 'Watch Video' : 'Read more'}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Update content smoothly
     categoryArticlesList.innerHTML = articlesHTML;
+    
+    // 🎬 异步生成直接视频文件的缩略图
+    articles.forEach((article: any, index: number) => {
+      const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
+      const isYoutube = isVideo && isEmbeddableVideoClient(article.videoUrl);
+      const needsVideoThumbnail = isVideo && !isYoutube && !article.videoPoster && !article.image;
+      
+      if (needsVideoThumbnail) {
+        setTimeout(async () => {
+          try {
+            console.log(`🎬 Generating thumbnail for category video: ${article.title}`);
+            const generatedThumbnail = await generateVideoThumbnailClient(article.videoUrl);
+            if (generatedThumbnail) {
+              const imgElement = categoryArticlesList.querySelector(`img[data-article-id="${article.id}"]`);
+              if (imgElement) {
+                imgElement.src = generatedThumbnail;
+                console.log(`✅ Updated category thumbnail for: ${article.title}`);
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to generate category thumbnail for ${article.title}:`, error);
+          }
+        }, index * 300); // 延迟生成，避免同时处理太多视频
+      }
+    });
+  }
+
+  // 🎬 生成初始页面加载时的视频缩略图
+  function generateInitialVideoThumbnails() {
+    const articleImages = document.querySelectorAll('#categoryArticlesList img[data-article-id]');
+    console.log(`🎬 Found ${articleImages.length} article images for thumbnail generation`);
+    
+    articleImages.forEach((imgElement, index) => {
+      const needsThumbnail = imgElement.getAttribute('data-needs-thumbnail') === 'true';
+      const videoUrl = imgElement.getAttribute('data-video-url');
+      const imgSrc = imgElement.src;
+      
+      console.log(`🎬 Article ${index}: needsThumbnail=${needsThumbnail}, videoUrl=${videoUrl}, imgSrc contains placeholder=${imgSrc.includes('placeholder')}`);
+      
+      // Also try to generate thumbnails for images showing placeholder, even if not marked
+      const shouldTryGenerate = needsThumbnail || (videoUrl && imgSrc.includes('placeholder.svg'));
+      
+      if (shouldTryGenerate && videoUrl && !isEmbeddableVideoClient(videoUrl)) {
+        console.log(`🎬 Will attempt thumbnail generation for: ${videoUrl}`);
+        
+        // 立即生成一个临时的视频图标缩略图
+        generateInstantVideoIconClient(imgElement);
+        
+        setTimeout(async () => {
+          try {
+            console.log(`🎬 Starting thumbnail generation for direct video: ${videoUrl}`);
+            
+            // Try a simpler approach first - use video poster frame
+            const simpleThumb = await generateSimpleVideoThumbnailClient(videoUrl);
+            if (simpleThumb) {
+              imgElement.src = simpleThumb;
+              console.log(`✅ Updated thumbnail using simple method: ${videoUrl}`);
+              return;
+            }
+            
+            // Fallback to complex method
+            const generatedThumbnail = await generateVideoThumbnailClient(videoUrl);
+            if (generatedThumbnail) {
+              imgElement.src = generatedThumbnail;
+              console.log(`✅ Updated thumbnail using complex method: ${videoUrl}`);
+            } else {
+              console.warn(`❌ Both methods failed for video: ${videoUrl}`);
+              // Use a video poster as fallback
+              useVideoPosterAsThumbClient(videoUrl, imgElement);
+            }
+          } catch (error) {
+            console.warn(`Failed to generate thumbnail for video ${videoUrl}:`, error);
+            useVideoPosterAsThumbClient(videoUrl, imgElement);
+          }
+        }, index * 200 + 500); // 缩短延迟，快速生成
+      }
+    });
   }
 
   function formatDate(dateString: string) {

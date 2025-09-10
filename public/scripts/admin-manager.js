@@ -2131,9 +2131,30 @@ document.addEventListener('DOMContentLoaded', function() {
            url.match(/\.(mp4|webm|ogg|mov|avi)(\?|$)/i);
   }
 
-  // 🎥 Handle video URL preview and validation
+  // 🎥 Handle video URL preview and validation - Enhanced with memory management
+  let currentVideoPreview = null; // Track current preview to prevent memory leaks
+  let previewInProgress = false; // Prevent concurrent executions
+  
   function handleVideoUrlPreview(url, formEl) {
+    // 🛡️ Prevent concurrent executions
+    if (previewInProgress) {
+      console.log('🎬 Video preview already in progress, skipping...');
+      return;
+    }
+    
+    previewInProgress = true;
+    
     try {
+      // 🧹 Clean up previous preview if exists
+      if (currentVideoPreview) {
+        try {
+          URL.revokeObjectURL(currentVideoPreview);
+          currentVideoPreview = null;
+        } catch (e) {
+          console.warn('Failed to revoke previous URL:', e);
+        }
+      }
+      
       // Basic URL validation
       let videoUrl = url.trim();
       if (!videoUrl) {
@@ -2918,6 +2939,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     for (const file of files) {
       try {
+        // 🛡️ File validation
+        const maxSizeBytes = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxSizeBytes) {
+          throw new Error(`File ${file.name} is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 50MB.`);
+        }
+        
         showQuickUploadProgress(file);
         
         const formData = new FormData();
@@ -2928,6 +2955,10 @@ document.addEventListener('DOMContentLoaded', function() {
           method: 'POST',
           body: formData
         });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+        }
         
         const result = await response.json();
         
@@ -3288,8 +3319,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
     
     if (videoUrlInput) {
-      // Handle URL input with auto-preview
+      // 🛡️ Enhanced event management with debouncing and conflict prevention
       let previewTimeout;
+      let lastPreviewUrl = '';
+      
+      function executePreview(url) {
+        // Prevent redundant previews
+        if (url === lastPreviewUrl) {
+          console.log('🎬 Same URL, skipping preview');
+          return;
+        }
+        lastPreviewUrl = url;
+        handleVideoUrlPreview(url, formEl);
+      }
       
       videoUrlInput.addEventListener('input', function() {
         const url = this.value.trim();
@@ -3299,11 +3341,11 @@ document.addEventListener('DOMContentLoaded', function() {
           clearTimeout(previewTimeout);
         }
         
-        // Auto-preview after user stops typing (800ms delay)
+        // Auto-preview after user stops typing (1200ms delay - increased for stability)
         if (url && isValidUrlFormat(url)) {
           previewTimeout = setTimeout(() => {
-            handleVideoUrlPreview(url, formEl);
-          }, 800);
+            executePreview(url);
+          }, 1200);
         }
       });
       
@@ -3314,20 +3356,20 @@ document.addEventListener('DOMContentLoaded', function() {
           const url = this.value.trim();
           if (url) {
             if (previewTimeout) clearTimeout(previewTimeout);
-            handleVideoUrlPreview(url, formEl);
+            executePreview(url);
           }
         }
       });
       
-      // Handle paste events for immediate preview
+      // Handle paste events for immediate preview - with longer delay
       videoUrlInput.addEventListener('paste', function() {
         setTimeout(() => {
           const url = this.value.trim();
           if (url && isValidUrlFormat(url)) {
             if (previewTimeout) clearTimeout(previewTimeout);
-            handleVideoUrlPreview(url, formEl);
+            executePreview(url);
           }
-        }, 100);
+        }, 300); // Increased delay for paste events
       });
     }
 
@@ -3384,10 +3426,17 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           try {
+            // 🛡️ File size validation
+            const maxSizeBytes = mediaType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
+            if (file.size > maxSizeBytes) {
+              const maxSizeMB = mediaType === 'video' ? 50 : 10;
+              throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`);
+            }
+            
             // Show upload progress
             showUploadProgress(mediaType, file.name);
             
-            // Create form data
+            // Create form data with error handling
             const formData = new FormData();
             formData.append('file', file);
             formData.append('category', 'TodayNews');
