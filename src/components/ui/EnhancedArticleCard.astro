@@ -21,7 +21,7 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-const displayImage = isVideo ? (videoPoster || article.image) : article.image;
+const displayImage = isVideo ? (videoPoster || article.image || '/images/placeholder.svg') : article.image;
 ---
 
 <article class={`article-card enhanced ${featured ? 'featured' : ''} ${isVideo ? 'has-video' : 'has-image'}`}>

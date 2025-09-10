@@ -366,7 +366,9 @@ const description = article.excerpt;
       container.innerHTML = `
         <video 
           controls 
-          poster="${videoData.videoPoster}"
+          poster="${videoData.videoPoster || '/images/placeholder.svg'}"
+          preload="metadata"
+          playsinline
           width="1200"
           height="675"
           class="article-video"

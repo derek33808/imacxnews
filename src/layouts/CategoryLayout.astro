@@ -163,6 +163,8 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                     <video 
                       controls 
                       poster={article.videoPoster || article.image || '/images/placeholder.svg'}
+                      preload="metadata"
+                      playsinline
                       class="article-video"
                       width="800"
                       height="450"
@@ -1151,6 +1153,8 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 <video 
                   controls 
                   poster="${article.videoPoster || article.image || '/images/placeholder.svg'}"
+                  preload="metadata"
+                  playsinline
                   class="article-video"
                   width="800"
                   height="450"

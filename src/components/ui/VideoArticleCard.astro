@@ -78,6 +78,7 @@ const hasVideo = isVideo && videoUrl;
           class="article-video"
           poster={image}
           preload="metadata"
+          playsinline
           onclick="this.paused ? this.play() : this.pause()"
         >
           <source src={videoUrl} type="video/mp4">

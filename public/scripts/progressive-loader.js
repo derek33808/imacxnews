@@ -394,6 +394,8 @@ class ProgressiveLoader {
           class="featured-video-element"
           poster="${posterUrl}"
           preload="metadata"
+          playsinline
+          muted
           width="800" 
           height="450"
           data-video-url="${article.videoUrl}"
