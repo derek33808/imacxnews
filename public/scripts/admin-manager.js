@@ -111,6 +111,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // 🎨 Initialize enhanced upload animations
   addUploadAnimations();
   
+  // 📏 Fetch upload limits from server
+  fetchUploadLimits();
+  
   const adminManagerModal = document.getElementById('adminManagerModal');
   const closeAdminManagerModalBtn = document.getElementById('closeAdminManagerModal');
   const articlesList = document.getElementById('articlesList');
@@ -128,6 +131,33 @@ document.addEventListener('DOMContentLoaded', function() {
   let submitBtnEl;
   let isEditing = false;
   let editingId = null;
+  
+  // 📏 Dynamic upload limits (fetched from server)
+  let uploadLimits = {
+    maxImageSize: 10 * 1024 * 1024, // 10MB default
+    maxVideoSize: 20 * 1024 * 1024, // 20MB default (production safe)
+    maxImageSizeMB: 10,
+    maxVideoSizeMB: 20
+  };
+  
+  // 🔄 Fetch upload limits from server
+  async function fetchUploadLimits() {
+    try {
+      const response = await fetch('/api/media/upload-limits', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          uploadLimits = result.data;
+          console.log('📏 Upload limits updated:', uploadLimits);
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch upload limits, using defaults:', error);
+    }
+  }
   // Confirm modal elements
   let confirmModal;
   let confirmResolve;
@@ -3015,10 +3045,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     for (const file of files) {
       try {
-        // 🛡️ File validation
-        const maxSizeBytes = 50 * 1024 * 1024; // 50MB
+        // 🛡️ File validation (dynamic limits)
+        const isVideoFile = file.type.startsWith('video/');
+        const maxSizeBytes = isVideoFile ? uploadLimits.maxVideoSize : uploadLimits.maxImageSize;
+        const maxSizeMB = isVideoFile ? uploadLimits.maxVideoSizeMB : uploadLimits.maxImageSizeMB;
+        
         if (file.size > maxSizeBytes) {
-          throw new Error(`File ${file.name} is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 50MB.`);
+          throw new Error(`File ${file.name} is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`);
         }
         
         showQuickUploadProgress(file);
@@ -3612,10 +3645,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          // 🛡️ File size validation
-          const maxSizeBytes = mediaType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
+          // 🛡️ File size validation (dynamic limits)
+          const maxSizeBytes = mediaType === 'video' ? uploadLimits.maxVideoSize : uploadLimits.maxImageSize;
+          const maxSizeMB = mediaType === 'video' ? uploadLimits.maxVideoSizeMB : uploadLimits.maxImageSizeMB;
+          
           if (file.size > maxSizeBytes) {
-            const maxSizeMB = mediaType === 'video' ? 50 : 10;
             const error = new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`);
             cleanup();
             showUploadError(error.message);

@@ -30,9 +30,10 @@ export class SimpleMediaUploader {
       };
     }
     
-    // Get file size limits
+    // Get file size limits with production environment optimization
     const maxImageSize = parseInt(import.meta.env.MAX_IMAGE_SIZE || '10485760'); // 10MB
-    const maxVideoSize = parseInt(import.meta.env.MAX_VIDEO_SIZE || '52428800'); // 50MB
+    const defaultVideoSize = import.meta.env.MODE === 'production' ? '20971520' : '52428800'; // 20MB in production, 50MB in development
+    const maxVideoSize = parseInt(import.meta.env.MAX_VIDEO_SIZE || defaultVideoSize);
     
     const maxSize = isImage ? maxImageSize : maxVideoSize;
     if (file.size > maxSize) {
