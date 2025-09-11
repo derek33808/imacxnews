@@ -315,7 +315,7 @@ class ProgressiveLoader {
     
     container.innerHTML = `
       <article class="featured-article ${isVideo ? 'featured-video' : 'featured-image'}">
-        <div class="featured-media-container" style="${isVideo && this.isEmbeddableVideo(article.videoUrl) ? 'pointer-events: none;' : ''}">
+        <div class="featured-media-container">
           ${mediaContent}
           ${isVideo && this.isEmbeddableVideo(article.videoUrl) ? '' : `<div class="featured-overlay ${isVideo ? 'video-overlay' : ''}"></div>`}
         </div>
@@ -350,6 +350,11 @@ class ProgressiveLoader {
       if (!isEmbeddable) {
         // Only initialize controls for direct video files (not YouTube/Vimeo iframes)
         setTimeout(() => this.initializeVideoControls(container), 100);
+        console.log(`✅ Direct video controls initialized for: ${article.title}`);
+      } else {
+        // For YouTube/Vimeo videos, ensure iframe is clickable and interactive
+        console.log(`✅ YouTube/Vimeo video ready for playback: ${article.title}`);
+        console.log(`🔗 Embed URL: ${this.convertToEmbedUrl(article.videoUrl)}`);
       }
     }
   }
@@ -374,10 +379,11 @@ class ProgressiveLoader {
             src="${embedUrl}"
             width="100%" 
             height="100%"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: auto; z-index: 2;"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; cursor: pointer; z-index: 2;"
             frameborder="0"
             allowfullscreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            title="Video Player"
           ></iframe>
           ${article.videoDuration ? `
             <div class="featured-video-duration-badge-top-right" style="position: absolute; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); border: 2px solid white; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.875rem; font-weight: 700; z-index: 3; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); letter-spacing: 0.5px; text-transform: uppercase;">
@@ -735,12 +741,39 @@ class ProgressiveLoader {
     const durationDisplay = container.querySelector('.video-duration');
     const controls = container.querySelector('.featured-video-controls');
     
-    if (!videoElement || !playBtn || !fullscreenBtn) return;
+    console.log('🎮 Initializing video controls:', {
+      videoElement: !!videoElement,
+      playBtn: !!playBtn,
+      fullscreenBtn: !!fullscreenBtn,
+      controls: !!controls
+    });
+    
+    if (!videoElement || !playBtn || !fullscreenBtn) {
+      console.error('❌ Missing video control elements:', {
+        videoElement: !!videoElement,
+        playBtn: !!playBtn,
+        fullscreenBtn: !!fullscreenBtn
+      });
+      return;
+    }
     
     // 🎯 Play/Pause functionality
     playBtn.addEventListener('click', (e) => {
+      console.log('🎯 Play button clicked!');
+      e.preventDefault();
       e.stopPropagation();
       this.togglePlayPause(videoElement, playBtn);
+    });
+    
+    // 🎯 Additional event listeners for debugging
+    playBtn.addEventListener('mousedown', (e) => {
+      console.log('🖱️ Play button mousedown');
+      e.preventDefault();
+    });
+    
+    playBtn.addEventListener('mouseup', (e) => {
+      console.log('🖱️ Play button mouseup');
+      e.preventDefault();
     });
     
     // 🔲 Fullscreen functionality
@@ -795,17 +828,28 @@ class ProgressiveLoader {
   
   // 🎯 Toggle play/pause
   togglePlayPause(video, playBtn) {
+    console.log('🎬 togglePlayPause called, video paused:', video.paused);
     const playIcon = playBtn.querySelector('.play-icon');
     const pauseIcon = playBtn.querySelector('.pause-icon');
     
-    if (video.paused) {
-      video.play();
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
-    } else {
-      video.pause();
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
+    try {
+      if (video.paused) {
+        console.log('▶️ Playing video...');
+        video.play().then(() => {
+          console.log('✅ Video play successful');
+          playIcon.style.display = 'none';
+          pauseIcon.style.display = 'block';
+        }).catch(error => {
+          console.error('❌ Video play failed:', error);
+        });
+      } else {
+        console.log('⏸️ Pausing video...');
+        video.pause();
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('❌ Toggle play/pause error:', error);
     }
   }
   

@@ -859,10 +859,10 @@ const isLoading = true;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
+    opacity: 0.8;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    z-index: 2;
+    z-index: 5;
   }
   
   :global(.featured-video:hover .featured-video-controls) {
@@ -890,6 +890,8 @@ const isLoading = true;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    pointer-events: all;
+    z-index: 10;
   }
   
   :global(.video-play-btn:hover) {
@@ -918,6 +920,8 @@ const isLoading = true;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    pointer-events: all;
+    z-index: 10;
   }
   
   :global(.video-fullscreen-btn:hover) {
@@ -934,6 +938,8 @@ const isLoading = true;
     right: 20px;
     height: 4px;
     cursor: pointer;
+    pointer-events: all;
+    z-index: 10;
   }
   
   :global(.video-progress-bar) {
