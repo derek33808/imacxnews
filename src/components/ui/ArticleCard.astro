@@ -4,43 +4,74 @@ import { getCategoryById } from '../../data/categories';
 
 const { article, featured = false } = Astro.props;
 const category = getCategoryById(article.category);
+
+// 🎬 For video articles, prioritize videoPoster over image
+const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
+  ? article.videoPoster 
+  : article.image || '/images/placeholder.svg';
 ---
 
-<article class={`article-card ${featured ? 'featured' : ''}`}>
+<article class={`article-card ${featured ? 'featured' : ''} ${article.mediaType === 'VIDEO' ? 'has-video' : 'has-image'}`}>
   <a href={`/article/${article.slug}`} class="card-image-link">
-    {featured ? (
-      <img 
-        src={article.image}
-        alt={article.title} 
-        class="card-image"
-        loading="eager"
-        width="400"
-        height="225"
-        onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
-        onload="this.style.opacity='1'"
-        style="opacity:0.7; transition: opacity 0.3s ease"
-      />
-    ) : (
-      <img 
-        data-src={article.image}
-        src="/images/placeholder.svg"
-        alt={article.title} 
-        class="card-image lazy"
-        loading="lazy"
-        width="400"
-        height="225"
-        onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
-        onload="this.style.opacity='1'"
-        style="opacity:0.7; transition: opacity 0.3s ease"
-      />
-    )}
+    <div class="image-container">
+      {featured ? (
+        <img 
+          src={displayImage}
+          alt={article.title} 
+          class="card-image"
+          loading="eager"
+          width="400"
+          height="225"
+          style="opacity:0.7; transition: opacity 0.3s ease"
+          onerror="this.src='/images/placeholder.svg'"
+        />
+      ) : (
+        <img 
+          data-src={displayImage}
+          src="/images/placeholder.svg"
+          alt={article.title} 
+          class="card-image lazy"
+          loading="lazy"
+          width="400"
+          height="225"
+          style="opacity:0.7; transition: opacity 0.3s ease"
+          onerror="this.src='/images/placeholder.svg'"
+        />
+      )}
+      
+      {/* 🆕 视频标识 */}
+      {article.mediaType === 'VIDEO' && (
+        <div class="video-indicator">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 3l14 9-14 9z"></path>
+          </svg>
+          {article.videoDuration && (
+            <span class="duration">
+              {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   </a>
   
   <div class="card-content">
     <div class="card-meta">
-      <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
-        {(category && category.name) || 'Category'}
-      </a>
+      <div class="meta-tags">
+        <a href={`/category/${article.category}`} class={`category-tag ${article.category}`}>
+          {(category && category.name) || 'Category'}
+        </a>
+        {/* 🆕 媒体类型标签 */}
+        {article.mediaType === 'VIDEO' && (
+          <span class="media-type-tag video">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 7l-7 5 7 5z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            Video
+          </span>
+        )}
+      </div>
       <span class="publish-date">{getRelativeTime(article.publishDate)}</span>
     </div>
     
@@ -54,7 +85,7 @@ const category = getCategoryById(article.category);
       <span class="author">{article.author}</span>
       <a href={`/article/${article.slug}`} class="read-more">
         Read more
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><path d="M12 5l7 7-7 7"></path></svg>
       </a>
     </div>
   </div>
@@ -83,6 +114,14 @@ const category = getCategoryById(article.category);
     aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: var(--radius-md);
+    position: relative; /* 🆕 为视频标识定位 */
+  }
+  
+  /* 🆕 图片容器 */
+  .image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
   
   .card-image {
@@ -97,6 +136,35 @@ const category = getCategoryById(article.category);
     transform: scale(1.05);
   }
   
+  /* 🆕 视频标识样式 */
+  .video-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+    z-index: 2;
+    transition: opacity 0.3s ease;
+  }
+  
+  .video-indicator svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .duration {
+    font-size: 0.7rem;
+    font-family: 'Courier New', monospace;
+  }
+  
   .card-content {
     padding: var(--space-4);
   }
@@ -106,6 +174,36 @@ const category = getCategoryById(article.category);
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--space-3);
+  }
+  
+  /* 🆕 标签容器 */
+  .meta-tags {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  /* 🆕 媒体类型标签 */
+  .media-type-tag {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  
+  .media-type-tag.video {
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    color: white;
+  }
+  
+  .media-type-tag svg {
+    width: 10px;
+    height: 10px;
   }
   
   .publish-date {
@@ -160,4 +258,57 @@ const category = getCategoryById(article.category);
   .read-more:hover {
     gap: var(--space-2);
   }
+  
+  /* 🆕 响应式视频标识 */
+  @media (max-width: 768px) {
+    .video-indicator {
+      padding: 3px 6px;
+      font-size: 0.7rem;
+      bottom: 6px;
+      right: 6px;
+    }
+    
+    .video-indicator svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .duration {
+      font-size: 0.65rem;
+    }
+    
+    .meta-tags {
+      gap: var(--space-1);
+    }
+    
+    .media-type-tag {
+      font-size: 0.7rem;
+      padding: 1px 4px;
+    }
+    
+    .media-type-tag svg {
+      width: 8px;
+      height: 8px;
+    }
+  }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 处理图片错误和加载事件
+    const images = document.querySelectorAll('.card-image');
+    
+    images.forEach(img => {
+      // 错误处理
+      img.addEventListener('error', function() {
+        (this as any).src = '/images/placeholder.svg';
+        (this as any).classList.add('error');
+      });
+      
+      // 加载完成处理
+      img.addEventListener('load', function() {
+        (this as any).style.opacity = '1';
+      });
+    });
+  });
+</script>

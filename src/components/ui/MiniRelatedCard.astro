@@ -4,18 +4,24 @@ import { getCategoryById } from '../../data/categories';
 
 const { article } = Astro.props;
 const category = getCategoryById(article.category);
+
+// 🎬 For video articles, prioritize videoPoster over image, with fallback to placeholder
+const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
+  ? article.videoPoster 
+  : article.image || '/images/placeholder.svg';
 ---
 
 <article class="mini-related-card">
   <a href={`/article/${article.slug}`} class="card-link">
     <div class="image-container">
       <img 
-        src={article.image}
+        src={displayImage}
         alt={article.title} 
         class="card-image"
         loading="lazy"
         width="200"
         height="120"
+        onerror="this.src='/images/placeholder.svg'"
       />
       {article.mediaType === 'VIDEO' && (
         <div class="video-overlay">

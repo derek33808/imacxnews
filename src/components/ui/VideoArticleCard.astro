@@ -10,6 +10,7 @@ export interface Props {
   image: string; // 图片URL或视频封面
   imageAlt?: string;
   videoUrl?: string;
+  videoPoster?: string; // 视频海报/缩略图
   videoDuration?: number;
   author: string;
   publishDate: Date;
@@ -28,12 +29,18 @@ const {
   image,
   imageAlt,
   videoUrl,
+  videoPoster,
   videoDuration,
   author,
   publishDate,
   featured = false,
   readingTime
 } = Astro.props;
+
+// 🎬 For video articles, prioritize videoPoster over image
+const displayImage = (mediaType === 'VIDEO' && videoPoster) 
+  ? videoPoster 
+  : image || '/images/placeholder.svg';
 
 // 格式化发布日期
 const formattedDate = new Intl.DateTimeFormat('zh-CN', {
@@ -76,10 +83,9 @@ const hasVideo = isVideo && videoUrl;
       <div class="video-wrapper">
         <video 
           class="article-video"
-          poster={image}
+          poster={displayImage}
           preload="metadata"
           playsinline
-          onclick="this.paused ? this.play() : this.pause()"
         >
           <source src={videoUrl} type="video/mp4">
           <source src={videoUrl} type="video/webm">
@@ -90,7 +96,7 @@ const hasVideo = isVideo && videoUrl;
         <div class="video-overlay">
           <div class="play-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5,3 19,12 5,21 5,3"/>
+              <path d="M5 3l14 9-14 9z"/>
             </svg>
           </div>
           
@@ -104,7 +110,7 @@ const hasVideo = isVideo && videoUrl;
         <!-- 媒体类型标识 -->
         <div class="media-type-badge video-badge">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="23 7 16 12 23 17 23 7"/>
+            <path d="M23 7l-7 5 7 5z"/>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
           视频
@@ -115,9 +121,10 @@ const hasVideo = isVideo && videoUrl;
       <div class="image-wrapper">
         <img 
           class="article-image" 
-          src={image} 
+          src={displayImage} 
           alt={imageAlt || title}
           loading="lazy"
+          onerror="this.src='/images/placeholder.svg'"
         />
         
         <!-- 媒体类型标识 -->
@@ -125,7 +132,7 @@ const hasVideo = isVideo && videoUrl;
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21,15 16,10 5,21"/>
+            <path d="M21 15l-5-5-11 11"/>
           </svg>
           图片
         </div>
@@ -144,7 +151,7 @@ const hasVideo = isVideo && videoUrl;
       {featured && (
         <span class="featured-badge">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
           精选
         </span>
@@ -183,7 +190,7 @@ const hasVideo = isVideo && videoUrl;
         <div class="meta-item reading-time">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
-            <polyline points="12,6 12,12 16,14"/>
+            <path d="M12 6v6l4 2"/>
           </svg>
           <span>{readingTime}分钟阅读</span>
         </div>
@@ -331,11 +338,44 @@ const hasVideo = isVideo && videoUrl;
     gap: 4px;
     backdrop-filter: blur(8px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none; /* 默认允许点击穿透 */
   }
 
   .video-badge {
     background: rgba(139, 92, 246, 0.9);
     color: white;
+  }
+
+  /* 视频播放时的状态 */
+  .video-wrapper.playing .media-type-badge {
+    opacity: 0;
+    transform: scale(0.8) translateY(-8px);
+    pointer-events: none;
+  }
+
+  /* 视频暂停时恢复显示 */
+  .video-wrapper.paused .media-type-badge,
+  .video-wrapper:not(.playing) .media-type-badge {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: none;
+  }
+
+  /* 悬停时稍微淡化但保持可见 */
+  .video-wrapper:hover .media-type-badge {
+    opacity: 0.8;
+  }
+
+  /* 小屏幕设备上移动到右下角避开播放器控制栏 */
+  @media (max-width: 768px) {
+    .media-type-badge {
+      top: auto;
+      bottom: 60px;
+      right: 12px;
+      left: auto;
+    }
   }
 
   .image-badge {
@@ -564,14 +604,37 @@ const hasVideo = isVideo && videoUrl;
         videoEl.addEventListener('click', togglePlay);
         overlayEl.addEventListener('click', togglePlay);
 
-        // 视频播放时隐藏覆盖层
+        // 视频播放时隐藏覆盖层和VIDEO标签
         videoEl.addEventListener('play', () => {
           overlayEl.style.opacity = '0';
+          // 添加播放状态类，触发VIDEO标签隐藏动画
+          const videoWrapper = videoEl.closest('.video-wrapper');
+          if (videoWrapper) {
+            videoWrapper.classList.add('playing');
+            videoWrapper.classList.remove('paused');
+          }
         });
 
-        // 视频暂停时显示覆盖层
+        // 视频暂停时显示覆盖层和VIDEO标签
         videoEl.addEventListener('pause', () => {
           overlayEl.style.opacity = '1';
+          // 添加暂停状态类，触发VIDEO标签显示动画
+          const videoWrapper = videoEl.closest('.video-wrapper');
+          if (videoWrapper) {
+            videoWrapper.classList.remove('playing');
+            videoWrapper.classList.add('paused');
+          }
+        });
+
+        // 视频结束时恢复初始状态
+        videoEl.addEventListener('ended', () => {
+          overlayEl.style.opacity = '1';
+          // 移除播放状态类，恢复VIDEO标签显示
+          const videoWrapper = videoEl.closest('.video-wrapper');
+          if (videoWrapper) {
+            videoWrapper.classList.remove('playing');
+            videoWrapper.classList.remove('paused');
+          }
         });
 
         // 鼠标离开卡片时暂停视频

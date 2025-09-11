@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                 </svg>Video Poster (Thumbnail)
                 <div style="display:flex; gap:12px; align-items:stretch; margin-top:8px;">
-                  <input name="image" placeholder="Auto-generated from video or custom URL" style="flex:1;" />
+                  <input name="videoPoster" placeholder="Auto-generated from video or custom URL" style="flex:1;" />
                   <button type="button" class="upload-poster-btn" style="white-space:nowrap; background: linear-gradient(135deg, #06b6d4, #0891b2); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Poster...</button>
                 </div>
                 <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Poster image will be auto-generated or you can specify a custom one or upload your own</small>
@@ -381,8 +381,32 @@ document.addEventListener('DOMContentLoaded', function() {
               </label>
               </div>
 
-            <!-- Media Preview -->
-            <div id="mediaPreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+            <!-- Video Preview -->
+            <div id="videoPreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+              <div id="videoPreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
+                <span style="color:#64748b;font-size:12px;">No video selected</span>
+              </div>
+              <div id="videoPreviewInfo" style="flex: 1;">
+                <div id="videoPreviewTitle" style="font-weight: 600; color: #f8fafc; margin-bottom: 4px;">Video Preview</div>
+                <div id="videoPreviewDetails" style="font-size: 12px; color: #94a3b8;"></div>
+                <button type="button" id="clearVideoBtn" style="margin-top: 8px; padding: 4px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">Clear Video</button>
+              </div>
+            </div>
+            
+            <!-- Poster Preview -->
+            <div id="posterPreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(6, 182, 212, 0.05); border-radius: 12px; border: 1px solid rgba(6, 182, 212, 0.2);">
+              <div id="posterPreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
+                <span style="color:#64748b;font-size:12px;">No poster selected</span>
+              </div>
+              <div id="posterPreviewInfo" style="flex: 1;">
+                <div id="posterPreviewTitle" style="font-weight: 600; color: #f8fafc; margin-bottom: 4px;">Poster Preview</div>
+                <div id="posterPreviewDetails" style="font-size: 12px; color: #94a3b8;"></div>
+                <button type="button" id="clearPosterBtn" style="margin-top: 8px; padding: 4px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">Clear Poster</button>
+              </div>
+            </div>
+            
+            <!-- Legacy Media Preview (HIDDEN - replaced by dedicated video/poster previews) -->
+            <div id="mediaPreviewWrap" style="display:none !important; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
               <div id="mediaPreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
                 <span style="color:#64748b;font-size:12px;">No media selected</span>
               </div>
@@ -638,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imageUrlInput) {
       // Listen for input changes to update preview in real-time
       imageUrlInput.addEventListener('input', function() {
-        updateImagePreview(this.value);
+        // Disabled to prevent third preview: updateImagePreview(this.value);
       });
       
       imageUrlInput.addEventListener('blur', function() {
@@ -646,7 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (value && (value.includes('example.com') || value.includes('placeholder.com') || (!value.startsWith('http') && !value.startsWith('/')))) {
           this.value = '/images/placeholder.svg';
           alert('Please enter a valid image URL (starting with http/https) or use the local upload feature');
-          updateImagePreview(this.value);
+          // Disabled: updateImagePreview(this.value);
         }
       });
     }
@@ -658,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show preview immediately with uploaded file
         const fileUrl = URL.createObjectURL(file);
-        updateImagePreview(fileUrl);
+        // Disabled: updateImagePreview(fileUrl);
         
         try {
           // Show enhanced upload progress
@@ -678,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (imageUrlInput) {
             imageUrlInput.value = result.url;
             // Update preview with server URL
-            updateImagePreview(result.url);
+            // Disabled: updateImagePreview(result.url);
           }
           
           // Show success message with enhanced UI
@@ -690,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
           console.error('Upload error', err);
           showLegacyImageUploadError(err.message || 'Upload failed, please try again');
           // Show error state
-          updateImagePreview('');
+          // Disabled: updateImagePreview('');
           URL.revokeObjectURL(fileUrl);
         }
       });
@@ -718,6 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 🎥 Include media type and video-related fields
         mediaType: String(fd.get('mediaType') || 'IMAGE'),
         videoUrl: videoUrl,
+        videoPoster: String(fd.get('videoPoster') || ''), // 🖼️ Include video poster field
         videoDuration: fd.get('videoDuration') ? Number(fd.get('videoDuration')) : null
       };
       
@@ -726,7 +751,9 @@ document.addEventListener('DOMContentLoaded', function() {
         title: data.title,
         mediaType: data.mediaType,
         videoUrl: data.videoUrl,
+        videoPoster: data.videoPoster, // 🖼️ Log poster data
         hasVideo: !!data.videoUrl,
+        hasPoster: !!data.videoPoster,
         image: data.image
       });
       if (!data.title.trim() || !data.author.trim() || !data.excerpt.trim() || !data.content.trim()) {
@@ -1274,9 +1301,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize image preview for new form
-    if (window.updateImagePreview) {
-      window.updateImagePreview('');
-    }
+    // Disabled legacy image preview initialization
+    // if (window.updateImagePreview) {
+    //   window.updateImagePreview('');
+    // }
   }
   
   function toDatetimeLocalValue(dateStr) {
@@ -1413,24 +1441,75 @@ document.addEventListener('DOMContentLoaded', function() {
       formEl.querySelector('[name="title"]').value = fullArticle.title || '';
       formEl.querySelector('[name="author"]').value = fullArticle.author || '';
       formEl.querySelector('[name="category"]').value = fullArticle.category || 'TodayNews';
-      // For video articles, prioritize videoPoster over image for poster display
-      const posterImage = fullArticle.videoPoster || fullArticle.image || '';
-      formEl.querySelector('[name="image"]').value = posterImage;
       
-      // Update poster preview if image exists
-      if (posterImage && window.updateImagePreview) {
-        window.updateImagePreview(posterImage);
+      // 🎥 Handle media type and show appropriate sections FIRST
+      const mediaType = fullArticle.mediaType || 'IMAGE';
+      const mediaTypeInput = formEl.querySelector(`input[name="mediaType"][value="${mediaType}"]`);
+      if (mediaTypeInput) {
+        mediaTypeInput.checked = true;
+        
+        // Trigger change event to show/hide appropriate sections
+        const changeEvent = new Event('change', { bubbles: true });
+        mediaTypeInput.dispatchEvent(changeEvent);
+        
+        console.log('✅ Media type set to:', mediaType);
       }
       
-      // Also show poster in media preview area for video articles
-      if (posterImage && mediaType === 'VIDEO') {
-        const mediaData = {
-          url: posterImage,
-          originalName: 'Existing Poster',
-          mediaType: 'IMAGE',
-          size: 0
-        };
-        showMediaPreview(mediaData, 'poster');
+      // Wait a moment for the media type change to take effect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Filter out invalid URLs like 'VIDEO', 'IMAGE' strings
+      const isValidImageUrl = (url) => {
+        return url && typeof url === 'string' && url !== 'VIDEO' && url !== 'IMAGE' && (url.startsWith('http') || url.startsWith('/'));
+      };
+      
+      // 🖼️ Handle poster/image fields based on media type
+      const videoPosterInput = formEl.querySelector('[name="videoPoster"]');
+      const imageInput = formEl.querySelector('[name="image"]');
+      
+      console.log('🖼️ Poster loading debug:', {
+        videoPoster: fullArticle.videoPoster,
+        image: fullArticle.image,
+        mediaType: fullArticle.mediaType,
+        videoUrl: fullArticle.videoUrl,
+        videoPosterInputExists: !!videoPosterInput,
+        imageInputExists: !!imageInput
+      });
+      
+      if (mediaType === 'VIDEO') {
+        // For video articles, set both videoPoster and image fields
+        if (videoPosterInput) {
+          const validVideoPoster = isValidImageUrl(fullArticle.videoPoster) ? fullArticle.videoPoster : '';
+          videoPosterInput.value = validVideoPoster;
+          console.log('✅ Set videoPoster input value:', validVideoPoster);
+        }
+        if (imageInput) {
+          // For video articles, image field should also have the poster for compatibility
+          const fallbackImage = isValidImageUrl(fullArticle.videoPoster) ? fullArticle.videoPoster : 
+                                isValidImageUrl(fullArticle.image) ? fullArticle.image : '';
+          imageInput.value = fallbackImage;
+          console.log('✅ Set image input value for VIDEO article:', fallbackImage);
+        }
+        
+        // Show poster preview if available
+        const validVideoPoster = isValidImageUrl(fullArticle.videoPoster) ? fullArticle.videoPoster : null;
+        if (validVideoPoster) {
+          const mediaData = {
+            url: validVideoPoster,
+            originalName: 'Existing Poster',
+            mediaType: 'IMAGE',
+            size: 0
+          };
+          console.log('🖼️ Showing poster preview:', mediaData);
+          showPosterPreview(mediaData);
+        }
+      } else {
+        // For image articles, just set image field
+        if (imageInput) {
+          const validImage = isValidImageUrl(fullArticle.image) ? fullArticle.image : '';
+          imageInput.value = validImage;
+          console.log('✅ Set image input value for IMAGE article:', validImage);
+        }
       }
       
       formEl.querySelector('[name="excerpt"]').value = fullArticle.excerpt || '';
@@ -1440,40 +1519,32 @@ document.addEventListener('DOMContentLoaded', function() {
       const pd = formEl.querySelector('[name="publishDate"]');
       pd.value = toDatetimeLocalValue(fullArticle.publishDate);
       
-      // 🎥 Fill video-related fields if they exist
-      const mediaType = fullArticle.mediaType || 'IMAGE';
-      const mediaTypeInput = formEl.querySelector(`input[name="mediaType"][value="${mediaType}"]`);
-      if (mediaTypeInput) {
-        mediaTypeInput.checked = true;
+      // Media type is already handled above
+      
+      // 🎥 Fill video-specific fields if media type is VIDEO
+      if (mediaType === 'VIDEO') {
+        const videoUrlInput = formEl.querySelector('[name="videoUrl"]');
+        const videoDurationInput = formEl.querySelector('[name="videoDuration"]');
         
-        // Trigger change event to show/hide appropriate sections
-        const changeEvent = new Event('change', { bubbles: true });
-        mediaTypeInput.dispatchEvent(changeEvent);
-      }
-      
-      // Fill video-specific fields
-      const videoUrlInput = formEl.querySelector('[name="videoUrl"]');
-      const videoDurationInput = formEl.querySelector('[name="videoDuration"]');
-      
-      if (videoUrlInput && fullArticle.videoUrl) {
-        videoUrlInput.value = fullArticle.videoUrl;
-        console.log('✅ Video URL loaded into input:', fullArticle.videoUrl);
+        if (videoUrlInput && fullArticle.videoUrl) {
+          videoUrlInput.value = fullArticle.videoUrl;
+          console.log('✅ Video URL loaded into input:', fullArticle.videoUrl);
+          
+          // Show video preview immediately
+          const videoMediaData = {
+            url: fullArticle.videoUrl,
+            originalName: 'Existing Video',
+            mediaType: 'VIDEO',
+            size: 0,
+            duration: fullArticle.videoDuration
+          };
+          showVideoPreview(videoMediaData);
+        }
         
-        // Trigger video preview after URL is loaded
-        setTimeout(() => {
-          if (window.handleVideoUrlPreview) {
-            handleVideoUrlPreview(fullArticle.videoUrl, formEl);
-          }
-        }, 200);
-      } else if (videoUrlInput) {
-        console.log('❌ Video URL input found but no URL to load:', {
-          videoUrlInput: !!videoUrlInput,
-          videoUrl: fullArticle.videoUrl
-        });
-      }
-      
-      if (videoDurationInput && fullArticle.videoDuration) {
-        videoDurationInput.value = fullArticle.videoDuration;
+        if (videoDurationInput && fullArticle.videoDuration) {
+          videoDurationInput.value = fullArticle.videoDuration;
+          console.log('✅ Video duration loaded:', fullArticle.videoDuration);
+        }
       }
       
       // Update media preview for editing (already handled above)
@@ -2165,8 +2236,23 @@ document.addEventListener('DOMContentLoaded', function() {
         videoUrlField.value = displayUrl;
       }
       
-      // Show preview
-      showVideoPreview(displayUrl, formEl, parsedUrl.hostname);
+      // Show preview in new video preview area
+      const videoData = {
+        url: displayUrl,
+        originalName: 'Video URL Input',
+        mediaType: 'VIDEO',
+        size: 0,
+        duration: null // Will be auto-detected
+      };
+      
+      // Use the new dedicated video preview function directly
+      if (typeof showVideoPreview === 'function') {
+        showVideoPreview(videoData);
+        console.log('✅ Using new video preview system');
+      } else {
+        console.warn('⚠️ New video preview function not available, skipping legacy preview');
+        // Don't show legacy preview to avoid duplicate previews
+      }
       
       console.log('✅ Video URL processed:', { 
         original: url, 
@@ -2226,8 +2312,13 @@ document.addEventListener('DOMContentLoaded', function() {
     return originalUrl;
   }
   
-  // 🎥 Show video preview in media preview area
-  function showVideoPreview(videoUrl, formEl, hostname) {
+    // 🎥 Show video preview in legacy media preview area (DISABLED to prevent duplicates)
+  function showLegacyVideoPreview(videoUrl, formEl, hostname) {
+    console.log('⚠️ Legacy video preview disabled to prevent duplicates');
+    return; // Disable this function to prevent duplicate previews
+    
+    // Original function body commented out
+    /*
     // Try multiple possible preview element IDs
     let mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
     let mediaPreview = formEl.querySelector('#mediaPreview');
@@ -2366,6 +2457,7 @@ document.addEventListener('DOMContentLoaded', function() {
       isDirect,
       hostname
     });
+    */ // End of commented legacy function
   }
   
   // 🎥 Render video preview function
@@ -3434,33 +3526,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (imageInput) {
                   imageInput.value = result.data.url;
                   
-                  // 🖼️ Trigger preview update for image
-                  if (window.updateImagePreview) {
-                    window.updateImagePreview(result.data.url);
-                  }
+                  // 🖼️ Trigger preview update for image (DISABLED)
+                  // if (window.updateImagePreview) {
+                  //   window.updateImagePreview(result.data.url);
+                  // }
                 }
               } else if (mediaType === 'video') {
                 const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
-                const imageInput = formEl.querySelector('input[name="image"]'); // poster
+                const videoPosterInput = formEl.querySelector('input[name="videoPoster"]'); // poster
                 const durationInput = formEl.querySelector('input[name="videoDuration"]');
                 
                 if (videoUrlInput) {
                   videoUrlInput.value = result.data.url;
-                  // Trigger preview for uploaded video
-                  handleVideoUrlPreview(result.data.url, formEl);
+                  // Show video preview directly (no need for legacy handler)
+                  // handleVideoUrlPreview(result.data.url, formEl);
                 }
-                if (imageInput && !imageInput.value) {
-                  // Use video URL as poster if no custom poster is set
-                  imageInput.value = result.data.url;
-                }
+                // ❌ REMOVED: Don't auto-fill poster with video URL (invalid)
+                // Video URLs are not images and cannot be used as poster
+                // Users should upload a separate poster image
+                // if (videoPosterInput && !videoPosterInput.value) {
+                //   videoPosterInput.value = result.data.url;  // This was incorrect
+                // }
                 if (durationInput && result.data.duration) {
                   durationInput.value = Math.round(result.data.duration);
                 }
               }
               
-              // Show media preview
+              // Show media preview in appropriate area
               console.log('📤 About to show media preview:', { resultData: result.data, mediaType });
+              if (mediaType === 'video') {
+                showVideoPreview(result.data, formEl);
+              } else {
               showMediaPreview(result.data, mediaType);
+              }
               
               resolve(result.data);
             } else {
@@ -3513,19 +3611,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success) {
               console.log('✅ Poster upload successful:', result.data);
               
-              // Update poster input field
-              const imageInput = formEl.querySelector('input[name="image"]');
-              if (imageInput) {
-                imageInput.value = result.data.url;
+              // Update poster input field (use videoPoster for video articles)
+              const videoPosterInput = formEl.querySelector('input[name="videoPoster"]');
+              if (videoPosterInput) {
+                videoPosterInput.value = result.data.url;
+                console.log('✅ Poster URL set in videoPoster input:', result.data.url);
                 
-                // 🖼️ Trigger preview update for poster
-                if (window.updateImagePreview) {
-                  window.updateImagePreview(result.data.url);
-                }
+                // 🖼️ Trigger preview update for poster (DISABLED - using showPosterPreview instead)
+                // if (window.updateImagePreview) {
+                //   window.updateImagePreview(result.data.url);
+                // }
+              } else {
+                console.warn('❌ videoPoster input not found');
               }
               
-              // Show media preview for poster
-              showMediaPreview(result.data, 'image');
+              // Show poster preview
+              showPosterPreview(result.data, formEl);
               
               // Show success message
               showUploadSuccess('Poster uploaded successfully!');
@@ -3864,74 +3965,72 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 3000);
     }
     
-    // Show media preview
+    // Note: showVideoPreview and showPosterPreview functions moved to global scope
+
+    // Show media preview (legacy/routing function - DISABLED to prevent duplicates)
     function showMediaPreview(mediaData, mediaType) {
-      console.log('🖼️ showMediaPreview called:', { mediaData, mediaType });
+      console.log('🖼️ showMediaPreview called - routing to specific preview:', { mediaData, mediaType });
       
-      // 🔧 Get DOM elements dynamically to avoid scope issues
-      const currentMediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-      const currentMediaPreview = formEl.querySelector('#mediaPreview');
-      const currentMediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
-      const currentMediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
-      
-      console.log('📦 DOM elements:', { 
-        mediaPreviewWrap: !!currentMediaPreviewWrap, 
-        mediaPreview: !!currentMediaPreview, 
-        mediaPreviewTitle: !!currentMediaPreviewTitle, 
-        mediaPreviewDetails: !!currentMediaPreviewDetails 
-      });
-      
-      if (!currentMediaPreviewWrap || !currentMediaPreview || !currentMediaPreviewTitle || !currentMediaPreviewDetails) {
-        console.error('❌ Missing DOM elements for media preview');
+      // Route to dedicated preview areas ONLY
+      if (mediaType === 'video') {
+        showVideoPreview(mediaData, null);
         return;
       }
       
-      // Show preview container
-      currentMediaPreviewWrap.style.display = 'flex';
-      
-      // Update preview content with type indicators
-      if (mediaType === 'image' || mediaType === 'poster') {
-        const displayType = mediaType === 'poster' ? 'Poster' : 'Image';
-        console.log(`🖼️ Showing ${displayType.toLowerCase()} preview with URL:`, mediaData.url);
-        currentMediaPreview.innerHTML = `
-          <div style="position: relative; width:100%;height:100%;">
-            <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" 
-                 onload="console.log('✅ ${displayType} loaded successfully')" 
-                 onerror="console.error('❌ ${displayType} failed to load:', this.src)" />
-            ${mediaType === 'poster' ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">POSTER</div>' : ''}
-          </div>
-        `;
-      } else if (mediaType === 'video') {
-        console.log('🎥 Showing video preview with URL:', mediaData.url);
-        currentMediaPreview.innerHTML = `
-          <div style="position: relative; width:100%;height:100%;">
-            <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
-              Your browser does not support video playback.
-            </video>
-            <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">VIDEO</div>
-          </div>
-        `;
+      if (mediaType === 'poster') {
+        showPosterPreview(mediaData);
+        return;
       }
       
-      // Update info with proper type display
-      const displayType = mediaType === 'poster' ? 'Poster' : (mediaType === 'image' ? 'Image' : 'Video');
-      currentMediaPreviewTitle.textContent = `${displayType}: ${mediaData.originalName || 'Media File'}`;
+      if (mediaType === 'image') {
+        // For regular images in image articles, we don't show preview to avoid confusion
+        // Only video and poster previews are supported in the new system
+        console.log('⚠️ Image preview disabled - only video and poster previews are supported');
+        return;
+      }
       
-      const typeText = mediaType === 'poster' ? 'POSTER' : (mediaData.mediaType || mediaType.toUpperCase());
-      currentMediaPreviewDetails.innerHTML = `
-        <div>Type: ${typeText}</div>
-        <div>Size: ${formatFileSize(mediaData.size)}</div>
-        ${mediaData.duration ? `<div>Duration: ${formatDuration(mediaData.duration)}</div>` : ''}
-        <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
-      `;
+      console.warn('⚠️ Legacy media preview disabled for type:', mediaType);
     }
     
-    // Clear media preview
-    function clearMediaPreview() {
-      const currentMediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-      if (currentMediaPreviewWrap) {
-        currentMediaPreviewWrap.style.display = 'none';
+    // Clear all previews
+    function clearAllPreviews() {
+      const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+      const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+      const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+      
+      if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
+      if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
+    }
+    
+    // Clear video preview
+    function clearVideoPreview() {
+      const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+      if (videoPreviewWrap) {
+        videoPreviewWrap.style.display = 'none';
       }
+      
+      const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+      const durationInput = formEl.querySelector('input[name="videoDuration"]');
+      
+      if (videoUrlInput) videoUrlInput.value = '';
+      if (durationInput) durationInput.value = '';
+    }
+    
+    // Clear poster preview
+    function clearPosterPreview() {
+      const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+      if (posterPreviewWrap) {
+        posterPreviewWrap.style.display = 'none';
+      }
+      
+      const videoPosterInput = formEl.querySelector('input[name="videoPoster"]');
+      if (videoPosterInput) videoPosterInput.value = '';
+    }
+    
+    // Clear media preview (legacy)
+    function clearMediaPreview() {
+      clearAllPreviews();
       
       // Clear form inputs
       const imageInput = formEl.querySelector('input[name="image"]');
@@ -3979,6 +4078,165 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize existing image preview check
     setTimeout(checkExistingImagePreview, 100);
   };
+
+  // 🎥 Global Video Preview Function
+  function showVideoPreview(mediaData, formElement = null) {
+    console.log('🎥 showVideoPreview called:', mediaData);
+    
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) {
+      console.error('❌ No form element found for video preview');
+      return;
+    }
+    
+    const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+    const videoPreview = formEl.querySelector('#videoPreview');
+    const videoPreviewTitle = formEl.querySelector('#videoPreviewTitle');
+    const videoPreviewDetails = formEl.querySelector('#videoPreviewDetails');
+    
+    if (!videoPreviewWrap || !videoPreview || !videoPreviewTitle || !videoPreviewDetails) {
+      console.error('❌ Missing video preview DOM elements');
+      return;
+    }
+    
+    videoPreviewWrap.style.display = 'flex';
+    
+    videoPreview.innerHTML = `
+      <div style="position: relative; width:100%;height:100%;">
+        <video id="previewVideoElement" src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted preload="metadata">
+          Your browser does not support video playback.
+        </video>
+        <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">VIDEO</div>
+      </div>
+    `;
+    
+    videoPreviewTitle.textContent = `Video: ${mediaData.originalName || 'Video File'}`;
+    videoPreviewDetails.innerHTML = `
+      <div>Type: VIDEO</div>
+      <div>Size: ${formatFileSize(mediaData.size)}</div>
+      <div id="videoDurationDisplay">${mediaData.duration ? `Duration: ${formatDuration(mediaData.duration)}` : 'Duration: Detecting...'}</div>
+      <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
+    `;
+    
+    // 🕒 Auto-detect video duration from the preview video element
+    setTimeout(() => {
+      const videoElement = formEl.querySelector('#previewVideoElement');
+      const durationInput = formEl.querySelector('input[name="videoDuration"]');
+      const durationDisplay = formEl.querySelector('#videoDurationDisplay');
+      
+      if (!mediaData.duration) {
+        console.log('🎬 Setting up video duration auto-detection...');
+        
+        // Check if this is a YouTube or Vimeo URL that needs special handling
+        const isYouTube = mediaData.url.includes('youtube.com') || mediaData.url.includes('youtu.be');
+        const isVimeo = mediaData.url.includes('vimeo.com');
+        
+        if (isYouTube || isVimeo) {
+          // For YouTube/Vimeo, we can't detect duration from embedded player
+          // Show a helpful message
+          if (durationDisplay) {
+            durationDisplay.innerHTML = `
+              Duration: <span style="color: #f59e0b;">Please enter manually</span>
+              <br><small style="color: #6b7280; font-size: 11px;">YouTube/Vimeo duration cannot be auto-detected</small>
+            `;
+          }
+          console.log('ℹ️ YouTube/Vimeo video - duration must be entered manually');
+        } else if (videoElement) {
+          // For direct video files, use the HTML5 video element
+          videoElement.addEventListener('loadedmetadata', function() {
+            const duration = videoElement.duration;
+            if (duration && isFinite(duration)) {
+              const roundedDuration = Math.round(duration);
+              console.log('✅ Video duration detected:', roundedDuration + 's');
+              
+              // Update duration input field
+              if (durationInput) {
+                durationInput.value = roundedDuration;
+                console.log('📝 Duration input field updated:', roundedDuration);
+              }
+              
+              // Update display in preview
+              if (durationDisplay) {
+                durationDisplay.textContent = `Duration: ${formatDuration(duration)}`;
+              }
+              
+              // Update mediaData for future reference
+              mediaData.duration = roundedDuration;
+            } else {
+              console.warn('⚠️ Could not detect video duration');
+              if (durationDisplay) {
+                durationDisplay.textContent = 'Duration: Unable to detect';
+              }
+            }
+          });
+          
+          videoElement.addEventListener('error', function() {
+            console.error('❌ Error loading video for duration detection');
+            if (durationDisplay) {
+              durationDisplay.textContent = 'Duration: Detection failed';
+            }
+          });
+        }
+      } else if (mediaData.duration) {
+        console.log('✅ Video duration already available:', mediaData.duration);
+      }
+    }, 100); // Small delay to ensure DOM is ready
+  }
+  
+  // 🖼️ Global Poster Preview Function
+  function showPosterPreview(mediaData, formElement = null) {
+    console.log('🖼️ showPosterPreview called:', mediaData);
+    
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) {
+      console.error('❌ No form element found for poster preview');
+      return;
+    }
+    
+    const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+    const posterPreview = formEl.querySelector('#posterPreview');
+    const posterPreviewTitle = formEl.querySelector('#posterPreviewTitle');
+    const posterPreviewDetails = formEl.querySelector('#posterPreviewDetails');
+    
+    if (!posterPreviewWrap || !posterPreview || !posterPreviewTitle || !posterPreviewDetails) {
+      console.error('❌ Missing poster preview DOM elements');
+      return;
+    }
+    
+    posterPreviewWrap.style.display = 'flex';
+    
+    posterPreview.innerHTML = `
+      <div style="position: relative; width:100%;height:100%;">
+        <img src="${mediaData.url}" alt="Poster Preview" style="width:100%;height:100%;object-fit:cover;" 
+             onload="console.log('✅ Poster loaded successfully')" 
+             onerror="console.error('❌ Poster failed to load:', this.src)" />
+        <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">POSTER</div>
+      </div>
+    `;
+    
+    posterPreviewTitle.textContent = `Poster: ${mediaData.originalName || 'Poster Image'}`;
+    posterPreviewDetails.innerHTML = `
+      <div>Type: POSTER</div>
+      <div>Size: ${formatFileSize(mediaData.size)}</div>
+      <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
+    `;
+  }
+
+  // 🛠️ Global File Size Formatter
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // 🛠️ Global Duration Formatter
+  function formatDuration(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
 
   // 🆕 Media Library Management System
   function initializeMediaLibrary() {
