@@ -64,12 +64,12 @@
         cacheNames.forEach(cacheName => {
           if (cacheName.includes('api') || cacheName.includes('articles')) {
             caches.delete(cacheName).then(() => {
-              console.log(`🗑️ 清理Service Worker缓存: ${cacheName}`);
+              window.debugLog && window.debugLog(`🗑️ 清理Service Worker缓存: ${cacheName}`);
             });
           }
         });
       }).catch(error => {
-        console.warn('清理Service Worker缓存时出错:', error);
+        window.debugWarn && window.debugWarn('清理Service Worker缓存时出错:', error);
       });
     }
     

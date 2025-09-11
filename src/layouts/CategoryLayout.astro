@@ -1,6 +1,7 @@
 ---
 import Layout from './Layout.astro';
 import ArticleCard from '../components/ui/ArticleCard.astro';
+import VideoArticleCard from '../components/ui/VideoArticleCard.astro';
 import { getCategoryById } from '../data/categories';
 
 const { category, articles } = Astro.props;
@@ -146,7 +147,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                     ></iframe>
                     <div class="video-type-badge enhanced">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <path d="M23 7l-7 5 7 5z"/>
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                       </svg>
                       <span>YOUTUBE</span>
@@ -174,9 +175,9 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                       <source src={article.videoUrl} type="video/ogg">
                       Your browser does not support the video tag.
                     </video>
-                    <div class="video-type-badge">
+                    <div class="video-type-badge dynamic-video-badge">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <path d="M23 7l-7 5 7 5z"/>
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                       </svg>
                       VIDEO
@@ -204,7 +205,6 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 loading="lazy"
                 width="800"
                 height="450"
-                onerror="this.onerror=null; this.src='/images/placeholder.svg'"
               />
             )}
           </div>
@@ -227,7 +227,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
               <span class="author">By {article.author}</span>
               <a href={`/article/${article.slug}`} class="read-more-btn">
                 {article.mediaType === 'VIDEO' ? 'Watch Video' : 'Read more'}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><path d="M12 5l7 7-7 7"></path></svg>
               </a>
             </div>
           </div>
@@ -567,14 +567,65 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       align-self: flex-start;
     }
 
-    /* 📱 移动端时长显示适配 */
-    :global(#categoryArticlesList .video-duration-badge-top-right) {
-      top: 8px;
-      right: 8px;
-      padding: 4px 8px;
-      font-size: 0.7rem;
-      border-width: 1px;
+  /* 📱 移动端时长显示适配 */
+  :global(#categoryArticlesList .video-duration-badge-top-right) {
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-width: 1px;
+  }
+
+  /* 🎬 VIDEO标签动态隐藏样式 */
+  :global(.video-type-badge.dynamic-video-badge) {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none; /* 默认允许点击穿透 */
+  }
+
+  /* 视频播放时的状态 */
+  :global(.direct-video-container.playing .dynamic-video-badge) {
+    opacity: 0;
+    transform: scale(0.8) translateY(-8px);
+    pointer-events: none;
+  }
+
+  /* 视频暂停时恢复显示 */
+  :global(.direct-video-container.paused .dynamic-video-badge),
+  :global(.direct-video-container:not(.playing) .dynamic-video-badge) {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: none;
+  }
+
+  /* 悬停时稍微淡化但保持可见 */
+  :global(.direct-video-container:hover .dynamic-video-badge) {
+    opacity: 0.8;
+  }
+
+  /* 小屏幕设备上移动到右下角避开播放器控制栏 */
+  @media (max-width: 768px) {
+    :global(.dynamic-video-badge) {
+      top: auto;
+      bottom: 60px;
+      right: 12px;
+      left: auto;
     }
+  }
 
   }
 </style>
@@ -595,6 +646,9 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
     // 🎬 为初始渲染的直接视频文件生成缩略图
     generateInitialVideoThumbnails();
     
+    // 🎬 初始化视频播放状态管理
+    initializeVideoPlayerStates();
+    
     // Smart caching: Check cache first, then API for latest articles
     try {
       // Cache configuration
@@ -610,10 +664,10 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       
       // Check if we have valid cached data
       if (cachedData && cacheTime && (now - parseInt(cacheTime)) < CACHE_DURATION) {
-        console.log('🚀 Using cached articles data - instant load!');
+        // console.log('🚀 Using cached articles data - instant load!');
         allArticles = JSON.parse(cachedData);
       } else {
-        console.log('📡 Fetching fresh articles data from API...');
+        // console.log('📡 Fetching fresh articles data from API...');
         
         // Create abort controller for request timeout
         const controller = new AbortController();
@@ -635,7 +689,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
             // Cache the fresh data
             localStorage.setItem(cacheKey, JSON.stringify(allArticles));
             localStorage.setItem(cacheTimeKey, now.toString());
-            console.log('✅ Fresh data fetched and cached');
+            // console.log('✅ Fresh data fetched and cached');
           } else {
             throw new Error(`API responded with status: ${response.status}`);
           }
@@ -665,7 +719,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
         // Try legacy localStorage first
         const storedArticles = localStorage.getItem('imacx_articles');
         if (storedArticles) {
-          console.log('🔄 Using fallback: legacy localStorage data');
+          // console.log('🔄 Using fallback: legacy localStorage data');
           const parsedArticles = JSON.parse(storedArticles);
           // 🚀 确保数据是数组格式
           const articlesArray = Array.isArray(parsedArticles) ? parsedArticles : (parsedArticles.articles || []);
@@ -792,7 +846,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
   async function generateVideoThumbnailClient(videoUrl: string, width: number = 320, height: number = 180): Promise<string | null> {
     return new Promise((resolve) => {
       try {
-        console.log(`🎬 Starting thumbnail generation for: ${videoUrl}`);
+        window.debugLog && window.debugLog(`🎬 Starting thumbnail generation for: ${videoUrl}`);
         
         // Create video element
         const video = document.createElement('video');
@@ -830,7 +884,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
           const tryNextTimePoint = () => {
             if (currentAttempt < timePoints.length) {
               const timePoint = Math.min(timePoints[currentAttempt], video.duration - 0.1);
-              console.log(`🎬 Attempting thumbnail at ${timePoint}s`);
+              window.debugLog && window.debugLog(`🎬 Attempting thumbnail at ${timePoint}s`);
               video.currentTime = timePoint;
               currentAttempt++;
             } else {
@@ -844,7 +898,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
         
         video.onseeked = () => {
           try {
-            console.log(`🎬 Video seeked to ${video.currentTime}s, generating thumbnail...`);
+            window.debugLog && window.debugLog(`🎬 Video seeked to ${video.currentTime}s, generating thumbnail...`);
             
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -884,7 +938,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
             
             // Convert to data URL
             const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
-            console.log(`✅ Thumbnail generated successfully (${thumbnailUrl.length} bytes)`);
+            window.debugLog && window.debugLog(`✅ Thumbnail generated successfully (${thumbnailUrl.length} bytes)`);
             resolveOnce(thumbnailUrl);
             
           } catch (error) {
@@ -1029,7 +1083,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 
                 const posterUrl = canvas.toDataURL('image/jpeg', 0.8);
                 imgElement.src = posterUrl;
-                console.log(`✅ Generated fallback poster for: ${videoUrl}`);
+                // console.log(`✅ Generated fallback poster for: ${videoUrl}`);
               }
             } catch (error) {
               console.warn('🎬 Fallback poster generation failed:', error);
@@ -1100,7 +1154,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
       imgElement.src = thumbnailUrl;
       
-      console.log(`✅ Generated instant video icon thumbnail`);
+      window.debugLog && window.debugLog(`✅ Generated instant video icon thumbnail`);
     } catch (error) {
       console.warn('Failed to generate instant video icon:', error);
     }
@@ -1136,7 +1190,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 ></iframe>
                 <div class="video-type-badge enhanced">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <path d="M23 7l-7 5 7 5z"/>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                   <span>YOUTUBE</span>
@@ -1166,7 +1220,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 </video>
                 <div class="video-type-badge">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <path d="M23 7l-7 5 7 5z"/>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                   VIDEO
@@ -1195,7 +1249,6 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
               loading="lazy"
               width="800"
               height="450"
-              onerror="this.onerror=null; this.src='/images/placeholder.svg'"
             />
         `;
       }
@@ -1226,7 +1279,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                 ${isVideo ? 'Watch Video' : 'Read more'}
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
+                  <path d="M12 5l7 7-7 7"></path>
                 </svg>
               </a>
             </div>
@@ -1247,13 +1300,13 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       if (needsVideoThumbnail) {
         setTimeout(async () => {
           try {
-            console.log(`🎬 Generating thumbnail for category video: ${article.title}`);
+            window.debugLog && window.debugLog(`🎬 Generating thumbnail for category video: ${article.title}`);
             const generatedThumbnail = await generateVideoThumbnailClient(article.videoUrl);
             if (generatedThumbnail) {
               const imgElement = categoryArticlesList.querySelector(`img[data-article-id="${article.id}"]`);
               if (imgElement) {
                 imgElement.src = generatedThumbnail;
-                console.log(`✅ Updated category thumbnail for: ${article.title}`);
+                window.debugLog && window.debugLog(`✅ Updated category thumbnail for: ${article.title}`);
               }
             }
           } catch (error) {
@@ -1264,10 +1317,50 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
     });
   }
 
+  // 🎬 初始化视频播放状态管理
+  function initializeVideoPlayerStates() {
+    const videoElements = document.querySelectorAll('.direct-video-container video');
+    console.log(`🎬 Found ${videoElements.length} direct video elements to initialize`);
+    
+    videoElements.forEach((video) => {
+      const videoEl = video as HTMLVideoElement;
+      const container = videoEl.closest('.direct-video-container') as HTMLElement;
+      if (!container) return;
+      
+      // 添加播放事件监听器
+      videoEl.addEventListener('play', () => {
+        console.log('🎬 Video started playing, hiding VIDEO badge');
+        container.classList.add('playing');
+        container.classList.remove('paused');
+      });
+      
+      // 添加暂停事件监听器
+      videoEl.addEventListener('pause', () => {
+        console.log('🎬 Video paused, showing VIDEO badge');
+        container.classList.remove('playing');
+        container.classList.add('paused');
+      });
+      
+      // 添加结束事件监听器
+      videoEl.addEventListener('ended', () => {
+        console.log('🎬 Video ended, resetting VIDEO badge');
+        container.classList.remove('playing');
+        container.classList.remove('paused');
+      });
+      
+      // 添加加载完成事件监听器
+      videoEl.addEventListener('loadeddata', () => {
+        // console.log('🎬 Video loaded, ensuring VIDEO badge is visible');
+        container.classList.remove('playing');
+        container.classList.remove('paused');
+      });
+    });
+  }
+
   // 🎬 生成初始页面加载时的视频缩略图
   function generateInitialVideoThumbnails() {
     const articleImages = document.querySelectorAll('#categoryArticlesList img[data-article-id]');
-    console.log(`🎬 Found ${articleImages.length} article images for thumbnail generation`);
+    window.debugLog && window.debugLog(`🎬 Found ${articleImages.length} article images for thumbnail generation`);
     
     articleImages.forEach((imgElement, index) => {
       const needsThumbnail = imgElement.getAttribute('data-needs-thumbnail') === 'true';
@@ -1280,20 +1373,20 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       const shouldTryGenerate = needsThumbnail || (videoUrl && imgSrc.includes('placeholder.svg'));
       
       if (shouldTryGenerate && videoUrl && !isEmbeddableVideoClient(videoUrl)) {
-        console.log(`🎬 Will attempt thumbnail generation for: ${videoUrl}`);
+        window.debugLog && window.debugLog(`🎬 Will attempt thumbnail generation for: ${videoUrl}`);
         
         // 立即生成一个临时的视频图标缩略图
         generateInstantVideoIconClient(imgElement);
         
         setTimeout(async () => {
           try {
-            console.log(`🎬 Starting thumbnail generation for direct video: ${videoUrl}`);
+            window.debugLog && window.debugLog(`🎬 Starting thumbnail generation for direct video: ${videoUrl}`);
             
             // Try a simpler approach first - use video poster frame
             const simpleThumb = await generateSimpleVideoThumbnailClient(videoUrl);
             if (simpleThumb) {
               imgElement.src = simpleThumb;
-              console.log(`✅ Updated thumbnail using simple method: ${videoUrl}`);
+              window.debugLog && window.debugLog(`✅ Updated thumbnail using simple method: ${videoUrl}`);
               return;
             }
             
@@ -1301,7 +1394,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
             const generatedThumbnail = await generateVideoThumbnailClient(videoUrl);
             if (generatedThumbnail) {
               imgElement.src = generatedThumbnail;
-              console.log(`✅ Updated thumbnail using complex method: ${videoUrl}`);
+              window.debugLog && window.debugLog(`✅ Updated thumbnail using complex method: ${videoUrl}`);
             } else {
               console.warn(`❌ Both methods failed for video: ${videoUrl}`);
               // Use a video poster as fallback
@@ -1334,14 +1427,14 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       
       // 🧹 Use Cache Sync Manager for comprehensive cache management
       if ((window as any).cacheSyncManager) {
-        console.log('✅ Using Cache Sync Manager for cache clearing...');
+        window.debugLog && window.debugLog('✅ Using Cache Sync Manager for cache clearing...');
         (window as any).cacheSyncManager.clearAllCaches();
         
         // Check cache consistency and trigger database sync if needed
         try {
           const isConsistent = await (window as any).cacheSyncManager.checkCacheConsistency();
           if (!isConsistent) {
-            console.log('⚠️ Cache inconsistency detected, triggering database sync...');
+            window.debugLog && window.debugLog('⚠️ Cache inconsistency detected, triggering database sync...');
             await (window as any).cacheSyncManager.triggerDatabaseSync();
           }
         } catch (e) {
@@ -1349,7 +1442,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
         }
       } else {
         // Fallback cache clearing if Cache Sync Manager is not loaded yet
-        console.log('⚠️ Cache Sync Manager not available, using fallback...');
+        window.debugLog && window.debugLog('⚠️ Cache Sync Manager not available, using fallback...');
         if ((window as any).clearAllArticleCaches) {
           (window as any).clearAllArticleCaches();
         } else {
@@ -1363,7 +1456,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
         }
       }
       
-      console.log('🔄 Cache clearing completed, reloading page for real-time update...');
+      window.debugLog && window.debugLog('🔄 Cache clearing completed, reloading page for real-time update...');
       location.reload();
     }, 200); // ⚡ Further reduced debounce to 200ms for faster response with Cache Sync Manager
   }
@@ -1405,7 +1498,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
 <!-- 智能自动Footer位置调节 -->
 <script is:inline>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 启动智能Footer自动定位系统...');
+  // console.log('🚀 启动智能Footer自动定位系统...');
   
   // 添加全局防抖机制，避免函数被频繁调用
   let footerPositionTimeout;
@@ -1422,11 +1515,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      console.log('📊 找到', articles.length, '篇文章');
+      // console.log('📊 找到', articles.length, '篇文章');
       
       // 添加运行标记，防止重复执行
       if (footer.dataset.positioning === 'true') {
-        console.log('🔄 Footer正在定位中，跳过本次执行');
+        // console.log('🔄 Footer正在定位中，跳过本次执行');
         return;
       }
       footer.dataset.positioning = 'true';
@@ -1449,10 +1542,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // 设置动态最小高度
       articlesList.style.minHeight = dynamicMinHeight + 'px';
       
-      console.log('📱 移动端动态设置:');
-      console.log('  文章总高度:', totalArticlesHeight, 'px');
-      console.log('  间距总高度:', totalGapHeight, 'px');
-      console.log('  动态最小高度:', dynamicMinHeight, 'px');
+      // console.log('📱 移动端动态设置:');
+      // console.log('  文章总高度:', totalArticlesHeight, 'px');
+      // console.log('  间距总高度:', totalGapHeight, 'px');
+      // console.log('  动态最小高度:', dynamicMinHeight, 'px');
     } else {
       // 桌面端清除最小高度限制
       articlesList.style.minHeight = '';
@@ -1482,28 +1575,28 @@ document.addEventListener('DOMContentLoaded', function() {
       const footerRect = footer.getBoundingClientRect();
       const footerTop = footerRect.top + currentScrollY;
       
-      console.log('📏 位置分析:');
-      console.log('  最后文章底部:', Math.round(lastArticleBottom), 'px');
-      console.log('  文章列表底部:', Math.round(articlesListBottom), 'px');
-      console.log('  Footer当前顶部:', Math.round(footerTop), 'px');
+      // console.log('📏 位置分析:');
+      // console.log('  最后文章底部:', Math.round(lastArticleBottom), 'px');
+      // console.log('  文章列表底部:', Math.round(articlesListBottom), 'px');
+      // console.log('  Footer当前顶部:', Math.round(footerTop), 'px');
       
       // 计算理想的Footer位置（移动端和桌面端使用不同距离）
       const isMobile = window.innerWidth <= 768;
       const footerGap = isMobile ? -60 : 60; // 移动端10px，桌面端60px
-      console.log(`📱 设备检测: ${isMobile ? '移动端' : '桌面端'} (宽度: ${window.innerWidth}px, 间距: ${footerGap}px)`);
+      // console.log(`📱 设备检测: ${isMobile ? '移动端' : '桌面端'} (宽度: ${window.innerWidth}px, 间距: ${footerGap}px)`);
       const idealFooterTop = Math.max(lastArticleBottom, articlesListBottom) + footerGap;
       
       // 计算需要的margin-top
       const requiredMarginTop = Math.max(0, idealFooterTop - footerTop);
       
-      console.log('🎯 计算结果:');
-      console.log('  理想Footer位置:', Math.round(idealFooterTop), 'px');
-      console.log('  需要的margin-top:', Math.round(requiredMarginTop), 'px');
+      // console.log('🎯 计算结果:');
+      // console.log('  理想Footer位置:', Math.round(idealFooterTop), 'px');
+      // console.log('  需要的margin-top:', Math.round(requiredMarginTop), 'px');
       
       // 应用计算出的间距
       if (requiredMarginTop > 0) {
         footer.style.marginTop = Math.round(requiredMarginTop) + 'px';
-        console.log(`✅ Footer已自动调整到最后文章下方${footerGap}px`);
+        // console.log(`✅ Footer已自动调整到最后文章下方${footerGap}px`);
       } else {
         footer.style.marginTop = footerGap + 'px'; // 使用相应的最小间距
         console.log(`✅ Footer使用最小间距${footerGap}px`);
@@ -1515,20 +1608,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const finalFooterTop = finalFooterRect.top + window.scrollY;
         const finalGap = finalFooterTop - Math.max(lastArticleBottom, articlesListBottom);
         
-        console.log('🔍 最终验证:');
-        console.log('  Footer最终位置:', Math.round(finalFooterTop), 'px');
-        console.log('  与最后文章间距:', Math.round(finalGap), 'px');
+        // console.log('🔍 最终验证:');
+        // console.log('  Footer最终位置:', Math.round(finalFooterTop), 'px');
+        // console.log('  与最后文章间距:', Math.round(finalGap), 'px');
         
         // 根据移动端/桌面端设置不同的验证标准
         const minGap = window.innerWidth <= 768 ? 5 : 40; // 移动端最小5px，桌面端40px
         const maxGap = window.innerWidth <= 768 ? 20 : 100; // 移动端最大20px，桌面端100px
         
         if (finalGap >= minGap && finalGap <= maxGap) {
-          console.log('🎉 完美！Footer位置自动调整成功');
+          // console.log('🎉 完美！Footer位置自动调整成功');
         } else if (finalGap >= 0) {
-          console.log('✅ Footer位置正常，间距稍有偏差');
+          // console.log('✅ Footer位置正常，间距稍有偏差');
         } else {
-          console.log('⚠️ Footer位置可能有重叠，需要调整');
+          // console.log('⚠️ Footer位置可能有重叠，需要调整');
         }
         
         // 清除定位标记
@@ -1558,8 +1651,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const heightChange = Math.abs(currentHeight - lastWindowHeight);
       
       if (widthChange > 50 || heightChange > 100) {
-        console.log('📐 窗口大小显著改变，重新调整Footer位置...');
-        console.log(`  宽度变化: ${widthChange}px, 高度变化: ${heightChange}px`);
+        // console.log('📐 窗口大小显著改变，重新调整Footer位置...');
+        // console.log(`  宽度变化: ${widthChange}px, 高度变化: ${heightChange}px`);
         lastWindowWidth = currentWidth;
         lastWindowHeight = currentHeight;
         autoPositionFooter();
@@ -1582,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', function() {
         img.addEventListener('load', function() {
           loadedImages++;
           if (loadedImages === totalImages) {
-            console.log('🖼️ 所有图片加载完成，重新调整Footer位置...');
+            // console.log('🖼️ 所有图片加载完成，重新调整Footer位置...');
             setTimeout(autoPositionFooter, 200);
           }
         });
@@ -1590,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() {
         img.addEventListener('error', function() {
           loadedImages++;
           if (loadedImages === totalImages) {
-            console.log('🖼️ 图片加载完成（含错误），重新调整Footer位置...');
+            // console.log('🖼️ 图片加载完成（含错误），重新调整Footer位置...');
             setTimeout(autoPositionFooter, 200);
           }
         });
@@ -1599,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 如果所有图片都已经加载完成
     if (loadedImages === totalImages) {
-      console.log('🖼️ 图片已预加载，延迟调整Footer位置...');
+      // console.log('🖼️ 图片已预加载，延迟调整Footer位置...');
       setTimeout(autoPositionFooter, 500);
     }
   }

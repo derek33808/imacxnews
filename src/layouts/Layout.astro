@@ -67,11 +67,15 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <!-- 🔧 Enhanced Admin Operations - Temporarily disabled to fix infinite loop -->
     <!-- <script src="/scripts/admin-manager-enhanced-operations.js" is:inline></script> -->
     
+    <!-- 🚀 Debug utilities -->
+    <script src="/scripts/debug-utils.js" is:inline></script>
+    
     <!-- 🚀 Cache cleaner - fix API format compatibility issues -->
     <script src="/scripts/cache-cleaner.js" is:inline></script>
     
     <!-- 🚀 Load enhanced lazy loader -->
     <script is:inline>
+      
       // Load enhanced lazy loader for better performance
       const lazyScript = document.createElement('script');
       lazyScript.src = '/scripts/lazy-loader.js';
@@ -109,7 +113,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
                             request.url.includes('example.com') ||
                             request.url.includes('via.placeholder.com')) {
                           cache.delete(request);
-                          console.log('🗑️ 清理无效图片缓存:', request.url);
+                          window.debugLog('🗑️ 清理无效图片缓存:', request.url);
                         }
                       });
                     });
@@ -132,7 +136,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
             // 检测并替换无效的外部图片URL
             if (src.includes('example.com') || src.includes('placeholder.com') || src.includes('via.placeholder.com')) {
               img.src = '/images/placeholder.svg';
-              console.log('🔄 替换无效图片URL:', src);
+              window.debugLog('🔄 替换无效图片URL:', src);
               return;
             }
             
@@ -141,7 +145,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
               const timeout = setTimeout(() => {
                 if (!img.complete) {
                   img.src = '/images/placeholder.svg';
-                  console.log('⏰ 图片加载超时，使用占位图:', src);
+                  window.debugLog('⏰ 图片加载超时，使用占位图:', src);
                 }
               }, 5000); // 减少到5秒超时
               
@@ -184,7 +188,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <script is:inline>
       // 图片懒加载工具 - 内联版本，解决Netlify环境下的模块导入问题
       function initLazyImageLoader() {
-        console.log('🚀 初始化图片懒加载（内联版本）');
+        window.debugLog('🚀 初始化图片懒加载（内联版本）');
         
         if ('IntersectionObserver' in window) {
           const imageObserver = new IntersectionObserver((entries) => {
@@ -194,7 +198,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
                 const src = img.dataset.src;
                 
                 if (src) {
-                  console.log('🖼️ 加载懒加载图片:', src);
+                  window.debugLog('🖼️ 加载懒加载图片:', src);
                   // 直接设置图片src，避免预加载导致的控制台错误
                   img.src = src;
                   img.classList.remove('lazy');
@@ -220,11 +224,11 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
           // 观察所有懒加载图片
           const observeImages = () => {
             const lazyImages = document.querySelectorAll('img[data-src]:not(.observed)');
-            console.log('🔍 发现懒加载图片数量:', lazyImages.length);
+            window.debugLog('🔍 发现懒加载图片数量:', lazyImages.length);
             lazyImages.forEach(img => {
               img.classList.add('observed');
               imageObserver.observe(img);
-              console.log('👀 观察图片:', img.dataset.src);
+              window.debugLog('👀 观察图片:', img.dataset.src);
             });
           };
           
@@ -242,9 +246,9 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
           
         } else {
           // 降级处理
-          console.log('🔄 IntersectionObserver不支持，使用降级懒加载处理');
+          window.debugLog('🔄 IntersectionObserver不支持，使用降级懒加载处理');
           document.querySelectorAll('img[data-src]').forEach(img => {
-            console.log('🖼️ 降级加载图片:', img.dataset.src);
+            window.debugLog('🖼️ 降级加载图片:', img.dataset.src);
             img.src = img.dataset.src;
             img.classList.remove('lazy');
             img.classList.add('loaded');
@@ -256,7 +260,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
       function clearImageCache() {
         if ('caches' in window) {
           caches.delete('imacx-images-cache-v1').then(() => {
-            console.log('✅ 图片缓存已清理');
+            window.debugLog('✅ 图片缓存已清理');
           });
         }
       }
@@ -269,10 +273,10 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('/service-worker.js')
             .then((registration) => {
-              console.log('🚀 Service Worker注册成功:', registration.scope);
+              // console.log('🚀 Service Worker注册成功:', registration.scope);
             })
             .catch((error) => {
-              console.error('❌ Service Worker注册失败:', error);
+              // console.error('❌ Service Worker注册失败:', error);
             });
         }
       });
@@ -282,7 +286,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           const messageChannel = new MessageChannel();
           messageChannel.port1.onmessage = (event) => {
-            console.log('✅ 图片缓存已清理');
+            window.debugLog('✅ 图片缓存已清理');
           };
           
           navigator.serviceWorker.controller.postMessage(
@@ -296,7 +300,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           const messageChannel = new MessageChannel();
           messageChannel.port1.onmessage = (event) => {
-            console.log('✅ 图片缓存已清理');
+            window.debugLog('✅ 图片缓存已清理');
           };
           
           navigator.serviceWorker.controller.postMessage(

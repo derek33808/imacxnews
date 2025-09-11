@@ -191,9 +191,9 @@ class CacheSyncManager {
         caches.delete('articles-cache'),
         caches.delete('imacx-cache-v1')
       ]).then(() => {
-        console.log('✅ Service Worker caches cleared');
+        window.debugLog && window.debugLog('✅ Service Worker caches cleared');
       }).catch(e => {
-        console.warn('⚠️ Failed to clear Service Worker caches', e);
+        window.debugWarn && window.debugWarn('⚠️ Failed to clear Service Worker caches', e);
       });
     }
 

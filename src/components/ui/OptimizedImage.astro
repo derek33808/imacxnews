@@ -47,7 +47,6 @@ const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-op
       width={width}
       height={height}
       loading="lazy"
-      onerror="this.onerror=null; this.src='/images/placeholder.svg';"
     />
   ) : (
     <img
@@ -57,7 +56,6 @@ const imgClass = `${className} ${loading === 'lazy' ? 'lazy' : ''} transition-op
       width={width}
       height={height}
       loading="eager"
-      onerror="this.onerror=null; this.src='/images/placeholder.svg';"
     />
   )}
   
