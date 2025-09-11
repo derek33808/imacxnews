@@ -97,7 +97,11 @@ export class SimpleMediaUploader {
 
     console.log(`📤 Starting file upload: ${file.name} (${validation.type}) to ${storagePath}`);
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage with enhanced error handling
+    console.log(`🔧 Using bucket: ${STORAGE_BUCKET}`);
+    console.log(`🔧 Supabase URL: ${supabaseUrl}`);
+    console.log(`🔧 Service key configured: ${supabaseServiceKey ? 'Yes' : 'No'}`);
+
     const { data, error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .upload(storagePath, file, {
@@ -106,8 +110,26 @@ export class SimpleMediaUploader {
       });
 
     if (error) {
-      console.error('❌ Upload failed:', error);
-      throw new Error(`Upload failed: ${error.message}`);
+      console.error('❌ Upload failed:', {
+        message: error.message,
+        status: error.status,
+        statusCode: error.statusCode,
+        error: error.error,
+        details: error
+      });
+      
+      // 提供更详细的错误信息
+      let enhancedError = `Upload failed: ${error.message}`;
+      
+      if (error.message.includes('Internal Error')) {
+        enhancedError += '\n💡 这通常表示：';
+        enhancedError += '\n- 存储桶不存在或权限配置错误';
+        enhancedError += '\n- 服务角色密钥 (SUPABASE_SERVICE_ROLE_KEY) 无效或权限不足';
+        enhancedError += '\n- 存储桶策略 (RLS Policies) 阻止了上传操作';
+        enhancedError += '\n- 网络连接问题或 Supabase 服务临时不可用';
+      }
+      
+      throw new Error(enhancedError);
     }
 
     // Get public access URL
