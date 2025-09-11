@@ -1422,6 +1422,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.updateImagePreview(posterImage);
       }
       
+      // Also show poster in media preview area for video articles
+      if (posterImage && mediaType === 'VIDEO') {
+        const mediaData = {
+          url: posterImage,
+          originalName: 'Existing Poster',
+          mediaType: 'IMAGE',
+          size: 0
+        };
+        showMediaPreview(mediaData, 'poster');
+      }
+      
       formEl.querySelector('[name="excerpt"]').value = fullArticle.excerpt || '';
       contentField.value = fullArticle.content || '';
       chineseContentField.value = fullArticle.chineseContent || '';
@@ -1446,6 +1457,19 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (videoUrlInput && fullArticle.videoUrl) {
         videoUrlInput.value = fullArticle.videoUrl;
+        console.log('✅ Video URL loaded into input:', fullArticle.videoUrl);
+        
+        // Trigger video preview after URL is loaded
+        setTimeout(() => {
+          if (window.handleVideoUrlPreview) {
+            handleVideoUrlPreview(fullArticle.videoUrl, formEl);
+          }
+        }, 200);
+      } else if (videoUrlInput) {
+        console.log('❌ Video URL input found but no URL to load:', {
+          videoUrlInput: !!videoUrlInput,
+          videoUrl: fullArticle.videoUrl
+        });
       }
       
       if (videoDurationInput && fullArticle.videoDuration) {
@@ -1458,59 +1482,8 @@ document.addEventListener('DOMContentLoaded', function() {
       //   window.updateImagePreview(posterImage);
       // }
       
-      // Show media preview if video
-      if (mediaType === 'VIDEO' && fullArticle.videoUrl) {
-        const mediaData = {
-          url: fullArticle.videoUrl,
-          originalName: 'Existing Video',
-          mediaType: 'VIDEO',
-          size: 0,
-          duration: fullArticle.videoDuration
-        };
-        
-        // Show video preview with safety checks
-        setTimeout(() => {
-          try {
-            const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-            const mediaPreview = formEl.querySelector('#mediaPreview');
-            const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
-            const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
-            
-            console.log('🎥 Attempting to show video preview:', {
-              mediaPreviewWrap: !!mediaPreviewWrap,
-              mediaPreview: !!mediaPreview,
-              mediaPreviewTitle: !!mediaPreviewTitle,
-              mediaPreviewDetails: !!mediaPreviewDetails
-            });
-            
-            if (mediaPreviewWrap && mediaPreview) {
-              mediaPreviewWrap.style.display = 'flex';
-              mediaPreview.innerHTML = `
-                <video src="${fullArticle.videoUrl}" style="width:100%;height:100%;object-fit:cover;" controls muted>
-                  Your browser does not support video playback.
-                </video>
-              `;
-              
-              if (mediaPreviewTitle) {
-                mediaPreviewTitle.textContent = 'Existing Video';
-              }
-              
-              if (mediaPreviewDetails) {
-                mediaPreviewDetails.innerHTML = `
-                  <div>Type: VIDEO</div>
-                  ${fullArticle.videoDuration ? `<div>Duration: ${Math.floor(fullArticle.videoDuration / 60)}:${(fullArticle.videoDuration % 60).toString().padStart(2, '0')}</div>` : ''}
-                  <div>URL: <code style="font-size:10px;">${fullArticle.videoUrl}</code></div>
-                `;
-              }
-              console.log('✅ Video preview updated successfully');
-            } else {
-              console.warn('⚠️ Media preview elements not found, skipping video preview');
-            }
-          } catch (mediaError) {
-            console.error('❌ Error updating media preview:', mediaError);
-          }
-        }, 100);
-      }
+      // Show video preview if it exists (handled by video URL trigger above)
+      // Note: Video preview is now handled by handleVideoUrlPreview function
       
     } catch (error) {
       console.error('❌ Error loading article details:', error);
@@ -3916,27 +3889,37 @@ document.addEventListener('DOMContentLoaded', function() {
       // Show preview container
       currentMediaPreviewWrap.style.display = 'flex';
       
-      // Update preview content
-      if (mediaType === 'image') {
-        console.log('🖼️ Showing image preview with URL:', mediaData.url);
+      // Update preview content with type indicators
+      if (mediaType === 'image' || mediaType === 'poster') {
+        const displayType = mediaType === 'poster' ? 'Poster' : 'Image';
+        console.log(`🖼️ Showing ${displayType.toLowerCase()} preview with URL:`, mediaData.url);
         currentMediaPreview.innerHTML = `
-          <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" 
-               onload="console.log('✅ Image loaded successfully')" 
-               onerror="console.error('❌ Image failed to load:', this.src)" />
+          <div style="position: relative; width:100%;height:100%;">
+            <img src="${mediaData.url}" alt="Preview" style="width:100%;height:100%;object-fit:cover;" 
+                 onload="console.log('✅ ${displayType} loaded successfully')" 
+                 onerror="console.error('❌ ${displayType} failed to load:', this.src)" />
+            ${mediaType === 'poster' ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">POSTER</div>' : ''}
+          </div>
         `;
       } else if (mediaType === 'video') {
         console.log('🎥 Showing video preview with URL:', mediaData.url);
         currentMediaPreview.innerHTML = `
-          <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
-            Your browser does not support video playback.
-          </video>
+          <div style="position: relative; width:100%;height:100%;">
+            <video src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;" controls muted>
+              Your browser does not support video playback.
+            </video>
+            <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">VIDEO</div>
+          </div>
         `;
       }
       
-      // Update info
-      currentMediaPreviewTitle.textContent = mediaData.originalName || 'Uploaded Media';
+      // Update info with proper type display
+      const displayType = mediaType === 'poster' ? 'Poster' : (mediaType === 'image' ? 'Image' : 'Video');
+      currentMediaPreviewTitle.textContent = `${displayType}: ${mediaData.originalName || 'Media File'}`;
+      
+      const typeText = mediaType === 'poster' ? 'POSTER' : (mediaData.mediaType || mediaType.toUpperCase());
       currentMediaPreviewDetails.innerHTML = `
-        <div>Type: ${mediaData.mediaType}</div>
+        <div>Type: ${typeText}</div>
         <div>Size: ${formatFileSize(mediaData.size)}</div>
         ${mediaData.duration ? `<div>Duration: ${formatDuration(mediaData.duration)}</div>` : ''}
         <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
