@@ -3461,7 +3461,12 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadBtns.forEach(btn => {
       btn.addEventListener('click', async function() {
         const mediaType = this.dataset.type;
-        await handleMediaUpload(mediaType, formEl);
+        try {
+          await handleMediaUpload(mediaType, formEl);
+        } catch (error) {
+          console.error(`💥 ${mediaType} upload button error:`, error);
+          // Error is already handled in handleMediaUpload, just log here
+        }
       });
     });
     
@@ -3845,9 +3850,15 @@ document.addEventListener('DOMContentLoaded', function() {
           reject(new Error('Upload failed due to network error'));
         };
 
+        // Handle timeout
+        xhr.ontimeout = function() {
+          reject(new Error('Upload failed due to timeout'));
+        };
+
         // Start upload
         xhr.open('POST', url);
         xhr.withCredentials = true;
+        xhr.timeout = 60000; // 60 seconds timeout for large video files
         xhr.send(formData);
       });
     }

@@ -1,0 +1,440 @@
+---
+// Supabase诊断页面
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Storage 诊断 - IMACXNews</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .run-diagnosis {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      color: #666;
+      margin: 20px 0;
+    }
+    
+    .loading.show {
+      display: block;
+    }
+    
+    .results {
+      display: none;
+      margin-top: 30px;
+    }
+    
+    .results.show {
+      display: block;
+    }
+    
+    .summary {
+      background: #f8f9ff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-left: 5px solid #667eea;
+    }
+    
+    .summary.healthy {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+    
+    .summary.issues {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+    
+    .summary h3 {
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+    
+    .issues-list {
+      background: #fee2e2;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .recommendations-list {
+      background: #e0f2fe;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .check-item {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 4px solid #e5e7eb;
+    }
+    
+    .check-item.success {
+      border-left-color: #10b981;
+    }
+    
+    .check-item.error {
+      border-left-color: #ef4444;
+    }
+    
+    .check-item.info {
+      border-left-color: #3b82f6;
+    }
+    
+    .check-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+    }
+    
+    .status-icon.success {
+      background: #10b981;
+    }
+    
+    .status-icon.error {
+      background: #ef4444;
+    }
+    
+    .status-icon.info {
+      background: #3b82f6;
+    }
+    
+    .check-details {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .json-output {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 20px;
+    }
+    
+    .back-link {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .back-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 Supabase Storage 诊断</h1>
+      <p>检查存储配置和连接状态</p>
+    </div>
+    
+    <div class="content">
+      <div class="run-diagnosis">
+        <button id="runDiagnosisBtn" class="btn">🚀 开始诊断</button>
+      </div>
+      
+      <div id="loading" class="loading">
+        <p>⏳ 正在进行诊断检查...</p>
+      </div>
+      
+      <div id="results" class="results">
+        <!-- 诊断结果将在这里显示 -->
+      </div>
+      
+      <div class="back-link">
+        <a href="/admin">← 返回管理面板</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('runDiagnosisBtn').addEventListener('click', async function() {
+      const btn = this;
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      
+      // 重置状态
+      btn.disabled = true;
+      btn.textContent = '🔄 诊断中...';
+      loading.classList.add('show');
+      results.classList.remove('show');
+      results.innerHTML = '';
+      
+      try {
+        const response = await fetch('/api/debug/supabase-diagnosis', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const diagnosis = await response.json();
+        
+        // 显示结果
+        displayResults(diagnosis);
+        results.classList.add('show');
+        
+      } catch (error) {
+        console.error('诊断失败:', error);
+        results.innerHTML = `
+          <div class="check-item error">
+            <div class="check-title">
+              <span class="status-icon error">✗</span>
+              诊断失败
+            </div>
+            <div class="check-details">
+              错误: ${error.message}
+            </div>
+          </div>
+        `;
+        results.classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 开始诊断';
+        loading.classList.remove('show');
+      }
+    });
+    
+    function displayResults(diagnosis) {
+      const results = document.getElementById('results');
+      
+      // 生成总结
+      const summary = diagnosis.summary || {};
+      const summaryClass = summary.overallStatus === 'healthy' ? 'healthy' : 'issues';
+      
+      let summaryHtml = `
+        <div class="summary ${summaryClass}">
+          <h3>📊 诊断总结</h3>
+          <p><strong>整体状态:</strong> ${getStatusText(summary.overallStatus)}</p>
+      `;
+      
+      if (summary.issues && summary.issues.length > 0) {
+        summaryHtml += `
+          <div class="issues-list">
+            <strong>❌ 发现的问题:</strong>
+            <ul>
+              ${summary.issues.map(issue => `<li>${issue}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+      
+      if (summary.recommendations && summary.recommendations.length > 0) {
+        summaryHtml += `
+          <div class="recommendations-list">
+            <strong>💡 建议:</strong>
+            <ul>
+              ${summary.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+      
+      summaryHtml += '</div>';
+      
+      // 生成详细检查结果
+      let checksHtml = '<h3>🔍 详细检查结果</h3>';
+      
+      if (diagnosis.checks) {
+        Object.entries(diagnosis.checks).forEach(([checkName, checkResult]) => {
+          checksHtml += generateCheckItem(checkName, checkResult);
+        });
+      }
+      
+      // 生成原始JSON输出
+      const jsonHtml = `
+        <details>
+          <summary style="cursor: pointer; font-weight: bold; margin: 20px 0 10px 0;">🔧 原始诊断数据 (点击展开)</summary>
+          <div class="json-output">${JSON.stringify(diagnosis, null, 2)}</div>
+        </details>
+      `;
+      
+      results.innerHTML = summaryHtml + checksHtml + jsonHtml;
+    }
+    
+    function generateCheckItem(checkName, checkResult) {
+      const status = getCheckStatus(checkResult);
+      const statusClass = status === 'success' ? 'success' : 
+                         status === 'error' ? 'error' : 'info';
+      const statusIcon = status === 'success' ? '✓' : 
+                        status === 'error' ? '✗' : 'ℹ';
+      
+      return `
+        <div class="check-item ${statusClass}">
+          <div class="check-title">
+            <span class="status-icon ${statusClass}">${statusIcon}</span>
+            ${getCheckDisplayName(checkName)}
+          </div>
+          <div class="check-details">
+            ${formatCheckDetails(checkResult)}
+          </div>
+        </div>
+      `;
+    }
+    
+    function getCheckStatus(checkResult) {
+      if (checkResult.status) return checkResult.status;
+      if (checkResult.error) return 'error';
+      return 'info';
+    }
+    
+    function getCheckDisplayName(checkName) {
+      const names = {
+        environmentVariables: '🔧 环境变量配置',
+        connection: '🔗 Supabase连接',
+        bucket: '🪣 存储桶检查',
+        folders: '📁 文件夹结构',
+        testUpload: '📤 测试上传',
+        policies: '🔒 权限策略'
+      };
+      return names[checkName] || checkName;
+    }
+    
+    function formatCheckDetails(checkResult) {
+      if (typeof checkResult === 'string') return checkResult;
+      
+      let details = '';
+      
+      if (checkResult.error) {
+        details += `<strong>错误:</strong> ${checkResult.error}<br>`;
+      }
+      
+      if (checkResult.bucketName) {
+        details += `<strong>存储桶:</strong> ${checkResult.bucketName}<br>`;
+      }
+      
+      if (checkResult.publicUrl) {
+        details += `<strong>测试URL:</strong> ${checkResult.publicUrl}<br>`;
+      }
+      
+      if (checkResult.buckets) {
+        details += `<strong>可用存储桶:</strong> ${checkResult.buckets.map(b => b.name).join(', ')}<br>`;
+      }
+      
+      // 添加其他有用的信息
+      Object.entries(checkResult).forEach(([key, value]) => {
+        if (!['status', 'error', 'bucketName', 'publicUrl', 'buckets'].includes(key)) {
+          if (typeof value === 'object') {
+            details += `<strong>${key}:</strong> ${JSON.stringify(value, null, 2)}<br>`;
+          } else {
+            details += `<strong>${key}:</strong> ${value}<br>`;
+          }
+        }
+      });
+      
+      return details || '检查完成';
+    }
+    
+    function getStatusText(status) {
+      const statusTexts = {
+        'healthy': '✅ 健康',
+        'issues_detected': '⚠️ 发现问题',
+        'unknown': '❓ 未知'
+      };
+      return statusTexts[status] || status;
+    }
+  </script>
+</body>
+</html>
