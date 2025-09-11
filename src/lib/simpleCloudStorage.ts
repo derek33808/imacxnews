@@ -30,9 +30,10 @@ export class SimpleMediaUploader {
       };
     }
     
-    // Get file size limits with production environment optimization
+    // Get file size limits with Netlify Functions constraint
     const maxImageSize = parseInt(import.meta.env.MAX_IMAGE_SIZE || '10485760'); // 10MB
-    const defaultVideoSize = import.meta.env.MODE === 'production' ? '20971520' : '52428800'; // 20MB in production, 50MB in development
+    // Netlify Functions 有 ~10MB 请求体限制，所以生产环境设置为8MB以确保安全
+    const defaultVideoSize = import.meta.env.MODE === 'production' ? '8388608' : '52428800'; // 8MB in production, 50MB in development
     const maxVideoSize = parseInt(import.meta.env.MAX_VIDEO_SIZE || defaultVideoSize);
     
     const maxSize = isImage ? maxImageSize : maxVideoSize;

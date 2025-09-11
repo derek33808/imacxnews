@@ -9,6 +9,13 @@
 # 确保函数正确处理
 [functions]
   node_bundler = "esbuild"
+  # 增加函数体大小限制以支持大文件上传
+  # 注意：这个设置可能需要付费计划才能生效
+  included_files = ["!node_modules/**/*"]
+  
+# 边缘函数配置 (如果可用)
+[edge_functions]
+  # 对于大文件上传，考虑使用边缘函数
 
 # 🚀 优化缓存头以提升性能
 [[headers]]

@@ -135,9 +135,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // 📏 Dynamic upload limits (fetched from server)
   let uploadLimits = {
     maxImageSize: 10 * 1024 * 1024, // 10MB default
-    maxVideoSize: 20 * 1024 * 1024, // 20MB default (production safe)
+    maxVideoSize: 8 * 1024 * 1024, // 8MB default (Netlify Functions limit)
     maxImageSizeMB: 10,
-    maxVideoSizeMB: 20
+    maxVideoSizeMB: 8
   };
   
   // 🔄 Fetch upload limits from server
