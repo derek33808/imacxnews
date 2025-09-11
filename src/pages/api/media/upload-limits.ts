@@ -5,11 +5,9 @@ import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    // Get file size limits with Netlify Functions constraint
+    // Get file size limits aligned with Supabase (50MB)
     const maxImageSize = parseInt(import.meta.env.MAX_IMAGE_SIZE || '10485760'); // 10MB
-    // Netlify Functions 有 ~10MB 请求体限制，所以生产环境设置为8MB以确保安全
-    const defaultVideoSize = import.meta.env.MODE === 'production' ? '8388608' : '52428800'; // 8MB in production, 50MB in development
-    const maxVideoSize = parseInt(import.meta.env.MAX_VIDEO_SIZE || defaultVideoSize);
+    const maxVideoSize = parseInt(import.meta.env.MAX_VIDEO_SIZE || '52428800'); // 50MB default
     
     return new Response(JSON.stringify({
       success: true,
