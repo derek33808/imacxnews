@@ -602,9 +602,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle local image upload when file selected (legacy support)
     const fileInput = formEl.querySelector('input[name="imageFile"]');
     const imageUrlInput = formEl.querySelector('input[name="image"]');
-    const imagePreview = formEl.querySelector('#mediaPreview');
-    const imagePreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-    const imagePreviewText = formEl.querySelector('#mediaPreviewTitle');
+    const imagePreview = formEl.querySelector('#imagePreview');
+    const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
+    const imagePreviewText = formEl.querySelector('#imagePreviewTitle');
     const triggerFileBtn = formEl.querySelector('#triggerFileSelectBtn');
     if (triggerFileBtn && fileInput) {
       triggerFileBtn.addEventListener('click', () => fileInput.click());
@@ -616,8 +616,8 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('🖼️ Updating image preview with URL:', trimmedUrl);
       
       // 🔧 Safety check: get elements dynamically to avoid null reference  
-      const currentImagePreview = formEl ? formEl.querySelector('#mediaPreview') : document.querySelector('#mediaPreview');
-      const currentImagePreviewWrap = formEl ? formEl.querySelector('#mediaPreviewWrap') : document.querySelector('#mediaPreviewWrap');
+      const currentImagePreview = formEl ? formEl.querySelector('#imagePreview') : document.querySelector('#imagePreview');
+      const currentImagePreviewWrap = formEl ? formEl.querySelector('#imagePreviewWrap') : document.querySelector('#imagePreviewWrap');
       
       if (!currentImagePreview) {
         console.warn('⚠️ imagePreview element not found, skipping image preview update');
@@ -704,7 +704,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imageUrlInput) {
       // Listen for input changes to update preview in real-time
       imageUrlInput.addEventListener('input', function() {
-        // Disabled to prevent third preview: updateImagePreview(this.value);
+        const url = this.value.trim();
+        if (url && 
+            !url.includes('placeholder') && 
+            !url.includes('example.com') && 
+            url !== '/images/placeholder.svg' &&
+            (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:'))) {
+          const mediaData = {
+            url: url,
+            originalName: 'Image Preview',
+            mediaType: 'IMAGE',
+            size: 0
+          };
+          showImagePreview(mediaData, formEl);
+        }
       });
       
       imageUrlInput.addEventListener('blur', function() {
@@ -712,7 +725,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (value && (value.includes('example.com') || value.includes('placeholder.com') || (!value.startsWith('http') && !value.startsWith('/')))) {
           this.value = '';
           alert('Please enter a valid image URL (starting with http/https) or use the local upload feature');
-          // Disabled: updateImagePreview(this.value);
         }
       });
     }
@@ -724,7 +736,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show preview immediately with uploaded file
         const fileUrl = URL.createObjectURL(file);
-        // Disabled: updateImagePreview(fileUrl);
+        const mediaData = {
+          url: fileUrl,
+          originalName: file.name,
+          mediaType: 'IMAGE',
+          size: file.size
+        };
+        showImagePreview(mediaData, formEl);
         
         try {
           // Show enhanced upload progress
@@ -744,7 +762,13 @@ document.addEventListener('DOMContentLoaded', function() {
           if (imageUrlInput) {
             imageUrlInput.value = result.url;
             // Update preview with server URL
-            // Disabled: updateImagePreview(result.url);
+            const mediaData = {
+              url: result.url,
+              originalName: result.name || 'Uploaded Image',
+              mediaType: 'IMAGE',
+              size: file.size
+            };
+            showImagePreview(mediaData, formEl);
           }
           
           // Show success message with enhanced UI
@@ -1065,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function showLegacyImageUploadProgress(fileName, fileSize) {
-    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    const imagePreviewText = document.querySelector('#imagePreviewTitle');
     if (imagePreviewText) {
       const fileSizeMB = (fileSize / 1024 / 1024).toFixed(2);
       imagePreviewText.innerHTML = `
@@ -1136,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function showLegacyImageUploadSuccess(fileName) {
-    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    const imagePreviewText = document.querySelector('#imagePreviewTitle');
     if (imagePreviewText) {
       imagePreviewText.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px; padding: 12px; color: #10b981;">
@@ -1157,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function showLegacyImageUploadError(errorMessage) {
-    const imagePreviewText = document.querySelector('#mediaPreviewTitle');
+    const imagePreviewText = document.querySelector('#imagePreviewTitle');
     if (imagePreviewText) {
       imagePreviewText.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px; padding: 12px; color: #ef4444;">
@@ -1561,6 +1585,18 @@ document.addEventListener('DOMContentLoaded', function() {
           const validImage = isValidImageUrl(fullArticle.image) ? fullArticle.image : '';
           imageInput.value = validImage;
           console.log('✅ Set image input value for IMAGE article:', validImage);
+          
+          // 🖼️ Show image preview for IMAGE articles
+          if (validImage) {
+            const mediaData = {
+              url: validImage,
+              originalName: 'Existing Image',
+              mediaType: 'IMAGE',
+              size: 0
+            };
+            console.log('🖼️ Showing image preview for IMAGE article:', mediaData);
+            showImagePreview(mediaData, formEl);
+          }
         }
       }
       
@@ -3488,12 +3524,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageUploadSection = formEl.querySelector('#imageUploadSection');
     const videoUploadSection = formEl.querySelector('#videoUploadSection');
     const uploadBtns = formEl.querySelectorAll('.upload-media-btn');
-    const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
-    const mediaPreview = formEl.querySelector('#mediaPreview');
-    const mediaPreviewInfo = formEl.querySelector('#mediaPreviewInfo');
-    const mediaPreviewTitle = formEl.querySelector('#mediaPreviewTitle');
-    const mediaPreviewDetails = formEl.querySelector('#mediaPreviewDetails');
-    const clearMediaBtn = formEl.querySelector('#clearMediaBtn');
+    const mediaPreviewWrap = formEl.querySelector('#imagePreviewWrap');
+    const mediaPreview = formEl.querySelector('#imagePreview');
+    const mediaPreviewInfo = formEl.querySelector('#imagePreviewInfo');
+    const mediaPreviewTitle = formEl.querySelector('#imagePreviewTitle');
+    const mediaPreviewDetails = formEl.querySelector('#imagePreviewDetails');
+    const clearMediaBtn = formEl.querySelector('#clearImageBtn');
     
     // Media type selection handlers
     mediaTypeInputs.forEach(input => {
@@ -4382,22 +4418,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const imageUrlInput = formEl.querySelector('input[name="image"]');
       if (imageUrlInput && imageUrlInput.value.trim()) {
         const url = imageUrlInput.value.trim();
-        // 🔧 Only show preview for valid URLs, not placeholder or empty URLs
+        // 🔧 Improved validation for URLs - more flexible but still secure
         if (url && 
             !url.includes('placeholder') && 
             !url.includes('example.com') && 
             url !== '/images/placeholder.svg' &&
             url !== '' &&
-            url.length > 10 && // Must be a real URL
-            (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes('supabase.co'))) {
+            url.length > 5 && // Reduced minimum length
+            (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:'))) {
           const mediaData = {
             url: url,
             originalName: 'Existing Image',
             mediaType: 'IMAGE',
             size: 0
           };
+          console.log('🖼️ checkExistingImagePreview: Showing preview for URL:', url);
           showImagePreview(mediaData, formEl);
+        } else {
+          console.log('🖼️ checkExistingImagePreview: URL did not meet validation criteria:', url);
         }
+      } else {
+        console.log('🖼️ checkExistingImagePreview: No image URL input found or empty value');
       }
     }
     
@@ -4434,12 +4475,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     imagePreviewWrap.style.setProperty('display', 'flex', 'important');
     
-    imagePreview.innerHTML = `
-      <div style="position: relative; width:100%;height:100%;">
-        <img src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 0.3s;" alt="Image preview" onload="this.style.opacity=1">
-        <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">IMAGE</div>
-      </div>
-    `;
+    // Create image element with better error handling
+    const img = document.createElement('img');
+    img.src = mediaData.url;
+    img.alt = 'Image preview';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px;';
+    
+    img.onload = function() {
+      console.log('✅ Image loaded successfully:', mediaData.url);
+    };
+    
+    img.onerror = function() {
+      console.error('❌ Image failed to load:', mediaData.url);
+      this.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;';
+      this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNGM0Y0RjYiLz48dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SU1BR0U8L3RleHQ+PC9zdmc+';
+    };
+    
+    imagePreview.innerHTML = '';
+    imagePreview.appendChild(img);
+    
+    // Add IMAGE label overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;';
+    overlay.textContent = 'IMAGE';
+    imagePreview.style.position = 'relative';
+    imagePreview.appendChild(overlay);
     
     imagePreviewTitle.textContent = `Image: ${mediaData.originalName || 'Image File'}`;
     imagePreviewDetails.innerHTML = `
