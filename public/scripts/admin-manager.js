@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
               </svg>Image URL
               <div style="display:flex; gap:12px; align-items:stretch;">
-                <input name="image" placeholder="/images/placeholder.svg" style="flex:1;" />
+                <input name="image" placeholder="Enter image URL or upload below" style="flex:1;" />
                   <button type="button" class="upload-media-btn" data-type="image" style="white-space:nowrap; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Upload Image...</button>
               </div>
                 <small style="color:#6b7280;font-size:13px;margin-top:8px;display:block;">Supports JPG, PNG, GIF, WebP (max 10MB)</small>
@@ -435,8 +435,8 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
             
-            <!-- Image Preview -->
-            <div id="imagePreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(34, 197, 94, 0.05); border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
+            <!-- Image Preview - Hidden by default, only shown when image is uploaded -->
+            <div id="imagePreviewWrap" style="display:none !important; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(34, 197, 94, 0.05); border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
               <div id="imagePreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
                 <span style="color:#64748b;font-size:12px;">No image selected</span>
               </div>
@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <span style="font-size:10px;color:#9ca3af;margin-top:4px;">No preview image</span>`;
         currentImagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #d1d5db;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;';
         if (currentImagePreviewWrap) {
-          currentImagePreviewWrap.style.display = 'none';
+          currentImagePreviewWrap.style.setProperty('display', 'none', 'important');
         }
         return;
       }
@@ -655,7 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
           currentImagePreview.style.cssText = 'width:160px;height:90px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;';
         }
         if (currentImagePreviewWrap) {
-          currentImagePreviewWrap.style.display = 'flex';
+          currentImagePreviewWrap.style.setProperty('display', 'flex', 'important');
         }
       };
       
@@ -673,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
           currentImagePreview.style.cssText = 'width:160px;height:90px;border:2px dashed #fca5a5;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fef2f2;';
         }
         if (currentImagePreviewWrap) {
-          currentImagePreviewWrap.style.display = 'flex';
+          currentImagePreviewWrap.style.setProperty('display', 'flex', 'important');
         }
       };
       
@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
       imageUrlInput.addEventListener('blur', function() {
         const value = this.value.trim();
         if (value && (value.includes('example.com') || value.includes('placeholder.com') || (!value.startsWith('http') && !value.startsWith('/')))) {
-          this.value = '/images/placeholder.svg';
+          this.value = '';
           alert('Please enter a valid image URL (starting with http/https) or use the local upload feature');
           // Disabled: updateImagePreview(this.value);
         }
@@ -1352,7 +1352,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
       if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
-      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.setProperty('display', 'none', 'important');
       if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
       
       console.log('✅ All previews cleared for new article form');
@@ -3477,7 +3477,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
       if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
-      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.setProperty('display', 'none', 'important');
       if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
       
       console.log('✅ Media upload initialized - all previews cleared');
@@ -3507,7 +3507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
         if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
-        if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+        if (imagePreviewWrap) imagePreviewWrap.style.setProperty('display', 'none', 'important');
         
         if (mediaType === 'IMAGE') {
           imageUploadSection.style.display = 'block';
@@ -4318,7 +4318,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
       if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
-      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.setProperty('display', 'none', 'important');
       if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
     }
     
@@ -4432,7 +4432,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    imagePreviewWrap.style.display = 'flex';
+    imagePreviewWrap.style.setProperty('display', 'flex', 'important');
     
     imagePreview.innerHTML = `
       <div style="position: relative; width:100%;height:100%;">
@@ -4598,7 +4598,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
     if (imagePreviewWrap) {
-      imagePreviewWrap.style.display = 'none';
+      imagePreviewWrap.style.setProperty('display', 'none', 'important');
     }
     
     const imageUrlInput = formEl.querySelector('input[name="image"]');
