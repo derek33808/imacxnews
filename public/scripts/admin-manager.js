@@ -3838,9 +3838,9 @@ document.addEventListener('DOMContentLoaded', function() {
           // Set timeout to 5 minutes for large files
           xhr.timeout = 300000; // 5 minutes
           
-          // Upload to Supabase
-          xhr.open('POST', uploadUrl);
-          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          // Upload to Supabase with correct method and headers
+          xhr.open('PUT', uploadUrl);
+          // Note: Don't set Authorization header for signed URLs - auth is in the URL
           xhr.setRequestHeader('Content-Type', file.type);
           xhr.send(file);
         });
