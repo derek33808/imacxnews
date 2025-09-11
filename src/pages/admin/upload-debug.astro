@@ -1,0 +1,343 @@
+---
+// Upload debug page
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上传调试工具 - IMACX News Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .upload-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      text-align: center;
+      background: #fafafa;
+    }
+    
+    .upload-input {
+      margin: 15px 0;
+    }
+    
+    .upload-input input[type="file"] {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 14px;
+    }
+    
+    .upload-btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    
+    .upload-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+    
+    .upload-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .progress {
+      margin: 20px 0;
+      display: none;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .results {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .results.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .results.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: Monaco, Consolas, monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    
+    .info-section {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .info-section h3 {
+      color: #1565c0;
+      margin-bottom: 10px;
+    }
+    
+    .endpoint-test {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+    
+    .endpoint-test button {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    
+    .endpoint-test button:hover {
+      background: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🐛 上传调试工具</h1>
+      <p>诊断视频上传失败问题</p>
+    </div>
+    
+    <div class="content">
+      <div class="info-section">
+        <h3>📋 调试说明</h3>
+        <p>此工具将帮助诊断文章编辑器中的视频上传问题。它会提供详细的错误信息和调试数据。</p>
+      </div>
+      
+      <div class="upload-section">
+        <h3>🎬 测试文件上传</h3>
+        <p>选择一个视频文件进行测试上传</p>
+        
+        <div class="upload-input">
+          <input type="file" id="testFile" accept="video/*,image/*">
+        </div>
+        
+        <button id="uploadBtn" class="upload-btn">🚀 开始调试上传</button>
+        
+        <div class="progress" id="progress">
+          <p>上传中...</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p id="progressText">0%</p>
+        </div>
+      </div>
+      
+      <div class="endpoint-test">
+        <h3>🔗 快速测试</h3>
+        <p>测试不同的API端点：</p>
+        <button onclick="testEndpoint('/api/storage/verify-config')">存储配置检查</button>
+        <button onclick="testEndpoint('/api/media/simple-upload?action=info')">上传配置</button>
+        <button onclick="testEndpoint('/api/media/simple-upload?action=test')">存储连接测试</button>
+      </div>
+      
+      <div class="results" id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('testFile');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progress = document.getElementById('progress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const results = document.getElementById('results');
+
+    uploadBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        showResults('请选择一个文件', 'error');
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      progress.style.display = 'block';
+      results.style.display = 'none';
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', 'debug-test');
+
+        console.log('🚀 Starting debug upload test...');
+        console.log('File:', file.name, file.size, file.type);
+
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          progress.style.display = 'none';
+          
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              showResults('上传成功！', 'success', response);
+            } catch (e) {
+              showResults('响应解析错误', 'error', { 
+                rawResponse: xhr.responseText,
+                parseError: e.message 
+              });
+            }
+          } else {
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              showResults('上传失败', 'error', errorResponse);
+            } catch (e) {
+              showResults('上传失败', 'error', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                rawResponse: xhr.responseText
+              });
+            }
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          progress.style.display = 'none';
+          showResults('网络错误', 'error', {
+            error: '请求失败，检查网络连接'
+          });
+        });
+
+        xhr.open('POST', '/api/debug/upload-test');
+        xhr.withCredentials = true;
+        xhr.send(formData);
+
+      } catch (error) {
+        progress.style.display = 'none';
+        showResults('JavaScript错误', 'error', {
+          error: error.message,
+          stack: error.stack
+        });
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+
+    function showResults(title, type, data = null) {
+      results.className = `results ${type}`;
+      results.style.display = 'block';
+      
+      let html = `<h3>${title}</h3>`;
+      
+      if (data) {
+        html += '<div class="code-block">' + JSON.stringify(data, null, 2) + '</div>';
+        
+        if (data.debug) {
+          html += '<h4>调试信息:</h4>';
+          html += '<div class="code-block">' + JSON.stringify(data.debug, null, 2) + '</div>';
+        }
+      }
+      
+      results.innerHTML = html;
+    }
+
+    async function testEndpoint(endpoint) {
+      try {
+        const response = await fetch(endpoint, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        
+        showResults(`端点测试: ${endpoint}`, response.ok ? 'success' : 'error', {
+          status: response.status,
+          data: data
+        });
+      } catch (error) {
+        showResults(`端点测试失败: ${endpoint}`, 'error', {
+          error: error.message
+        });
+      }
+    }
+
+    // Auto-focus on file input
+    fileInput.focus();
+  </script>
+</body>
+</html>
