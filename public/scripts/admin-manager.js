@@ -3558,14 +3558,32 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Handle media upload
+    // Handle media upload with duplicate click protection
+    let isUploading = false; // 防重复上传标志
+    
     async function handleMediaUpload(mediaType, formEl) {
-      console.log(`🎥 Starting ${mediaType} upload...`);
+      // 防重复点击检查
+      if (isUploading) {
+        console.log('⚠️ Upload already in progress, ignoring duplicate click');
+        return null;
+      }
       
-      // Create file input
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = mediaType === 'image' ? 'image/*' : 'video/*';
+      console.log(`🎥 Starting ${mediaType} upload...`);
+      isUploading = true; // 设置上传状态
+      
+      // 禁用上传按钮
+      const uploadBtns = formEl.querySelectorAll('.upload-media-btn');
+      uploadBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+      });
+      
+      try {
+        // Create file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = mediaType === 'image' ? 'image/*' : 'video/*';
       
       return new Promise((resolve, reject) => {
         fileInput.onchange = async function(e) {
@@ -3654,6 +3672,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Trigger file selection
         fileInput.click();
       });
+      
+      } catch (error) {
+        console.error('💥 Upload process error:', error);
+        return null;
+      } finally {
+        // 重置上传状态和重新启用按钮
+        isUploading = false;
+        const uploadBtns = formEl.querySelectorAll('.upload-media-btn');
+        uploadBtns.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+        });
+        console.log('🔄 Upload state reset, buttons re-enabled');
+      }
     }
 
     // 🖼️ Handle poster upload
