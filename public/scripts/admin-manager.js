@@ -1017,6 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Start upload
       xhr.open('POST', url);
+      xhr.withCredentials = true;
       xhr.send(formData);
     });
   }
@@ -2928,7 +2929,9 @@ document.addEventListener('DOMContentLoaded', function() {
       storageStatus.className = 'status-badge checking';
       storageIcon.className = 'status-icon status-checking';
       
-      const response = await fetch('/api/media/simple-upload?action=test');
+      const response = await fetch('/api/media/simple-upload?action=test', {
+        credentials: 'include'
+      });
       const result = await response.json();
       
       if (response.ok && result.connected) {
@@ -3026,11 +3029,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const response = await fetch('/api/media/simple-upload', {
           method: 'POST',
-          body: formData
+          body: formData,
+          credentials: 'include'
         });
         
         if (!response.ok) {
-          throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+          // Check if it's an authentication error
+          if (response.status === 401 || response.status === 403) {
+            const authError = new Error('Authentication failed. Please login as admin again.');
+            authError.isAuthError = true;
+            authError.status = response.status;
+            throw authError;
+          }
+          
+          // Try to get detailed error message from response
+          let errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
+          try {
+            const errorResult = await response.json();
+            if (errorResult && errorResult.error) {
+              errorMessage = errorResult.error;
+            }
+          } catch {
+            // Keep default error message if can't parse response
+          }
+          
+          throw new Error(errorMessage);
         }
         
         const result = await response.json();
@@ -3053,7 +3076,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       } catch (error) {
         console.error('❌ Quick upload failed:', error);
-        showQuickUploadError(file, error.message);
+        
+        // Handle authentication errors specially
+        if (error.isAuthError || error.message.includes('Authentication failed')) {
+          showQuickUploadAuthError(file, error.message);
+        } else {
+          showQuickUploadError(file, error.message);
+        }
       }
     }
   }
@@ -3110,6 +3139,13 @@ document.addEventListener('DOMContentLoaded', function() {
       progressFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
     }
     
+    console.error(`❌ Upload failed for ${file.name}:`, error);
+    
+    // Show error alert
+    setTimeout(() => {
+      alert(`Upload failed for ${file.name}: ${error}`);
+    }, 500);
+    
     // Hide after 5 seconds
     setTimeout(() => {
       progressContainer.style.display = 'none';
@@ -3118,6 +3154,43 @@ document.addEventListener('DOMContentLoaded', function() {
         progressFill.style.background = 'linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light))';
       }
     }, 5000);
+  }
+
+  function showQuickUploadAuthError(file, error) {
+    const progressContainer = document.getElementById('quickUploadProgress');
+    if (!progressContainer) return;
+    
+    const uploadStatus = progressContainer.querySelector('.upload-status');
+    const progressFill = progressContainer.querySelector('.upload-progress-fill');
+    
+    if (uploadStatus) uploadStatus.textContent = 'Auth Error';
+    if (progressFill) {
+      progressFill.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+    }
+    
+    console.error(`🔒 Authentication error for ${file.name}:`, error);
+    
+    // Show authentication error dialog
+    setTimeout(() => {
+      const choice = confirm(`🔒 Authentication failed for ${file.name}\n\n${error}\n\nClick OK to open login window, or Cancel to refresh the page.`);
+      if (choice) {
+        if (window.openLoginModal) {
+          window.openLoginModal();
+        } else {
+          console.error('openLoginModal not found');
+          window.location.reload();
+        }
+      } else {
+        window.location.reload();
+      }
+      
+      // Reset progress container
+      progressContainer.style.display = 'none';
+      if (progressFill) {
+        progressFill.style.width = '0%';
+        progressFill.style.background = 'linear-gradient(90deg, var(--modal-primary), var(--modal-primary-light))';
+      }
+    }, 1000);
   }
 
   // 🧪 API Testing Functions
@@ -3153,7 +3226,9 @@ document.addEventListener('DOMContentLoaded', function() {
     output.innerHTML = '<div style="color: #f59e0b;">🧪 Testing storage connection...</div>';
     
     try {
-      const response = await fetch('/api/media/simple-upload?action=test');
+      const response = await fetch('/api/media/simple-upload?action=test', {
+        credentials: 'include'
+      });
       const result = await response.json();
       
       const status = response.ok ? '✅ SUCCESS' : '❌ FAILED';
@@ -3186,7 +3261,9 @@ document.addEventListener('DOMContentLoaded', function() {
     output.innerHTML = '<div style="color: #f59e0b;">📋 Getting upload configuration...</div>';
     
     try {
-      const response = await fetch('/api/media/simple-upload?action=info');
+      const response = await fetch('/api/media/simple-upload?action=info', {
+        credentials: 'include'
+      });
       const result = await response.json();
       
       const status = response.ok ? '✅ SUCCESS' : '❌ FAILED';
@@ -3720,6 +3797,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Start upload
         xhr.open('POST', url);
+        xhr.withCredentials = true;
         xhr.send(formData);
       });
     }
