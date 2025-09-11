@@ -3579,105 +3579,14 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.style.cursor = 'not-allowed';
       });
       
-      try {
-        // Create file input
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = mediaType === 'image' ? 'image/*' : 'video/*';
-      
-      return new Promise((resolve, reject) => {
-        fileInput.onchange = async function(e) {
-          const file = e.target.files[0];
-          if (!file) {
-            resolve(null);
-            return;
-          }
-          
-          try {
-            // 🛡️ File size validation
-            const maxSizeBytes = mediaType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
-            if (file.size > maxSizeBytes) {
-              const maxSizeMB = mediaType === 'video' ? 50 : 10;
-              throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`);
-            }
-            
-            // Show upload progress
-            showUploadProgress(mediaType, file.name);
-            
-            // Create form data with error handling
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('category', 'TodayNews');
-            
-            // Upload to API with progress tracking
-            const result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
-            
-            if (result.success) {
-              console.log('✅ Upload successful:', result.data);
-              
-              // Update form fields based on media type
-              if (mediaType === 'image') {
-                const imageInput = formEl.querySelector('input[name="image"]');
-                if (imageInput) {
-                  imageInput.value = result.data.url;
-                  
-                  // 🖼️ Trigger preview update for image
-                  if (window.updateImagePreview) {
-                    window.updateImagePreview(result.data.url);
-                  }
-                }
-              } else if (mediaType === 'video') {
-                const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
-                const videoPosterInput = formEl.querySelector('input[name="videoPoster"]'); // poster
-                const durationInput = formEl.querySelector('input[name="videoDuration"]');
-                
-                if (videoUrlInput) {
-                  videoUrlInput.value = result.data.url;
-                  // Show video preview directly (no need for legacy handler)
-                  // handleVideoUrlPreview(result.data.url, formEl);
-                }
-                // ❌ REMOVED: Don't auto-fill poster with video URL (invalid)
-                // Video URLs are not images and cannot be used as poster
-                // Users should upload a separate poster image
-                // if (videoPosterInput && !videoPosterInput.value) {
-                //   videoPosterInput.value = result.data.url;  // This was incorrect
-                // }
-                if (durationInput && result.data.duration) {
-                  durationInput.value = Math.round(result.data.duration);
-                }
-              }
-              
-              // Show media preview in appropriate area
-              console.log('📤 About to show media preview:', { resultData: result.data, mediaType });
-              if (mediaType === 'video') {
-                showVideoPreview(result.data, formEl);
-              } else {
-              showMediaPreview(result.data, mediaType);
-              }
-              
-              resolve(result.data);
-            } else {
-              throw new Error(result.error || 'Upload failed');
-            }
-            
-          } catch (error) {
-            console.error('❌ Upload failed:', error);
-            showUploadError(error.message);
-            reject(error);
-          } finally {
-            hideUploadProgress();
-          }
-        };
-        
-        // Trigger file selection
-        fileInput.click();
-      });
-      
-      } catch (error) {
-        console.error('💥 Upload process error:', error);
-        return null;
-      } finally {
-        // 重置上传状态和重新启用按钮
+    // Create file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = mediaType === 'image' ? 'image/*' : 'video/*';
+    
+    return new Promise((resolve, reject) => {
+      // 🔧 内部清理函数
+      const cleanup = () => {
         isUploading = false;
         const uploadBtns = formEl.querySelectorAll('.upload-media-btn');
         uploadBtns.forEach(btn => {
@@ -3685,8 +3594,116 @@ document.addEventListener('DOMContentLoaded', function() {
           btn.style.opacity = '1';
           btn.style.cursor = 'pointer';
         });
+        hideUploadProgress();
         console.log('🔄 Upload state reset, buttons re-enabled');
-      }
+      };
+      
+      fileInput.onchange = async function(e) {
+        try {
+          const file = e.target.files[0];
+          if (!file) {
+            cleanup();
+            resolve(null);
+            return;
+          }
+          
+          // 🛡️ File size validation
+          const maxSizeBytes = mediaType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
+          if (file.size > maxSizeBytes) {
+            const maxSizeMB = mediaType === 'video' ? 50 : 10;
+            const error = new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`);
+            cleanup();
+            showUploadError(error.message);
+            reject(error);
+            return;
+          }
+          
+          // Show upload progress
+          showUploadProgress(mediaType, file.name);
+          
+          // Create form data with error handling
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', 'TodayNews');
+          
+          // Upload to API with progress tracking
+          const result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
+          
+          if (result.success) {
+            console.log('✅ Upload successful:', result.data);
+            
+            // Update form fields based on media type
+            if (mediaType === 'image') {
+              const imageInput = formEl.querySelector('input[name="image"]');
+              if (imageInput) {
+                imageInput.value = result.data.url;
+                
+                // 🖼️ Trigger preview update for image
+                if (window.updateImagePreview) {
+                  window.updateImagePreview(result.data.url);
+                }
+              }
+            } else if (mediaType === 'video') {
+              const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+              const videoPosterInput = formEl.querySelector('input[name="videoPoster"]'); // poster
+              const durationInput = formEl.querySelector('input[name="videoDuration"]');
+              
+              if (videoUrlInput) {
+                videoUrlInput.value = result.data.url;
+                // Show video preview directly (no need for legacy handler)
+                // handleVideoUrlPreview(result.data.url, formEl);
+              }
+              // ❌ REMOVED: Don't auto-fill poster with video URL (invalid)
+              // Video URLs are not images and cannot be used as poster
+              // Users should upload a separate poster image
+              // if (videoPosterInput && !videoPosterInput.value) {
+              //   videoPosterInput.value = result.data.url;  // This was incorrect
+              // }
+              if (durationInput && result.data.duration) {
+                durationInput.value = Math.round(result.data.duration);
+              }
+            }
+            
+            // Show media preview in appropriate area
+            console.log('📤 About to show media preview:', { resultData: result.data, mediaType });
+            if (mediaType === 'video') {
+              showVideoPreview(result.data, formEl);
+            } else {
+              showMediaPreview(result.data, mediaType);
+            }
+            
+            cleanup();
+            resolve(result.data);
+          } else {
+            const error = new Error(result.error || 'Upload failed');
+            cleanup();
+            showUploadError(error.message);
+            reject(error);
+          }
+          
+        } catch (error) {
+          console.error('❌ Upload failed:', error);
+          cleanup();
+          showUploadError(error.message);
+          reject(error);
+        }
+      };
+      
+      // 🚫 取消上传处理
+      fileInput.oncancel = function() {
+        console.log('📷 Upload cancelled by user');
+        cleanup();
+        resolve(null);
+      };
+      
+      // Trigger file selection
+      fileInput.click();
+    }).catch(error => {
+      // 🚨 最终错误处理，确保不会有未处理的Promise
+      console.error('💥 Final upload error handler:', error);
+      // 重新抛出让调用者处理，但现在不会是"unhandled"
+      throw error;
+    });
     }
 
     // 🖼️ Handle poster upload
