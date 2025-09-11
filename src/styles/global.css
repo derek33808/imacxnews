@@ -425,3 +425,18 @@ img {
 .close-modal:hover {
   background: rgba(0, 0, 0, 0.1);
 }
+
+/* iPad模式优化 - 增加左右边距 */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    padding: 0 var(--space-12); /* 增加到3rem (48px) */
+    max-width: 1024px; /* 适配iPad屏幕宽度 */
+  }
+}
+
+/* iPad Pro和大屏iPad优化 */
+@media (min-width: 1025px) and (max-width: 1200px) {
+  .container {
+    padding: 0 var(--space-16); /* 增加到4rem (64px) */
+  }
+}
