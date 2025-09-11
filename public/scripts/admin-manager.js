@@ -435,6 +435,18 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
             
+            <!-- Image Preview -->
+            <div id="imagePreviewWrap" style="display:none; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(34, 197, 94, 0.05); border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
+              <div id="imagePreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
+                <span style="color:#64748b;font-size:12px;">No image selected</span>
+              </div>
+              <div id="imagePreviewInfo" style="flex: 1;">
+                <div id="imagePreviewTitle" style="font-weight: 600; color: #f8fafc; margin-bottom: 4px;">Image Preview</div>
+                <div id="imagePreviewDetails" style="font-size: 12px; color: #94a3b8;"></div>
+                <button type="button" id="clearImageBtn" style="margin-top: 8px; padding: 4px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">Clear Image</button>
+              </div>
+            </div>
+            
             <!-- Legacy Media Preview (HIDDEN - replaced by dedicated video/poster previews) -->
             <div id="mediaPreviewWrap" style="display:none !important; gap:16px; align-items:center; margin-top: 16px; padding: 16px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
               <div id="mediaPreview" style="width:160px;height:90px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1e293b;">
@@ -3683,8 +3695,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 imageInput.value = result.data.url;
                 
                 // 🖼️ Trigger preview update for image
-                if (window.updateImagePreview) {
-                  window.updateImagePreview(result.data.url);
+                if (typeof showImagePreview === 'function') {
+                  showImagePreview(result.data, formEl);
                 }
               }
             } else if (mediaType === 'video') {
@@ -4263,10 +4275,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (mediaType === 'image') {
         // 🖼️ Enable image preview for regular images
         console.log('🖼️ Showing image preview for regular image');
-        if (window.updateImagePreview && mediaData.url) {
-          window.updateImagePreview(mediaData.url);
+        if (typeof showImagePreview === 'function' && mediaData.url) {
+          showImagePreview(mediaData, null);
         } else {
-          console.warn('⚠️ updateImagePreview function not available or no URL provided');
+          console.warn('⚠️ showImagePreview function not available or no URL provided');
         }
         return;
       }
@@ -4278,10 +4290,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearAllPreviews() {
       const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
       const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+      const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
       const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
       
       if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
       if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
       if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
     }
     
@@ -4360,6 +4374,57 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize existing image preview check
     setTimeout(checkExistingImagePreview, 100);
   };
+
+  // 🖼️ Global Image Preview Function
+  function showImagePreview(mediaData, formElement = null) {
+    console.log('🖼️ showImagePreview called:', mediaData);
+    
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) {
+      console.error('❌ No form element found for image preview');
+      return;
+    }
+    
+    const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
+    const imagePreview = formEl.querySelector('#imagePreview');
+    const imagePreviewTitle = formEl.querySelector('#imagePreviewTitle');
+    const imagePreviewDetails = formEl.querySelector('#imagePreviewDetails');
+    
+    if (!imagePreviewWrap || !imagePreview || !imagePreviewTitle || !imagePreviewDetails) {
+      console.error('❌ Missing image preview DOM elements');
+      return;
+    }
+    
+    imagePreviewWrap.style.display = 'flex';
+    
+    imagePreview.innerHTML = `
+      <div style="position: relative; width:100%;height:100%;">
+        <img src="${mediaData.url}" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 0.3s;" alt="Image preview" onload="this.style.opacity=1">
+        <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:white;padding:2px 6px;border-radius:4px;font-size:10px;">IMAGE</div>
+      </div>
+    `;
+    
+    imagePreviewTitle.textContent = `Image: ${mediaData.originalName || 'Image File'}`;
+    imagePreviewDetails.innerHTML = `
+      <div>Type: IMAGE</div>
+      <div>Size: ${formatFileSize(mediaData.size || 0)}</div>
+      <div>Format: ${getImageFormat(mediaData.url)}</div>
+      <div>Upload: ${mediaData.uploadMethod === 'direct' ? 'Direct to Supabase' : 'Via Server'}</div>
+    `;
+    
+    // Setup clear button
+    const clearImageBtn = formEl.querySelector('#clearImageBtn');
+    if (clearImageBtn) {
+      clearImageBtn.onclick = () => {
+        clearImagePreview(formEl);
+      };
+    }
+    
+    console.log('✅ Image preview displayed successfully');
+  }
+
+  // 🌐 Global Image Preview Function
+  window.showImagePreview = showImagePreview;
 
   // 🎥 Global Video Preview Function
   function showVideoPreview(mediaData, formElement = null) {
@@ -4473,7 +4538,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100); // Small delay to ensure DOM is ready
   }
   
+  // 🖼️ Helper function to get image format
+  function getImageFormat(url) {
+    if (!url) return 'Unknown';
+    const extension = url.split('.').pop()?.toLowerCase();
+    const formatMap = {
+      'jpg': 'JPEG',
+      'jpeg': 'JPEG', 
+      'png': 'PNG',
+      'gif': 'GIF',
+      'webp': 'WebP',
+      'svg': 'SVG',
+      'bmp': 'BMP'
+    };
+    return formatMap[extension] || extension?.toUpperCase() || 'Unknown';
+  }
+
+  // 🗑️ Clear Image Preview Function
+  function clearImagePreview(formElement = null) {
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) return;
+    
+    const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
+    if (imagePreviewWrap) {
+      imagePreviewWrap.style.display = 'none';
+    }
+    
+    const imageUrlInput = formEl.querySelector('input[name="image"]');
+    if (imageUrlInput) {
+      imageUrlInput.value = '';
+    }
+    
+    console.log('✅ Image preview cleared');
+  }
+
   // 🗑️ Global Clear Functions
+  window.clearImagePreview = function(formElement = null) {
+    clearImagePreview(formElement);
+  };
+
   window.clearVideoPreview = function(formElement = null) {
     const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
     if (!formEl) return;
