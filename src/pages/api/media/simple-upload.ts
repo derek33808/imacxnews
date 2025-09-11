@@ -7,9 +7,6 @@ import { SimpleMediaUploader, supabaseAdmin, STORAGE_BUCKET } from '../../../lib
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
 
 export const POST: APIRoute = async ({ request }) => {
-  // 设置API路由超时处理
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), 25000); // 25秒超时
   // Authentication - Only allow admin upload
   const user = getUserFromRequest(request);
   try {

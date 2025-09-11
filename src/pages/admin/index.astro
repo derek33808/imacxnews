@@ -1,0 +1,302 @@
+---
+// 管理面板主页
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理面板 - IMACXNews</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    
+    .welcome-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      margin-bottom: 40px;
+    }
+    
+    .welcome-title {
+      font-size: 2.5rem;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    
+    .welcome-subtitle {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 32px;
+    }
+    
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    
+    .admin-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .admin-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      color: white;
+      font-size: 24px;
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    
+    .card-description {
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    
+    .card-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .card-button:hover {
+      transform: translateY(-2px);
+    }
+    
+    .tools-section {
+      margin-top: 40px;
+    }
+    
+    .section-title {
+      color: white;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">IMACXNews Admin</div>
+      <div class="nav-links">
+        <a href="/">首页</a>
+        <a href="/admin/supabase-diagnosis">系统诊断</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="welcome-card">
+      <h1 class="welcome-title">🎛️ 管理面板</h1>
+      <p class="welcome-subtitle">欢迎使用 IMACXNews 内容管理系统</p>
+      
+      <button id="openAdminManager" class="card-button" style="font-size: 1.2rem; padding: 16px 32px;">
+        📝 打开文章管理器
+      </button>
+    </div>
+
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="card-icon">📊</div>
+        <h3 class="card-title">系统诊断</h3>
+        <p class="card-description">检查 Supabase 存储配置、连接状态和上传功能</p>
+        <a href="/admin/supabase-diagnosis" class="card-button">运行诊断</a>
+      </div>
+
+      <div class="admin-card">
+        <div class="card-icon">🔧</div>
+        <h3 class="card-title">存储检查</h3>
+        <p class="card-description">验证存储环境变量和配置</p>
+        <a href="/admin/storage-check" class="card-button">检查配置</a>
+      </div>
+
+      <div class="admin-card">
+        <div class="card-icon">🐛</div>
+        <h3 class="card-title">上传调试</h3>
+        <p class="card-description">测试和调试文件上传功能</p>
+        <a href="/admin/upload-debug" class="card-button">开始调试</a>
+      </div>
+
+      <div class="admin-card">
+        <div class="card-icon">📱</div>
+        <h3 class="card-title">媒体中心</h3>
+        <p class="card-description">管理图片和视频文件</p>
+        <a href="/media-center" class="card-button">打开媒体中心</a>
+      </div>
+    </div>
+
+    <div class="tools-section">
+      <h2 class="section-title">🛠️ 开发工具</h2>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <div class="card-icon">🔍</div>
+          <h3 class="card-title">API 测试</h3>
+          <p class="card-description">测试各种 API 端点和功能</p>
+          <button onclick="testAPI()" class="card-button">测试 API</button>
+        </div>
+
+        <div class="admin-card">
+          <div class="card-icon">📏</div>
+          <h3 class="card-title">上传限制</h3>
+          <p class="card-description">查看当前环境的文件上传限制</p>
+          <button onclick="checkLimits()" class="card-button">检查限制</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入管理器脚本 -->
+  <script src="/scripts/admin-manager.js"></script>
+  
+  <script>
+    // 打开文章管理器
+    document.getElementById('openAdminManager').addEventListener('click', function() {
+      if (window.openAdminManager) {
+        window.openAdminManager();
+      } else {
+        alert('管理器加载中，请稍后再试...');
+      }
+    });
+    
+    // 测试API功能
+    async function testAPI() {
+      try {
+        const response = await fetch('/api/media/upload-limits', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          alert(`API 测试成功！\n\n环境: ${data.data?.environment}\n图片限制: ${data.data?.maxImageSizeMB}MB\n视频限制: ${data.data?.maxVideoSizeMB}MB`);
+        } else {
+          alert(`API 测试失败: ${response.status} ${response.statusText}`);
+        }
+      } catch (error) {
+        alert(`API 测试错误: ${error.message}`);
+      }
+    }
+    
+    // 检查上传限制
+    async function checkLimits() {
+      try {
+        const response = await fetch('/api/media/upload-limits', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          const limits = data.data;
+          const info = `📊 当前上传限制\n\n` +
+                      `🌍 环境: ${limits.environment}\n` +
+                      `🖼️ 图片: ${limits.maxImageSizeMB}MB\n` +
+                      `🎥 视频: ${limits.maxVideoSizeMB}MB\n\n` +
+                      `📝 支持格式:\n` +
+                      `图片: ${limits.supportedImageFormats?.join(', ')}\n` +
+                      `视频: ${limits.supportedVideoFormats?.join(', ')}`;
+          alert(info);
+        } else {
+          alert('获取限制信息失败');
+        }
+      } catch (error) {
+        alert(`错误: ${error.message}`);
+      }
+    }
+    
+    // 页面加载时的初始化
+    console.log('🎛️ 管理面板已加载');
+    console.log('📏 正在获取上传限制...');
+    
+    // 自动获取并显示上传限制
+    checkLimits().catch(console.error);
+  </script>
+</body>
+</html>
