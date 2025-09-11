@@ -3668,10 +3668,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 🚀 Try client-side direct upload first (for large files)
     let result;
     if (file.size > 10 * 1024 * 1024) { // Files larger than 10MB use direct upload
-      console.log('🔄 Using direct upload for large file...');
       result = await directUploadToSupabase(file, mediaType);
     } else {
-      console.log('🔄 Using server upload for small file...');
       result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
     }
           
@@ -3754,11 +3752,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 🚀 Direct upload to Supabase (bypasses Netlify Functions)
     async function directUploadToSupabase(file, mediaType) {
-      console.log(`🚀 Starting direct upload to Supabase: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      console.log(`🚀 Direct upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       
       try {
         // Step 1: Get upload URL from our API
-        console.log('📡 Getting signed upload URL...');
         const urlResponse = await fetch('/api/media/get-upload-url', {
           method: 'POST',
           headers: {
@@ -3783,7 +3780,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const { uploadUrl, token, publicUrl, finalFileName, path, mediaType: resultMediaType } = urlResult.data;
-        console.log('✅ Got upload URL, starting direct upload...');
 
         // Step 2: Upload directly to Supabase with progress tracking
         return new Promise((resolve, reject) => {
@@ -3799,13 +3795,16 @@ document.addEventListener('DOMContentLoaded', function() {
               const eta = (event.total - event.loaded) / speed;
               
               updateUploadProgress(mediaType, percentComplete, speed, eta, event.loaded, event.total);
-              console.log(`📊 Direct upload progress: ${percentComplete}% (${(event.loaded / 1024 / 1024).toFixed(1)}MB / ${(event.total / 1024 / 1024).toFixed(1)}MB)`);
+              // 简化进度日志 - 只在关键节点显示
+              if (percentComplete % 25 === 0 || percentComplete === 100) {
+                console.log(`📊 Direct upload: ${percentComplete}% (${(event.loaded / 1024 / 1024).toFixed(1)}MB)`);
+              }
             }
           };
 
           xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
-              console.log('✅ Direct upload to Supabase successful!');
+              console.log('✅ Upload completed successfully');
               
               // Return result in the same format as server upload
               resolve({
