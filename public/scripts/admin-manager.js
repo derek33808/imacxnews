@@ -3665,8 +3665,15 @@ document.addEventListener('DOMContentLoaded', function() {
           formData.append('file', file);
           formData.append('category', 'TodayNews');
           
-          // Upload to API with progress tracking
-          const result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
+    // 🚀 Try client-side direct upload first (for large files)
+    let result;
+    if (file.size > 10 * 1024 * 1024) { // Files larger than 10MB use direct upload
+      console.log('🔄 Using direct upload for large file...');
+      result = await directUploadToSupabase(file, mediaType);
+    } else {
+      console.log('🔄 Using server upload for small file...');
+      result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
+    }
           
           if (result.success) {
             console.log('✅ Upload successful:', result.data);
@@ -3743,6 +3750,105 @@ document.addEventListener('DOMContentLoaded', function() {
       // 重新抛出让调用者处理，但现在不会是"unhandled"
       throw error;
     });
+    }
+
+    // 🚀 Direct upload to Supabase (bypasses Netlify Functions)
+    async function directUploadToSupabase(file, mediaType) {
+      console.log(`🚀 Starting direct upload to Supabase: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      
+      try {
+        // Step 1: Get upload URL from our API
+        console.log('📡 Getting signed upload URL...');
+        const urlResponse = await fetch('/api/media/get-upload-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            category: 'TodayNews'
+          })
+        });
+
+        if (!urlResponse.ok) {
+          throw new Error(`Failed to get upload URL: ${urlResponse.status}`);
+        }
+
+        const urlResult = await urlResponse.json();
+        if (!urlResult.success) {
+          throw new Error(urlResult.error || 'Failed to get upload URL');
+        }
+
+        const { uploadUrl, token, publicUrl, finalFileName, path, mediaType: resultMediaType } = urlResult.data;
+        console.log('✅ Got upload URL, starting direct upload...');
+
+        // Step 2: Upload directly to Supabase with progress tracking
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          let startTime = Date.now();
+
+          // Progress tracking
+          xhr.upload.onprogress = function(event) {
+            if (event.lengthComputable) {
+              const percentComplete = Math.round((event.loaded / event.total) * 100);
+              const elapsed = Date.now() - startTime;
+              const speed = event.loaded / (elapsed / 1000); // bytes per second
+              const eta = (event.total - event.loaded) / speed;
+              
+              updateUploadProgress(mediaType, percentComplete, speed, eta, event.loaded, event.total);
+              console.log(`📊 Direct upload progress: ${percentComplete}% (${(event.loaded / 1024 / 1024).toFixed(1)}MB / ${(event.total / 1024 / 1024).toFixed(1)}MB)`);
+            }
+          };
+
+          xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              console.log('✅ Direct upload to Supabase successful!');
+              
+              // Return result in the same format as server upload
+              resolve({
+                success: true,
+                data: {
+                  url: publicUrl,
+                  path: path,
+                  type: mediaType,
+                  mediaType: resultMediaType,
+                  size: file.size,
+                  originalName: finalFileName,
+                  category: 'TodayNews',
+                  uploadedAt: new Date().toISOString(),
+                  uploadMethod: 'direct' // Flag to indicate direct upload
+                }
+              });
+            } else {
+              reject(new Error(`Direct upload failed with status: ${xhr.status}`));
+            }
+          };
+
+          xhr.onerror = function() {
+            reject(new Error('Direct upload failed due to network error'));
+          };
+
+          xhr.ontimeout = function() {
+            reject(new Error('Direct upload timed out'));
+          };
+
+          // Set timeout to 5 minutes for large files
+          xhr.timeout = 300000; // 5 minutes
+          
+          // Upload to Supabase
+          xhr.open('POST', uploadUrl);
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.send(file);
+        });
+
+      } catch (error) {
+        console.error('💥 Direct upload failed:', error);
+        throw error;
+      }
     }
 
     // 🖼️ Handle poster upload
