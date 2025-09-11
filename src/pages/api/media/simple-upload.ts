@@ -64,29 +64,33 @@ export const POST: APIRoute = async ({ request }) => {
       size: uploadResult.size
     });
 
-    // 🆕 保存媒体文件记录到数据库
-    try {
-      const db = createDatabaseConnection();
-      await withRetry(() => 
-        db.mediaFile.create({
-          data: {
-            filename: uploadResult.name,
-            url: uploadResult.url,
-            path: uploadResult.path,
-            mediaType: uploadResult.type.toUpperCase(), // IMAGE | VIDEO
-            mimeType: file.type,
-            fileSize: file.size,
-            title: null, // 初始为空，稍后可通过媒体库编辑
-            category: category,
-            uploadedBy: user?.id || 1 // 如果用户为null，使用默认管理员ID
-          }
-        }), '保存媒体文件记录'
-      );
-      console.log('✅ 媒体文件记录已保存到数据库');
-    } catch (dbError: any) {
-      console.warn('⚠️ 保存媒体记录到数据库失败:', dbError.message);
-      // 不影响上传成功响应，只是记录失败
-      // 文件已经成功上传到Supabase，数据库记录可以后续补充
+    // 🆕 保存媒体文件记录到数据库 (仅限已认证用户)
+    if (user && user.id) {
+      try {
+        const db = createDatabaseConnection();
+        await withRetry(() => 
+          db.mediaFile.create({
+            data: {
+              filename: uploadResult.name,
+              url: uploadResult.url,
+              path: uploadResult.path,
+              mediaType: uploadResult.type.toUpperCase(), // IMAGE | VIDEO
+              mimeType: file.type,
+              fileSize: file.size,
+              title: null, // 初始为空，稍后可通过媒体库编辑
+              category: category,
+              uploadedBy: user.id // 使用已认证用户的ID
+            }
+          }), '保存媒体文件记录'
+        );
+        console.log('✅ 媒体文件记录已保存到数据库');
+      } catch (dbError: any) {
+        console.warn('⚠️ 保存媒体记录到数据库失败:', dbError.message);
+        // 不影响上传成功响应，只是记录失败
+        // 文件已经成功上传到Supabase，数据库记录可以后续补充
+      }
+    } else {
+      console.log('ℹ️ 跳过数据库记录保存 (用户未认证或ID无效)');
     }
 
     // Return success response
