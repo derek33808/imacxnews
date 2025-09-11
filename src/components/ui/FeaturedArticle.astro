@@ -4,21 +4,38 @@ import { getCategoryById } from '../../data/categories';
 
 const { article } = Astro.props;
 const category = getCategoryById(article.category) || { name: 'Uncategorized', id: 'uncategorized' };
+
+// 🎬 For video articles, prioritize videoPoster over image
+const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
+  ? article.videoPoster 
+  : article.image || '/images/placeholder.svg';
 ---
 
 <article class="featured-article">
   <div class="featured-image-container">
     <img 
-      src={article.image} 
+      src={displayImage} 
       alt={article.title} 
       class="featured-image"
       loading="eager"
       width="800"
       height="450"
-      onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.classList.add('error');"
-      onload="this.style.opacity='1'"
       style="opacity:0.7; transition: opacity 0.3s ease"
     />
+    
+    {/* 🎬 Video indicator for featured video articles */}
+    {article.mediaType === 'VIDEO' && (
+      <div class="featured-video-indicator">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 3l14 9-14 9z"></path>
+        </svg>
+        {article.videoDuration && (
+          <span class="featured-duration">
+            {Math.floor(article.videoDuration / 60)}:{(article.videoDuration % 60).toString().padStart(2, '0')}
+          </span>
+        )}
+      </div>
+    )}
     <div class="featured-overlay"></div>
   </div>
   
@@ -167,5 +184,38 @@ const category = getCategoryById(article.category) || { name: 'Uncategorized', i
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+  }
+  
+  /* 🎬 Featured video indicator styles */
+  .featured-video-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  }
+  
+  .featured-video-indicator svg {
+    opacity: 0.9;
+    transition: all 0.3s ease;
+  }
+  
+  .featured-article:hover .featured-video-indicator svg {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  
+  .featured-duration {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
   }
 </style>
