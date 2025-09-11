@@ -1,0 +1,375 @@
+---
+// Storage configuration check page (Admin only)
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>存储配置检查 - IMACX News Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .check-button {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto 30px;
+      padding: 15px 30px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .check-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+    }
+    
+    .check-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4facfe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .results {
+      margin-top: 20px;
+    }
+    
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    
+    .section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .status-item:last-child {
+      border-bottom: none;
+    }
+    
+    .status-label {
+      font-weight: 500;
+      color: #555;
+    }
+    
+    .status-value {
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: white;
+    }
+    
+    .recommendations {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    
+    .recommendations h3 {
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    
+    .recommendations ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .recommendations li {
+      padding: 8px 0;
+      color: #856404;
+      position: relative;
+      padding-left: 20px;
+    }
+    
+    .recommendations li:before {
+      content: "💡";
+      position: absolute;
+      left: 0;
+    }
+    
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 存储配置检查</h1>
+      <p>验证 Netlify 环境中的 Supabase 存储配置</p>
+    </div>
+    
+    <div class="content">
+      <button id="checkBtn" class="check-button">🚀 开始检查配置</button>
+      
+      <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>正在检查配置...</p>
+      </div>
+      
+      <div id="results" class="results" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    const checkBtn = document.getElementById('checkBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+
+    checkBtn.addEventListener('click', async () => {
+      checkBtn.disabled = true;
+      loading.style.display = 'block';
+      results.style.display = 'none';
+      
+      try {
+        const response = await fetch('/api/storage/verify-config', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        displayResults(data);
+        
+      } catch (error) {
+        displayError('网络错误: ' + error.message);
+      } finally {
+        checkBtn.disabled = false;
+        loading.style.display = 'none';
+        results.style.display = 'block';
+      }
+    });
+
+    function displayResults(data) {
+      let html = '';
+      
+      // Overall Status
+      if (data.overallStatus) {
+        const statusClass = data.overallStatus.ready ? 'success' : 'error';
+        html += `
+          <div class="section ${statusClass}">
+            <h3>📋 总体状态</h3>
+            <div class="status-item">
+              <span class="status-label">配置完成度</span>
+              <span class="status-value">${data.overallStatus.score}/${data.overallStatus.maxScore}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">状态</span>
+              <span class="status-value">${data.overallStatus.summary}</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Environment Variables
+      html += '<div class="section"><h3>🔧 环境变量</h3>';
+      for (const [key, value] of Object.entries(data.variables || {})) {
+        html += `
+          <div class="status-item">
+            <span class="status-label">${key}</span>
+            <span class="status-value">${value}</span>
+          </div>
+        `;
+      }
+      html += '</div>';
+      
+      // Supabase Connection
+      if (data.supabase) {
+        html += '<div class="section"><h3>🔗 Supabase 连接</h3>';
+        html += `
+          <div class="status-item">
+            <span class="status-label">连接状态</span>
+            <span class="status-value">${data.supabase.connection ? '✅ 成功' : '❌ 失败'}</span>
+          </div>
+        `;
+        
+        if (data.supabase.buckets && data.supabase.buckets.length > 0) {
+          html += `
+            <div class="status-item">
+              <span class="status-label">存储桶数量</span>
+              <span class="status-value">${data.supabase.buckets.length} 个</span>
+            </div>
+          `;
+        }
+        
+        if (data.supabase.targetBucket) {
+          html += `
+            <div class="status-item">
+              <span class="status-label">imacx-media 桶</span>
+              <span class="status-value">${data.supabase.targetBucket.status}</span>
+            </div>
+          `;
+        }
+        
+        if (data.supabase.uploadTest) {
+          html += `
+            <div class="status-item">
+              <span class="status-label">上传测试</span>
+              <span class="status-value">${data.supabase.uploadTest}</span>
+            </div>
+          `;
+        }
+        
+        if (data.supabase.error) {
+          html += `
+            <div class="status-item">
+              <span class="status-label">错误信息</span>
+              <span class="status-value">${data.supabase.error}</span>
+            </div>
+          `;
+        }
+        
+        html += '</div>';
+      }
+      
+      // Recommendations
+      if (data.recommendations && data.recommendations.length > 0) {
+        html += '<div class="recommendations"><h3>💡 建议操作</h3><ul>';
+        for (const rec of data.recommendations) {
+          html += `<li>${rec}</li>`;
+        }
+        html += '</ul></div>';
+      }
+      
+      // Environment Details
+      if (data.environment) {
+        html += '<div class="section"><h3>🌍 环境信息</h3>';
+        for (const [key, value] of Object.entries(data.environment)) {
+          html += `
+            <div class="status-item">
+              <span class="status-label">${key}</span>
+              <span class="status-value">${value}</span>
+            </div>
+          `;
+        }
+        html += '</div>';
+      }
+      
+      // Raw Data (for debugging)
+      html += `
+        <div class="section">
+          <h3>🔍 完整响应数据</h3>
+          <div class="code-block">${JSON.stringify(data, null, 2)}</div>
+        </div>
+      `;
+      
+      results.innerHTML = html;
+    }
+
+    function displayError(message) {
+      results.innerHTML = `
+        <div class="section error">
+          <h3>❌ 检查失败</h3>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // Auto-check on load if URL contains ?autocheck
+    if (window.location.search.includes('autocheck')) {
+      setTimeout(() => checkBtn.click(), 1000);
+    }
+  </script>
+</body>
+</html>
