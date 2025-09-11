@@ -1343,11 +1343,20 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('❌ formModal is null in openCreateForm');
     }
     
-    // Initialize image preview for new form
-    // Disabled legacy image preview initialization
-    // if (window.updateImagePreview) {
-    //   window.updateImagePreview('');
-    // }
+    // 🚫 Clear all previews for new article form
+    setTimeout(() => {
+      const videoPreviewWrap = formEl?.querySelector('#videoPreviewWrap');
+      const posterPreviewWrap = formEl?.querySelector('#posterPreviewWrap');
+      const imagePreviewWrap = formEl?.querySelector('#imagePreviewWrap');
+      const mediaPreviewWrap = formEl?.querySelector('#mediaPreviewWrap');
+      
+      if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
+      if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+      if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
+      
+      console.log('✅ All previews cleared for new article form');
+    }, 50);
   }
   
   function toDatetimeLocalValue(dateStr) {
@@ -4345,20 +4354,34 @@ document.addEventListener('DOMContentLoaded', function() {
       const imageUrlInput = formEl.querySelector('input[name="image"]');
       if (imageUrlInput && imageUrlInput.value.trim()) {
         const url = imageUrlInput.value.trim();
-        if (url && (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes('supabase.co'))) {
+        // 🔧 Only show preview for valid URLs, not placeholder or empty URLs
+        if (url && 
+            !url.includes('placeholder') && 
+            !url.includes('example.com') && 
+            url !== '/images/placeholder.svg' &&
+            url !== '' &&
+            url.length > 10 && // Must be a real URL
+            (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) || url.includes('supabase.co'))) {
           const mediaData = {
             url: url,
             originalName: 'Existing Image',
             mediaType: 'IMAGE',
             size: 0
           };
-          showMediaPreview(mediaData, 'image');
+          showImagePreview(mediaData, formEl);
         }
       }
     }
     
-    // Initialize existing image preview check
-    setTimeout(checkExistingImagePreview, 100);
+    // Initialize existing image preview check (only for edit forms with valid URLs)
+    // 🔧 Delay check to ensure form is fully rendered and avoid showing empty previews
+    setTimeout(() => {
+      // Only check if we're editing an existing article (not creating a new one)
+      const isEditingExisting = formEl && formEl.querySelector('[name="title"]')?.value?.trim();
+      if (isEditingExisting) {
+        checkExistingImagePreview();
+      }
+    }, 200);
   };
 
   // 🖼️ Global Image Preview Function
