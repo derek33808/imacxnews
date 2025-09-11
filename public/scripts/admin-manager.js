@@ -3468,6 +3468,21 @@ document.addEventListener('DOMContentLoaded', function() {
   window.initializeMediaUpload = function(formEl) {
     if (!formEl) return;
     
+    // 🚫 Clear all preview areas on initialization (for new articles)
+    setTimeout(() => {
+      const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+      const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+      const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
+      const mediaPreviewWrap = formEl.querySelector('#mediaPreviewWrap');
+      
+      if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
+      if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+      if (mediaPreviewWrap) mediaPreviewWrap.style.display = 'none';
+      
+      console.log('✅ Media upload initialized - all previews cleared');
+    }, 10);
+    
     // Get elements
     const mediaTypeInputs = formEl.querySelectorAll('input[name="mediaType"]');
     const imageUploadSection = formEl.querySelector('#imageUploadSection');
@@ -3485,6 +3500,15 @@ document.addEventListener('DOMContentLoaded', function() {
       input.addEventListener('change', function() {
         const mediaType = this.value;
         
+        // 🚫 Clear all preview areas when switching content type
+        const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+        const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+        const imagePreviewWrap = formEl.querySelector('#imagePreviewWrap');
+        
+        if (videoPreviewWrap) videoPreviewWrap.style.display = 'none';
+        if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+        if (imagePreviewWrap) imagePreviewWrap.style.display = 'none';
+        
         if (mediaType === 'IMAGE') {
           imageUploadSection.style.display = 'block';
           videoUploadSection.style.display = 'none';
@@ -3495,6 +3519,8 @@ document.addEventListener('DOMContentLoaded', function() {
           });
           this.closest('.media-type-option').classList.add('media-type-option-active');
           
+          console.log('✅ Switched to Image Article - all previews cleared');
+          
         } else if (mediaType === 'VIDEO') {
           imageUploadSection.style.display = 'none';
           videoUploadSection.style.display = 'block';
@@ -3504,6 +3530,8 @@ document.addEventListener('DOMContentLoaded', function() {
             option.classList.remove('media-type-option-active');
           });
           this.closest('.media-type-option').classList.add('media-type-option-active');
+          
+          console.log('✅ Switched to Video Article - all previews cleared');
         }
         
         // Clear previous media
