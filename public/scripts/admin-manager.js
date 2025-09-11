@@ -4180,9 +4180,51 @@ document.addEventListener('DOMContentLoaded', function() {
       } else if (mediaData.duration) {
         console.log('✅ Video duration already available:', mediaData.duration);
       }
+      
+      // 🗑️ Bind clear video button event listener
+      const clearVideoBtn = formEl.querySelector('#clearVideoBtn');
+      if (clearVideoBtn) {
+        clearVideoBtn.addEventListener('click', function() {
+          window.clearVideoPreview(formEl);
+        });
+      }
     }, 100); // Small delay to ensure DOM is ready
   }
   
+  // 🗑️ Global Clear Functions
+  window.clearVideoPreview = function(formElement = null) {
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) return;
+    
+    const videoPreviewWrap = formEl.querySelector('#videoPreviewWrap');
+    if (videoPreviewWrap) {
+      videoPreviewWrap.style.display = 'none';
+    }
+    
+    const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
+    const durationInput = formEl.querySelector('input[name="videoDuration"]');
+    
+    if (videoUrlInput) videoUrlInput.value = '';
+    if (durationInput) durationInput.value = '';
+    
+    console.log('🗑️ Video preview cleared successfully');
+  };
+  
+  window.clearPosterPreview = function(formElement = null) {
+    const formEl = formElement || document.querySelector('#articleForm') || document.querySelector('.admin-manager-modal form');
+    if (!formEl) return;
+    
+    const posterPreviewWrap = formEl.querySelector('#posterPreviewWrap');
+    if (posterPreviewWrap) {
+      posterPreviewWrap.style.display = 'none';
+    }
+    
+    const videoPosterInput = formEl.querySelector('input[name="videoPoster"]');
+    if (videoPosterInput) videoPosterInput.value = '';
+    
+    console.log('🗑️ Poster preview cleared successfully');
+  };
+
   // 🖼️ Global Poster Preview Function
   function showPosterPreview(mediaData, formElement = null) {
     console.log('🖼️ showPosterPreview called:', mediaData);
@@ -4220,6 +4262,16 @@ document.addEventListener('DOMContentLoaded', function() {
       <div>Size: ${formatFileSize(mediaData.size)}</div>
       <div>URL: <code style="font-size:10px;">${mediaData.url}</code></div>
     `;
+    
+    // 🗑️ Bind clear poster button event listener
+    setTimeout(() => {
+      const clearPosterBtn = formEl.querySelector('#clearPosterBtn');
+      if (clearPosterBtn) {
+        clearPosterBtn.addEventListener('click', function() {
+          window.clearPosterPreview(formEl);
+        });
+      }
+    }, 100); // Small delay to ensure DOM is ready
   }
 
   // 🛠️ Global File Size Formatter
