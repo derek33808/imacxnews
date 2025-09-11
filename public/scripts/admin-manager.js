@@ -3621,10 +3621,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (imageInput) {
                   imageInput.value = result.data.url;
                   
-                  // 🖼️ Trigger preview update for image (DISABLED)
-                  // if (window.updateImagePreview) {
-                  //   window.updateImagePreview(result.data.url);
-                  // }
+                  // 🖼️ Trigger preview update for image
+                  if (window.updateImagePreview) {
+                    window.updateImagePreview(result.data.url);
+                  }
                 }
               } else if (mediaType === 'video') {
                 const videoUrlInput = formEl.querySelector('input[name="videoUrl"]');
@@ -4094,9 +4094,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       if (mediaType === 'image') {
-        // For regular images in image articles, we don't show preview to avoid confusion
-        // Only video and poster previews are supported in the new system
-        console.log('⚠️ Image preview disabled - only video and poster previews are supported');
+        // 🖼️ Enable image preview for regular images
+        console.log('🖼️ Showing image preview for regular image');
+        if (window.updateImagePreview && mediaData.url) {
+          window.updateImagePreview(mediaData.url);
+        } else {
+          console.warn('⚠️ updateImagePreview function not available or no URL provided');
+        }
         return;
       }
       
