@@ -3672,18 +3672,8 @@ document.addEventListener('DOMContentLoaded', function() {
           // Show upload progress
           showUploadProgress(mediaType, file.name);
           
-          // Create form data with error handling
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('category', 'TodayNews');
-          
-    // 🚀 Try client-side direct upload first (for large files)
-    let result;
-    if (file.size > 10 * 1024 * 1024) { // Files larger than 10MB use direct upload
-      result = await directUploadToSupabase(file, mediaType);
-    } else {
-      result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
-    }
+          // 🚀 Always use direct upload to Supabase (unified approach)
+          const result = await directUploadToSupabase(file, mediaType);
           
           if (result.success) {
             console.log('✅ Upload successful:', result.data);
@@ -3762,9 +3752,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     }
 
-    // 🚀 Direct upload to Supabase (bypasses Netlify Functions)
+    // 🚀 Direct upload to Supabase (primary upload method)
     async function directUploadToSupabase(file, mediaType) {
-      console.log(`🚀 Direct upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      console.log(`🚀 Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       
       try {
         // Step 1: Get upload URL from our API
@@ -3883,13 +3873,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show upload progress
             showPosterUploadProgress();
             
-            // Create form data
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('category', 'TodayNews');
-            
-            // Upload to API with progress tracking
-            const result = await uploadWithProgress('/api/media/simple-upload', formData, 'poster');
+            // 🚀 Use direct upload for poster as well
+            const result = await directUploadToSupabase(file, 'poster');
             
             if (result.success) {
               console.log('✅ Poster upload successful:', result.data);
@@ -3931,7 +3916,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // 📊 Upload with progress tracking with enhanced speed calculation
+    // 📊 DEPRECATED: Upload with progress tracking (replaced by directUploadToSupabase)
+    // This function is kept for compatibility but is no longer used
     function uploadWithProgress(url, formData, uploadType) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
