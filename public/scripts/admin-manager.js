@@ -24,13 +24,13 @@ window.addEventListener('error', function(event) {
 
 // This will be handled by the Cache Sync Manager - legacy function for compatibility
 window.clearAllArticleCaches = function() {
-  console.log('🧹 Legacy cache clear function called - delegating to Cache Sync Manager...');
+  window.debugLog && window.debugLog('🧹 Legacy cache clear function called - delegating to Cache Sync Manager...');
   
   if (window.cacheSyncManager) {
     window.cacheSyncManager.clearAllCaches();
   } else {
     // Fallback to old implementation
-    console.log('⚠️ Cache Sync Manager not available, using fallback...');
+    window.debugLog && window.debugLog('⚠️ Cache Sync Manager not available, using fallback...');
     
     const cacheKeys = [
       'imacx_articles',
@@ -1413,7 +1413,15 @@ document.addEventListener('DOMContentLoaded', function() {
       formEl.querySelector('[name="title"]').value = fullArticle.title || '';
       formEl.querySelector('[name="author"]').value = fullArticle.author || '';
       formEl.querySelector('[name="category"]').value = fullArticle.category || 'TodayNews';
-      formEl.querySelector('[name="image"]').value = fullArticle.image || '';
+      // For video articles, prioritize videoPoster over image for poster display
+      const posterImage = fullArticle.videoPoster || fullArticle.image || '';
+      formEl.querySelector('[name="image"]').value = posterImage;
+      
+      // Update poster preview if image exists
+      if (posterImage && window.updateImagePreview) {
+        window.updateImagePreview(posterImage);
+      }
+      
       formEl.querySelector('[name="excerpt"]').value = fullArticle.excerpt || '';
       contentField.value = fullArticle.content || '';
       chineseContentField.value = fullArticle.chineseContent || '';
@@ -1444,11 +1452,11 @@ document.addEventListener('DOMContentLoaded', function() {
         videoDurationInput.value = fullArticle.videoDuration;
       }
       
-      // Update media preview for editing
-      const imageInput = formEl.querySelector('[name="image"]');
-      if (imageInput && window.updateImagePreview) {
-        window.updateImagePreview(fullArticle.image || '');
-      }
+      // Update media preview for editing (already handled above)
+      // const imageInput = formEl.querySelector('[name="image"]');
+      // if (imageInput && window.updateImagePreview) {
+      //   window.updateImagePreview(posterImage);
+      // }
       
       // Show media preview if video
       if (mediaType === 'VIDEO' && fullArticle.videoUrl) {
