@@ -1,0 +1,1078 @@
+---
+// 管理员用户管理模态框
+---
+
+<div id="adminUsersModal" class="modal">
+  <div class="modal-content admin-users-modal">
+    <div class="modal-header">
+      <h2>User Management</h2>
+      <button class="close-btn" id="closeAdminUsersModal">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div id="adminUsersMessage" class="message" style="display: none;"></div>
+      
+      <!-- 用户统计 -->
+      <div class="user-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="totalUsers">-</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="activeUsers">-</div>
+          <div class="stat-label">Recently Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="adminUsers">-</div>
+          <div class="stat-label">Administrators</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="newUsers">-</div>
+          <div class="stat-label">New This Week</div>
+        </div>
+      </div>
+      
+      <!-- 筛选和搜索 -->
+      <div class="user-filters">
+        <div class="filter-group">
+          <input 
+            type="text" 
+            id="userSearchInput" 
+            placeholder="Search users by username or email..."
+            class="search-input"
+          >
+        </div>
+        <div class="filter-group">
+          <select id="roleFilter" class="filter-select">
+            <option value="">All Roles</option>
+            <option value="USER">Users</option>
+            <option value="ADMIN">Administrators</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="activityFilter" class="filter-select">
+            <option value="">All Activity</option>
+            <option value="recent">Recently Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <button id="refreshUsersBtn" class="refresh-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+      
+      <!-- 用户列表 -->
+      <div class="users-container">
+        <div id="usersLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading users...</p>
+        </div>
+        
+        <div id="usersTable" style="display: none;">
+          <div class="table-header">
+            <div class="header-cell col-avatar">Avatar</div>
+            <div class="header-cell col-user">User Info</div>
+            <div class="header-cell col-role">Role</div>
+            <div class="header-cell col-status">Status</div>
+            <div class="header-cell col-activity">Last Activity</div>
+            <div class="header-cell col-actions">Actions</div>
+          </div>
+          
+          <div id="usersListContainer" class="users-list">
+            <!-- 用户列表将在这里动态生成 -->
+          </div>
+        </div>
+        
+        <div id="usersEmpty" class="empty-state" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <h3>No Users Found</h3>
+          <p>No users match your current filter criteria.</p>
+        </div>
+      </div>
+      
+      <!-- 分页 -->
+      <div id="usersPagination" class="pagination" style="display: none;">
+        <button id="prevPageBtn" class="page-btn" disabled>Previous</button>
+        <span id="pageInfo" class="page-info">Page 1 of 1</span>
+        <button id="nextPageBtn" class="page-btn" disabled>Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5003;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-4);
+  }
+  
+  .modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-content {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    width: 100%;
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--color-border);
+  }
+  
+  .modal.active .modal-content {
+    transform: translateY(0);
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding: var(--space-5) var(--space-6);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) var(--space-6) calc(-1 * var(--space-6));
+    border-bottom: none;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  .modal-header h2::before {
+    content: "👥";
+    font-size: 1.25rem;
+  }
+  
+  .close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+  
+  .modal-body {
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+
+  .admin-users-modal {
+    max-width: 95vw;
+    width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .user-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .stat-card {
+    background-color: var(--color-surface);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-1);
+  }
+  
+  .stat-label {
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .user-filters {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .search-input, .filter-select {
+    width: 100%;
+    padding: var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    transition: border-color var(--transition);
+  }
+  
+  .search-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color var(--transition);
+    white-space: nowrap;
+  }
+  
+  .refresh-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .users-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+  
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+  }
+  
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-3);
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .table-header {
+    display: grid;
+    grid-template-columns: 70px 2fr 120px 120px 140px 140px;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: linear-gradient(135deg, var(--color-background-alt) 0%, rgba(79, 70, 229, 0.05) 100%);
+    border-bottom: 2px solid var(--color-border);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .header-cell {
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .users-list {
+    max-height: 450px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  
+  .users-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .users-list::-webkit-scrollbar-track {
+    background: var(--color-background-alt);
+  }
+  
+  .users-list::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+  
+  .users-list::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-light);
+  }
+  
+  .user-row {
+    display: grid;
+    grid-template-columns: 70px 2fr 120px 120px 140px 140px;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    align-items: center;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  
+  .user-row:hover {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.02) 0%, rgba(79, 70, 229, 0.05) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .user-row:last-child {
+    border-bottom: none;
+  }
+  
+  .user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    overflow: hidden;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    border: 2px solid white;
+    position: relative;
+  }
+  
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  
+  .avatar-emoji {
+    font-size: 24px;
+    line-height: 1;
+  }
+  
+  .avatar-fallback {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+  }
+  
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  
+  .user-name {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.875rem;
+  }
+  
+  .user-email {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+    font-family: monospace;
+  }
+  
+  .role-badge {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+  }
+  
+  .role-admin {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #92400e;
+    border-color: #f59e0b;
+    box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+  }
+  
+  .role-user {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border-color: #7c3aed;
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+  }
+  
+  .user-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .status-online {
+    background-color: #10b981;
+    animation: pulse-online 2s infinite;
+  }
+  
+  .status-offline {
+    background-color: #6b7280;
+  }
+  
+  .status-text {
+    text-transform: capitalize;
+  }
+  
+  @keyframes pulse-online {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  .user-activity {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+  }
+  
+  .user-actions {
+    display: flex;
+    gap: var(--space-1);
+  }
+  
+  .action-btn {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 70px;
+    justify-content: center;
+  }
+  
+  .view-btn {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+  }
+  
+  .view-btn:hover {
+    background: linear-gradient(135deg, #3730a3 0%, #4338ca 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+  }
+  
+  .promote-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: #10b981;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+  }
+  
+  .promote-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+  }
+  
+  .demote-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: #f59e0b;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  }
+  
+  .demote-btn:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+  }
+  
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+    text-align: center;
+  }
+  
+  .empty-state svg {
+    margin-bottom: var(--space-4);
+    color: var(--color-text-light);
+  }
+  
+  .empty-state h3 {
+    margin: 0 0 var(--space-2) 0;
+    color: var(--color-text);
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+  }
+  
+  .page-btn {
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-primary);
+    background-color: transparent;
+    color: var(--color-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all var(--transition);
+  }
+  
+  .page-btn:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  .page-btn:disabled {
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+    cursor: not-allowed;
+  }
+  
+  .page-info {
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+  }
+  
+  .message {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    font-size: 0.875rem;
+  }
+  
+  .message.success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+  
+  .message.error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+  
+  @media (max-width: 768px) {
+    .admin-users-modal {
+      max-width: 95vw;
+      margin: var(--space-2);
+    }
+    
+    .user-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .user-filters {
+      flex-direction: column;
+    }
+    
+    .filter-group {
+      min-width: auto;
+    }
+    
+    .table-header,
+    .user-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+    
+    .header-cell {
+      display: none;
+    }
+    
+    .user-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: var(--space-4);
+    }
+    
+    .user-avatar {
+      align-self: center;
+      margin-bottom: var(--space-2);
+    }
+    
+    .user-actions {
+      align-self: stretch;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // 扩展Window接口
+  declare global {
+    interface Window {
+      openAdminUsersModal: () => void;
+      viewUserDetails: (userId: number) => void;
+      toggleUserRole: (userId: number, currentRole: string) => Promise<void>;
+    }
+  }
+
+  // 获取模态框元素
+  const adminUsersModal = document.getElementById('adminUsersModal') as HTMLElement;
+  const closeAdminUsersModalBtn = document.getElementById('closeAdminUsersModal') as HTMLButtonElement;
+  const adminUsersMessage = document.getElementById('adminUsersMessage') as HTMLElement;
+  
+  // 统计元素
+  const totalUsersEl = document.getElementById('totalUsers') as HTMLElement;
+  const activeUsersEl = document.getElementById('activeUsers') as HTMLElement;
+  const adminUsersEl = document.getElementById('adminUsers') as HTMLElement;
+  const newUsersEl = document.getElementById('newUsers') as HTMLElement;
+  
+  // 筛选元素
+  const userSearchInput = document.getElementById('userSearchInput') as HTMLInputElement;
+  const roleFilter = document.getElementById('roleFilter') as HTMLSelectElement;
+  const activityFilter = document.getElementById('activityFilter') as HTMLSelectElement;
+  const refreshUsersBtn = document.getElementById('refreshUsersBtn') as HTMLButtonElement;
+  
+  // 用户列表元素
+  const usersLoading = document.getElementById('usersLoading') as HTMLElement;
+  const usersTable = document.getElementById('usersTable') as HTMLElement;
+  const usersEmpty = document.getElementById('usersEmpty') as HTMLElement;
+  const usersListContainer = document.getElementById('usersListContainer') as HTMLElement;
+  
+  // 分页元素
+  const usersPagination = document.getElementById('usersPagination') as HTMLElement;
+  const prevPageBtn = document.getElementById('prevPageBtn') as HTMLButtonElement;
+  const nextPageBtn = document.getElementById('nextPageBtn') as HTMLButtonElement;
+  const pageInfo = document.getElementById('pageInfo') as HTMLElement;
+  
+  // 数据存储
+  let allUsers: any[] = [];
+  let filteredUsers: any[] = [];
+  let currentPage = 1;
+  const usersPerPage = 10;
+  
+  // 显示消息
+  function showMessage(text: string, type: string = 'success') {
+    adminUsersMessage.textContent = text;
+    adminUsersMessage.className = `message ${type}`;
+    adminUsersMessage.style.display = 'block';
+    
+    setTimeout(() => {
+      adminUsersMessage.style.display = 'none';
+    }, 3000);
+  }
+  
+  // 加载用户数据
+  async function loadUsers() {
+    try {
+      showLoadingState();
+      
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        allUsers = result.users;
+        updateStatistics(result.stats);
+        applyFilters();
+      } else {
+        showMessage(result.error || 'Failed to load users', 'error');
+        showEmptyState();
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      showMessage('Failed to load users', 'error');
+      showEmptyState();
+    }
+  }
+  
+  // 显示加载状态
+  function showLoadingState() {
+    usersLoading.style.display = 'flex';
+    usersTable.style.display = 'none';
+    usersEmpty.style.display = 'none';
+    usersPagination.style.display = 'none';
+  }
+  
+  // 显示空状态
+  function showEmptyState() {
+    usersLoading.style.display = 'none';
+    usersTable.style.display = 'none';
+    usersEmpty.style.display = 'flex';
+    usersPagination.style.display = 'none';
+  }
+  
+  // 显示用户表格
+  function showUsersTable() {
+    usersLoading.style.display = 'none';
+    usersTable.style.display = 'block';
+    usersEmpty.style.display = 'none';
+    usersPagination.style.display = 'flex';
+  }
+  
+  // 更新统计信息
+  function updateStatistics(stats: any) {
+    totalUsersEl.textContent = stats.total;
+    activeUsersEl.textContent = stats.active;
+    adminUsersEl.textContent = stats.admins;
+    newUsersEl.textContent = stats.newThisWeek;
+  }
+  
+  // 应用筛选
+  function applyFilters() {
+    const searchTerm = userSearchInput.value.toLowerCase().trim();
+    const roleFilterValue = roleFilter.value;
+    const activityFilterValue = activityFilter.value;
+    
+    filteredUsers = allUsers.filter(user => {
+      // 搜索筛选
+      const matchesSearch = !searchTerm || 
+        user.username.toLowerCase().includes(searchTerm) ||
+        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+        (user.displayName && user.displayName.toLowerCase().includes(searchTerm));
+      
+      // 角色筛选
+      const matchesRole = !roleFilterValue || user.role === roleFilterValue;
+      
+      // 活动筛选
+      let matchesActivity = true;
+      if (activityFilterValue === 'recent') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        matchesActivity = user.lastLoginAt && new Date(user.lastLoginAt) > weekAgo;
+      } else if (activityFilterValue === 'inactive') {
+        const monthAgo = new Date();
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        matchesActivity = !user.lastLoginAt || new Date(user.lastLoginAt) < monthAgo;
+      }
+      
+      return matchesSearch && matchesRole && matchesActivity;
+    });
+    
+    currentPage = 1;
+    renderUsers();
+  }
+  
+  // 渲染用户列表
+  function renderUsers() {
+    if (filteredUsers.length === 0) {
+      showEmptyState();
+      return;
+    }
+    
+    showUsersTable();
+    
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    const usersToShow = filteredUsers.slice(startIndex, endIndex);
+    
+    usersListContainer.innerHTML = usersToShow.map(user => createUserRow(user)).join('');
+    
+    // 更新分页
+    updatePagination();
+  }
+  
+  // 创建用户行
+  function createUserRow(user: any) {
+    const displayName = user.displayName || user.username;
+    const isOnline = user.lastLoginAt && (new Date().getTime() - new Date(user.lastLoginAt).getTime()) < 30 * 60 * 1000; // 30分钟内
+    
+    // 格式化最后活动时间
+    let lastActivity = 'Never';
+    if (user.lastLoginAt) {
+      const lastLogin = new Date(user.lastLoginAt);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 1) {
+        lastActivity = 'Just now';
+      } else if (diffInMinutes < 60) {
+        lastActivity = `${diffInMinutes}m ago`;
+      } else if (diffInMinutes < 1440) {
+        lastActivity = `${Math.floor(diffInMinutes / 60)}h ago`;
+      } else {
+        lastActivity = `${Math.floor(diffInMinutes / 1440)}d ago`;
+      }
+    }
+    
+    // 处理用户头像 - 支持emoji和图片
+    let avatarContent;
+    if (user.avatar) {
+      // 检查是否是emoji（简单检查：长度小于等于10且不包含http）
+      if (typeof user.avatar === 'string' && user.avatar.length <= 10 && !user.avatar.includes('http')) {
+        avatarContent = `<span class="avatar-emoji">${user.avatar}</span>`;
+      } else {
+        avatarContent = `<img src="${user.avatar}" alt="${displayName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span class="avatar-fallback" style="display:none;">${displayName.charAt(0).toUpperCase()}</span>`;
+      }
+    } else {
+      avatarContent = `<span class="avatar-fallback">${displayName.charAt(0).toUpperCase()}</span>`;
+    }
+    
+    return `
+      <div class="user-row" data-user-id="${user.id}">
+        <div class="user-avatar">
+          ${avatarContent}
+        </div>
+        <div class="user-info">
+          <div class="user-name">${displayName}</div>
+          <div class="user-email">${user.email || 'No email'}</div>
+        </div>
+        <div class="user-role">
+          <span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span>
+        </div>
+        <div class="user-status">
+          <span class="status-indicator status-${isOnline ? 'online' : 'offline'}"></span>
+          <span class="status-text">${isOnline ? 'Online' : 'Offline'}</span>
+        </div>
+        <div class="user-activity">${lastActivity}</div>
+        <div class="user-actions">
+          <button class="action-btn view-btn" onclick="viewUserDetails(${user.id})" title="View Details">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View
+          </button>
+          ${user.role !== 'ADMIN' ? `<button class="action-btn promote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Promote to Admin">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Promote
+          </button>` : `<button class="action-btn demote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Demote to User">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="22" y1="5" x2="16" y2="11"></line>
+              <line x1="16" y1="5" x2="22" y2="11"></line>
+            </svg>
+            Demote
+          </button>`}
+        </div>
+      </div>
+    `;
+  }
+  
+  // 更新分页
+  function updatePagination() {
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+    
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  }
+  
+  // 查看用户详情
+  window.viewUserDetails = function(userId: number) {
+    const user = allUsers.find(u => u.id === userId);
+    if (user) {
+      const details = [
+        `ID: ${user.id}`,
+        `Username: ${user.username}`,
+        `Email: ${user.email || 'Not set'}`,
+        `Display Name: ${user.displayName || 'Not set'}`,
+        `Role: ${user.role}`,
+        `Created: ${new Date(user.createdAt).toLocaleString()}`,
+        `Last Login: ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}`
+      ].join('\n');
+      
+      alert(`User Details:\n\n${details}`);
+    }
+  };
+  
+  // 切换用户角色
+  window.toggleUserRole = async function(userId: number, currentRole: string) {
+    const newRole = currentRole === 'USER' ? 'ADMIN' : 'USER';
+    const action = newRole === 'ADMIN' ? 'promote to administrator' : 'demote to user';
+    
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/admin/users/change-role', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, newRole })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showMessage(`User role updated successfully!`);
+        await loadUsers(); // 重新加载用户列表
+      } else {
+        showMessage(result.error || 'Failed to update user role', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      showMessage('Failed to update user role', 'error');
+    }
+  };
+  
+  // 事件监听器
+  refreshUsersBtn.addEventListener('click', loadUsers);
+  
+  userSearchInput.addEventListener('input', debounce(applyFilters, 300));
+  roleFilter.addEventListener('change', applyFilters);
+  activityFilter.addEventListener('change', applyFilters);
+  
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderUsers();
+    }
+  });
+  
+  nextPageBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderUsers();
+    }
+  });
+  
+  // 防抖函数
+  function debounce(func: Function, wait: number) {
+    let timeout: any;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  // 关闭模态框
+  function closeAdminUsersModal() {
+    adminUsersModal.classList.remove('active');
+    adminUsersModal.style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // 重置筛选
+    userSearchInput.value = '';
+    roleFilter.value = '';
+    activityFilter.value = '';
+    adminUsersMessage.style.display = 'none';
+  }
+  
+  closeAdminUsersModalBtn.addEventListener('click', closeAdminUsersModal);
+  
+  // 点击外部关闭
+  adminUsersModal.addEventListener('click', (e) => {
+    if (e.target === adminUsersModal) {
+      closeAdminUsersModal();
+    }
+  });
+  
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && adminUsersModal.classList.contains('active')) {
+      closeAdminUsersModal();
+    }
+  });
+  
+  // 全局打开函数
+  window.openAdminUsersModal = function() {
+    console.log('🚀 Opening admin users modal');
+    adminUsersModal.style.display = 'flex';
+    adminUsersModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    loadUsers();
+  };
+  
+  console.log('✅ Admin Users Modal initialized');
+</script>

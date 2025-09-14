@@ -26,29 +26,61 @@ import ThemeToggle from './ThemeToggle.astro';
       <div class="header-actions">
         <SearchBar />
         <div class="user-menu" id="userMenu">
-          <button class="login-btn" id="loginBtn">Login</button>
+          <!-- 未登录状态按钮组 -->
+          <div class="auth-buttons" id="authButtons">
+            <button class="register-btn" id="registerBtn">Sign Up</button>
+            <button class="login-btn" id="loginBtn">Login</button>
+          </div>
+          
+          <!-- 已登录用户菜单 -->
           <div class="user-dropdown" id="userDropdown">
-            <div class="user-info">
-              <div class="user-avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- 用户信息（始终显示） -->
+          <div class="user-info" id="userInfo">
+            <div class="user-avatar" id="headerUserAvatar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+              <div class="user-details">
+                <span class="user-name" id="userName">User</span>
+                <span class="user-role" id="userRole">Member</span>
+              </div>
+              <div class="dropdown-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6,9 12,15 18,9"></polyline>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- 下拉菜单内容（点击时显示） -->
+            <div class="dropdown-content" id="dropdownContent">
+              <button class="dropdown-item profile-btn" id="profileBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-              </div>
-              <div class="user-details">
-                <span class="user-name" id="userName">Admin</span>
-                <span class="user-role">Administrator</span>
-              </div>
+                Profile Settings
+              </button>
+              <button class="dropdown-item admin-users-btn" id="adminUsersBtn" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                User Management
+              </button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item logout-btn" id="logoutBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <path d="M16 17l5-5-5-5"></path>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+              </button>
             </div>
-            <div class="dropdown-divider"></div>
-            <button class="dropdown-item logout-btn" id="logoutBtn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <path d="M16 17l5-5-5-5"></path>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              Logout
-            </button>
           </div>
         </div>
         <ThemeToggle />
@@ -140,11 +172,65 @@ import ThemeToggle from './ThemeToggle.astro';
     color: white;
   }
   
+  /* 🆕 新增注册按钮样式 */
+  .register-btn {
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-primary);
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-right: var(--space-2);
+  }
+  
+  .register-btn:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+  }
+  
+  /* 🆕 认证按钮组样式 */
+  .auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .auth-buttons.hidden {
+    display: none !important;
+  }
+  
   .user-menu {
     position: relative;
   }
   
   .user-dropdown {
+    position: relative;
+    display: none; /* 默认隐藏整个用户菜单 */
+  }
+  
+  .user-dropdown.show {
+    display: block !important; /* 用户登录时显示 */
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background-color 0.2s ease;
+  }
+  
+  .user-info:hover {
+    background-color: var(--color-surface);
+  }
+  
+  .dropdown-content {
     position: absolute;
     top: 100%;
     right: 0;
@@ -158,21 +244,27 @@ import ThemeToggle from './ThemeToggle.astro';
     transform: translateY(-10px);
     transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
     z-index: 1000;
-    margin-top: var(--space-2);
+    margin-top: var(--space-1);
+    display: none; /* 默认隐藏下拉内容 */
   }
   
-  .user-dropdown.active {
+  .user-dropdown.active .dropdown-content {
+    display: block;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
   }
   
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4);
+  .dropdown-arrow {
+    margin-left: auto;
+    transition: transform 0.2s ease;
   }
+  
+  .user-dropdown.active .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+  
+  /* 用户信息样式已在上面定义 */
   
   .user-avatar {
     width: 40px;
@@ -268,102 +360,289 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // Get elements
   const loginBtn = document.getElementById('loginBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  const authButtons = document.getElementById('authButtons');
   const userMenu = document.getElementById('userMenu');
   const userDropdown = document.getElementById('userDropdown');
   const logoutBtn = document.getElementById('logoutBtn');
-  const manageArticlesBtn = document.getElementById('manageArticlesBtn');
+  const userName = document.getElementById('userName');
+  const userRoleSpan = document.getElementById('userRole');
   
-  // Check login status on page load
-  function checkLoginStatus() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const username = localStorage.getItem('username');
-    const adminManageBtn = document.getElementById('adminManageBtn');
+  // 🆕 从服务器API检查用户状态
+  async function checkUserStatusFromAPI() {
+    console.log('🌐 Checking user status from API...');
     
-    if (isLoggedIn && username) {
-      updateLoginButtonForLoggedIn(username);
-      // Show admin button for logged in users
-      if (adminManageBtn) {
-        adminManageBtn.style.display = 'flex';
+    try {
+      const response = await fetch('/api/auth/status', {
+        method: 'GET',
+        credentials: 'include' // 包含cookies
+      });
+      
+      const result = await response.json();
+      console.log('📡 API response:', result);
+      
+      if (result.success && result.user) {
+        console.log('✅ User authenticated via API:', result.user.username);
+        // 同步到localStorage
+        localStorage.setItem('currentUser', JSON.stringify(result.user));
+        updateHeaderForUser(result.user);
+        return true;
+      } else {
+        console.log('❌ No valid user from API');
+        // 清理localStorage
+        localStorage.removeItem('currentUser');
+        checkUserStatusFromLocalStorage();
+        return false;
       }
-    } else {
-      updateLoginButtonForLoggedOut();
-      // Hide admin button for logged out users
-      if (adminManageBtn) {
-        adminManageBtn.style.display = 'none';
-      }
+    } catch (error) {
+      console.error('❌ API check failed:', error);
+      // API失败时回退到localStorage检查
+      checkUserStatusFromLocalStorage();
+      return false;
     }
   }
   
-  // Update login button for logged in state
-  function updateLoginButtonForLoggedIn(username) {
+  // 🆕 从localStorage检查用户状态（回退方案）
+  function checkUserStatusFromLocalStorage() {
+    console.log('💾 Checking user status from localStorage...');
+    
+    // 检查管理员登录状态（旧系统兼容）
+    const isAdminLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const adminUsername = localStorage.getItem('username');
+    
+    // 检查普通用户登录状态（新系统）
+    const currentUser = localStorage.getItem('currentUser');
+    let userData = null;
+    
+    if (currentUser) {
+      try {
+        userData = JSON.parse(currentUser);
+      } catch (e) {
+        console.error('Failed to parse user data:', e);
+        localStorage.removeItem('currentUser');
+      }
+    }
+    
+    // 优先显示普通用户状态，其次是管理员状态
+    if (userData && userData.id) {
+      console.log('👤 Updating header for user:', userData.username);
+      updateHeaderForUser(userData);
+    } else if (isAdminLoggedIn && adminUsername) {
+      console.log('👨‍💼 Updating header for admin:', adminUsername);
+      updateHeaderForAdmin(adminUsername);
+    } else {
+      console.log('🚫 No user logged in, showing auth buttons');
+      updateHeaderForLoggedOut();
+    }
+  }
+  
+  // 🆕 统一的用户状态检查入口
+  async function checkUserStatus() {
+    // 优先从API检查，失败时回退到localStorage
+    await checkUserStatusFromAPI();
+  }
+  
+  // 🆕 更新Header显示普通用户状态
+  function updateHeaderForUser(userData: any) {
+    console.log('👤 Updating header for user:', userData);
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    const adminUsersBtn = document.getElementById('adminUsersBtn');
+    const headerUserAvatar = document.getElementById('headerUserAvatar');
+    const displayName = userData.displayName || userData.username;
+    const roleText = userData.role === 'ADMIN' ? 'Administrator' : 'Member';
+    
+    console.log('🎭 User role:', userData.role, '-> Display text:', roleText);
+    
+    // 隐藏认证按钮，显示用户下拉菜单
+    if (authButtons) {
+      authButtons.classList.add('hidden');
+      console.log('🔒 Hidden auth buttons');
+    }
+    if (userDropdown) {
+      userDropdown.classList.add('show');
+      console.log('👁️ Showing user dropdown');
+    }
+    
+    // 更新用户信息显示
+    if (userName) {
+      userName.textContent = displayName;
+      console.log('📝 Updated username to:', displayName);
+    }
+    if (userRoleSpan) {
+      userRoleSpan.textContent = roleText;
+      console.log('🏷️ Updated role to:', roleText);
+    }
+    
+    // 更新用户头像
+    if (headerUserAvatar && userData.avatar) {
+      // 如果有emoji头像，显示emoji
+      if (typeof userData.avatar === 'string' && userData.avatar.length <= 10) {
+        headerUserAvatar.innerHTML = `<span style="font-size: 24px;">${userData.avatar}</span>`;
+        console.log('🖼️ Updated header avatar to emoji:', userData.avatar);
+      }
+    }
+    
+    // 确保隐藏管理按钮（除非是ADMIN）
+    if (adminManageBtn) {
+      if (userData.role === 'ADMIN') {
+        adminManageBtn.style.display = 'flex';
+        console.log('🔧 Showing admin button for ADMIN user');
+      } else {
+        adminManageBtn.style.display = 'none';
+        console.log('🚫 Hiding admin button for USER');
+      }
+    }
+    
+    // 控制管理员用户管理按钮显示
+    if (adminUsersBtn) {
+      if (userData.role === 'ADMIN') {
+        adminUsersBtn.style.display = 'flex';
+        console.log('👥 Showing admin users button for ADMIN user');
+      } else {
+        adminUsersBtn.style.display = 'none';
+        console.log('🚫 Hiding admin users button for USER');
+      }
+    }
+    
+    // 设置下拉菜单点击处理
+    setupUserDropdownClick();
+  }
+  
+  // 🆕 更新Header显示管理员状态（旧系统兼容）
+  function updateHeaderForAdmin(username: string) {
     const adminManageBtn = document.getElementById('adminManageBtn');
     
+    // 隐藏认证按钮，显示用户下拉菜单
+    if (authButtons) {
+      authButtons.classList.add('hidden');
+      console.log('🔒 Hidden auth buttons for admin');
+    }
+    if (userDropdown) {
+      userDropdown.classList.add('show');
+      console.log('👁️ Showing admin dropdown');
+    }
+    
+    // 更新用户信息显示
+    if (userName) userName.textContent = username;
+    if (userRoleSpan) userRoleSpan.textContent = 'Administrator';
+    
+    // 显示管理按钮
+    if (adminManageBtn) {
+      adminManageBtn.style.display = 'flex';
+    }
+    
+    // 设置下拉菜单点击处理
+    setupUserDropdownClick();
+  }
+  
+  // 🆕 更新Header为未登录状态
+  function updateHeaderForLoggedOut() {
+    console.log('🔧 Setting header for logged out state');
+    const adminManageBtn = document.getElementById('adminManageBtn');
+    
+    // 显示认证按钮，隐藏用户下拉菜单
+    if (authButtons) {
+      authButtons.classList.remove('hidden');
+      console.log('🔓 Showing auth buttons');
+    } else {
+      console.error('❌ Auth buttons not found');
+    }
+    
+    if (userDropdown) {
+      userDropdown.classList.remove('show');
+      console.log('🙈 Hiding user dropdown');
+    }
+    
+    // 隐藏管理按钮
+    if (adminManageBtn) {
+      adminManageBtn.style.display = 'none';
+    }
+    
+    // 设置按钮点击处理器
     if (loginBtn) {
-      loginBtn.textContent = username;
-      loginBtn.style.backgroundColor = 'var(--color-primary)';
-      loginBtn.style.color = 'white';
-      loginBtn.style.borderColor = 'var(--color-primary)';
-      
-      // Show admin button for admin
-      if (adminManageBtn && username === 'Admin') {
-        adminManageBtn.style.display = 'flex';
-      }
-      
-      // Add click handler to show dropdown
-      loginBtn.onclick = (e) => {
+      loginBtn.onclick = () => {
+        // 只打开普通用户登录
+        if (window.openUserLoginModal) {
+          console.log('🚀 Opening user login modal');
+          window.openUserLoginModal();
+        } else {
+          console.error('❌ openUserLoginModal function not found');
+        }
+      };
+    }
+    
+    if (registerBtn) {
+      registerBtn.onclick = () => {
+        if (window.openRegisterModal) {
+          console.log('🚀 Opening user register modal');
+          window.openRegisterModal();
+        } else {
+          console.error('❌ openRegisterModal function not found');
+        }
+      };
+    }
+  }
+  
+  // 🆕 用户下拉菜单点击处理
+  function setupUserDropdownClick() {
+    const userInfo = document.getElementById('userInfo');
+    if (userInfo && userDropdown) {
+      userInfo.onclick = (e) => {
         e.stopPropagation();
         userDropdown.classList.toggle('active');
+        console.log('🔽 Toggle dropdown:', userDropdown.classList.contains('active') ? 'open' : 'closed');
       };
     }
-  }
-  
-  // Update login button for logged out state
-  function updateLoginButtonForLoggedOut() {
-    const adminManageBtn = document.getElementById('adminManageBtn');
     
-    if (loginBtn) {
-      loginBtn.textContent = 'Login';
-      loginBtn.style.backgroundColor = 'transparent';
-      loginBtn.style.color = 'var(--color-primary)';
-      loginBtn.style.borderColor = 'var(--color-primary)';
-      
-      // Hide admin button
-      if (adminManageBtn) {
-        adminManageBtn.style.display = 'none';
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', (e) => {
+      if (userDropdown && !userDropdown.contains(e.target)) {
+        userDropdown.classList.remove('active');
       }
-      
-      // Add click handler to open login modal
-      loginBtn.onclick = () => {
-        if (window.openLoginModal) {
-          window.openLoginModal();
-        }
-      };
-    }
+    });
   }
   
-  // Make functions globally available
-  window.updateLoginButtonForLoggedIn = updateLoginButtonForLoggedIn;
-  window.updateLoginButtonForLoggedOut = updateLoginButtonForLoggedOut;
-  
-  // Logout functionality
+  // 🆕 登出功能
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
       if (confirm('Do you want to logout?')) {
+        console.log('👋 User logging out...');
+        
+        try {
+          // 调用logout API清除服务器端cookie
+          const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include' // 重要：包含cookies
+          });
+          
+          if (response.ok) {
+            console.log('✅ Server logout successful');
+          } else {
+            console.warn('⚠️ Server logout failed, but continuing with client logout');
+          }
+        } catch (error) {
+          console.error('❌ Logout API error:', error);
+          console.warn('⚠️ Continuing with client-side logout');
+        }
+        
+        // 清除所有用户数据
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
-        userDropdown.classList.remove('active');
-        updateLoginButtonForLoggedOut();
+        localStorage.removeItem('currentUser');
+        console.log('🧹 Cleared all user data from localStorage');
         
-        // Hide admin button after logout
-        const adminManageBtn = document.getElementById('adminManageBtn');
-        if (adminManageBtn) {
-          adminManageBtn.style.display = 'none';
+        // 关闭下拉菜单
+        if (userDropdown) {
+          userDropdown.classList.remove('active');
         }
         
-        // Dispatch logout event
+        // 更新UI状态
+        updateHeaderForLoggedOut();
+        
+        // 触发登出事件
         window.dispatchEvent(new CustomEvent('userLoggedOut'));
         
-        // Refresh page to reset state
+        // 刷新页面重置状态
         window.location.reload();
       }
     });
@@ -375,6 +654,36 @@ import ThemeToggle from './ThemeToggle.astro';
     adminManageBtn.addEventListener('click', () => {
       if (window.openAdminManagerModal) {
         window.openAdminManagerModal();
+      }
+    });
+  }
+  
+  // Profile settings button functionality
+  const profileBtn = document.getElementById('profileBtn');
+  if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+      if (userDropdown) {
+        userDropdown.classList.remove('active');
+      }
+      if (window.openUserProfileModal) {
+        window.openUserProfileModal();
+      } else {
+        console.error('❌ openUserProfileModal function not found');
+      }
+    });
+  }
+  
+  // Admin user management button functionality
+  const adminUsersBtn = document.getElementById('adminUsersBtn');
+  if (adminUsersBtn) {
+    adminUsersBtn.addEventListener('click', () => {
+      if (userDropdown) {
+        userDropdown.classList.remove('active');
+      }
+      if (window.openAdminUsersModal) {
+        window.openAdminUsersModal();
+      } else {
+        console.error('❌ openAdminUsersModal function not found');
       }
     });
   }
@@ -393,8 +702,46 @@ import ThemeToggle from './ThemeToggle.astro';
     }
   });
   
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    checkLoginStatus();
+  // 🆕 初始化页面时检查用户状态
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 DOM loaded, checking user status...');
+    // 从API检查用户状态
+    await checkUserStatus();
+    
+    // 🆕 延迟再次检查，确保数据正确加载
+    setTimeout(async () => {
+      console.log('🔄 Double-checking user status...');
+      await checkUserStatus();
+    }, 500);
   });
+  
+  // 🆕 监听用户登录事件（从登录模态框触发）
+  window.addEventListener('userLoggedIn', (e) => {
+    setTimeout(async () => {
+      await checkUserStatus();
+    }, 100);
+  });
+  
+  // 🆕 导出函数供其他组件使用
+  window.checkUserStatus = checkUserStatus;
+  window.updateHeaderForUser = updateHeaderForUser;
+  window.updateHeaderForAdmin = updateHeaderForAdmin;
+  window.updateHeaderForLoggedOut = updateHeaderForLoggedOut;
+  
+  // 🆕 导出调试函数
+  window.debugUserStatus = async function() {
+    console.log('🔧 Debug User Status:');
+    console.log('localStorage.currentUser:', localStorage.getItem('currentUser'));
+    console.log('localStorage.isLoggedIn:', localStorage.getItem('isLoggedIn'));
+    console.log('localStorage.username:', localStorage.getItem('username'));
+    
+    const authButtons = document.getElementById('authButtons');
+    const userDropdown = document.getElementById('userDropdown');
+    console.log('authButtons display:', authButtons?.style.display);
+    console.log('userDropdown display:', userDropdown?.style.display);
+    
+    // 强制从API重新检查
+    console.log('🌐 Force checking from API...');
+    await checkUserStatus();
+  };
 </script>

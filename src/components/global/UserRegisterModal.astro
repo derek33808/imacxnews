@@ -1,0 +1,456 @@
+---
+---
+
+<div class="register-modal-overlay" id="registerModal">
+  <div class="register-modal">
+    <div class="register-header">
+      <h2>Join IMACXNews Community</h2>
+      <button class="close-modal" id="closeRegisterModal" aria-label="Close register modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <form class="register-form" id="registerForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="regUsername">Username *</label>
+          <input type="text" id="regUsername" name="username" required placeholder="Choose a username" minlength="3" maxlength="30">
+        </div>
+        
+        <div class="form-group">
+          <label for="regDisplayName">Display Name</label>
+          <input type="text" id="regDisplayName" name="displayName" placeholder="Your display name (optional)">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="regEmail">Email *</label>
+        <input type="email" id="regEmail" name="email" required placeholder="Enter your email address">
+      </div>
+      
+      <div class="form-group">
+        <label for="regPassword">Password *</label>
+        <input type="password" id="regPassword" name="password" required placeholder="At least 6 characters" minlength="6">
+      </div>
+      
+      <button type="submit" class="register-submit-btn">Create Account</button>
+      
+      <div class="register-footer">
+        <p class="already-have-account">
+          Already have an account? 
+          <button type="button" class="switch-to-login">Login here</button>
+        </p>
+        <p class="terms-info">
+          By registering, you agree to our terms of service and privacy policy.
+        </p>
+      </div>
+    </form>
+    
+    <div class="register-success" id="registerSuccess" style="display: none;">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <path d="M22 4l-10 10.01-3-3"></path>
+        </svg>
+      </div>
+      <h3>Welcome to IMACXNews!</h3>
+      <p>Your account has been created successfully. You can now comment on articles and subscribe to news updates.</p>
+      <button class="continue-btn" id="continueRegisterBtn">Get Started</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .register-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5001; /* 稍高于login modal */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-4);
+  }
+  
+  .register-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .register-modal {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    width: 100%;
+    max-width: 480px; /* 比登录modal稍宽 */
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .register-modal-overlay.active .register-modal {
+    transform: translateY(0);
+  }
+  
+  .register-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .register-header h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.5rem;
+  }
+  
+  .close-modal {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: var(--space-2);
+    transition: color var(--transition);
+  }
+  
+  .close-modal:hover {
+    color: var(--color-primary);
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  
+  @media (max-width: 480px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: border-color var(--transition);
+    box-sizing: border-box;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .form-group input:invalid {
+    border-color: #dc2626;
+  }
+  
+  .register-submit-btn {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    margin-bottom: var(--space-4);
+  }
+  
+  .register-submit-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .register-submit-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .register-footer {
+    text-align: center;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-4);
+  }
+  
+  .already-have-account {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--color-text);
+  }
+  
+  .switch-to-login {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+  }
+  
+  .switch-to-login:hover {
+    color: var(--color-primary-light);
+  }
+  
+  .terms-info {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    line-height: 1.4;
+  }
+  
+  .register-success {
+    text-align: center;
+  }
+  
+  .success-icon {
+    margin-bottom: var(--space-4);
+    color: #22c55e;
+  }
+  
+  .register-success h3 {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+  
+  .register-success p {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+    line-height: 1.5;
+  }
+  
+  .continue-btn {
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+  }
+  
+  .continue-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .error-message {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    font-size: 0.875rem;
+    display: none;
+  }
+  
+  .loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  const registerModal = document.getElementById('registerModal');
+  const registerForm = document.getElementById('registerForm');
+  const registerSuccess = document.getElementById('registerSuccess');
+  const closeRegisterModal = document.getElementById('closeRegisterModal');
+  const continueRegisterBtn = document.getElementById('continueRegisterBtn');
+  const switchToLoginBtn = document.querySelector('.switch-to-login');
+  
+  // 打开注册modal的函数（全局可用）
+  window.openRegisterModal = function() {
+    registerModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // 聚焦到用户名输入框
+    setTimeout(() => {
+      document.getElementById('regUsername').focus();
+    }, 300);
+  };
+  
+  // 关闭注册modal的函数
+  function closeRegisterModalFunc() {
+    registerModal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // 重置表单和视图
+    setTimeout(() => {
+      registerForm.style.display = 'block';
+      registerSuccess.style.display = 'none';
+      registerForm.reset();
+      clearErrorMessages();
+    }, 300);
+  }
+  
+  // 显示错误消息
+  function showErrorMessage(message) {
+    let errorDiv = registerForm.querySelector('.error-message');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      registerForm.insertBefore(errorDiv, registerForm.firstChild);
+    }
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+  
+  // 清除错误消息
+  function clearErrorMessages() {
+    const errorDiv = registerForm.querySelector('.error-message');
+    if (errorDiv) {
+      errorDiv.style.display = 'none';
+    }
+  }
+  
+  // 事件监听器
+  closeRegisterModal.addEventListener('click', closeRegisterModalFunc);
+  continueRegisterBtn.addEventListener('click', closeRegisterModalFunc);
+  
+  // 点击外部关闭
+  registerModal.addEventListener('click', (e) => {
+    if (e.target === registerModal) {
+      closeRegisterModalFunc();
+    }
+  });
+  
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && registerModal.classList.contains('active')) {
+      closeRegisterModalFunc();
+    }
+  });
+  
+  // 切换到登录modal
+  switchToLoginBtn.addEventListener('click', () => {
+    closeRegisterModalFunc();
+    setTimeout(() => {
+      if (window.openLoginModal) {
+        window.openLoginModal();
+      }
+    }, 300);
+  });
+  
+  // 表单提交处理
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrorMessages();
+    
+    const formData = new FormData(registerForm);
+    const data = {
+      username: formData.get('username'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+      displayName: formData.get('displayName') || null
+    };
+    
+    // 简单的前端验证
+    if (!data.username || data.username.length < 3) {
+      showErrorMessage('Username must be at least 3 characters long');
+      return;
+    }
+    
+    if (!data.email || !data.email.includes('@')) {
+      showErrorMessage('Please enter a valid email address');
+      return;
+    }
+    
+    if (!data.password || data.password.length < 6) {
+      showErrorMessage('Password must be at least 6 characters long');
+      return;
+    }
+    
+    // 提交按钮loading状态
+    const submitBtn = registerForm.querySelector('.register-submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating Account...';
+    submitBtn.disabled = true;
+    registerForm.classList.add('loading');
+    
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
+      }
+      
+      // 注册成功
+      console.log('✅ User registered successfully:', result.user);
+      registerForm.style.display = 'none';
+      registerSuccess.style.display = 'block';
+      
+      // 🆕 清除旧的管理员状态，保存新用户信息到localStorage
+      localStorage.removeItem('isLoggedIn'); // 清除旧的管理员登录状态
+      localStorage.removeItem('username');   // 清除旧的管理员用户名
+      localStorage.setItem('currentUser', JSON.stringify(result.user));
+      console.log('💾 Saved user data to localStorage:', result.user);
+      
+      // 🆕 立即更新Header状态
+      if (window.updateHeaderForUser) {
+        window.updateHeaderForUser(result.user);
+        console.log('🔄 Updated header for user after registration');
+      }
+      
+      // 触发登录成功事件
+      window.dispatchEvent(new CustomEvent('userLoggedIn', {
+        detail: { user: result.user }
+      }));
+      
+      // 自动关闭modal，不刷新页面
+      setTimeout(() => {
+        closeRegisterModalFunc();
+        // 🆕 不刷新页面，直接更新状态
+        // window.location.reload();  // 移除页面刷新
+      }, 2000);
+      
+    } catch (error) {
+      showErrorMessage(error.message || 'Registration failed. Please try again.');
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+      registerForm.classList.remove('loading');
+    }
+  });
+  
+  // 全局函数导出
+  // openRegisterModal 已在第292行定义
+  window.closeRegisterModal = closeRegisterModalFunc;
+</script>

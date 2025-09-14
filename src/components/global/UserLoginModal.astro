@@ -1,0 +1,413 @@
+---
+---
+
+<div class="user-login-modal-overlay" id="userLoginModal">
+  <div class="user-login-modal">
+    <div class="user-login-header">
+      <h2>Welcome Back</h2>
+      <button class="close-modal" id="closeUserLoginModal" aria-label="Close user login modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <form class="user-login-form" id="userLoginForm">
+      <div class="form-group">
+        <label for="userIdentifier">Username or Email</label>
+        <input type="text" id="userIdentifier" name="identifier" required placeholder="Enter your username or email">
+      </div>
+      
+      <div class="form-group">
+        <label for="userPassword">Password</label>
+        <input type="password" id="userPassword" name="password" required placeholder="Enter your password">
+      </div>
+      
+      <button type="submit" class="user-login-submit-btn">Sign In</button>
+      
+      <div class="user-login-footer">
+        <p class="no-account">
+          Don't have an account? 
+          <button type="button" class="switch-to-register">Create one</button>
+        </p>
+      </div>
+    </form>
+    
+    <div class="user-login-success" id="userLoginSuccess" style="display: none;">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <path d="M22 4l-10 10.01-3-3"></path>
+        </svg>
+      </div>
+      <h3 id="welcomeUserMessage">Welcome back!</h3>
+      <p>You have successfully signed in to IMACXNews. You can now comment on articles and manage your subscriptions.</p>
+      <button class="continue-btn" id="continueUserLoginBtn">Continue</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .user-login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5002; /* 稍高于其他modals */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: var(--space-4);
+  }
+  
+  .user-login-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .user-login-modal {
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    transform: translateY(-50px);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .user-login-modal-overlay.active .user-login-modal {
+    transform: translateY(0);
+  }
+  
+  .user-login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .user-login-header h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.5rem;
+  }
+  
+  .close-modal {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: var(--space-2);
+    transition: color var(--transition);
+  }
+  
+  .close-modal:hover {
+    color: var(--color-primary);
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: border-color var(--transition);
+    box-sizing: border-box;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  
+  .user-login-submit-btn {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    margin-bottom: var(--space-4);
+  }
+  
+  .user-login-submit-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .user-login-submit-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .user-login-footer {
+    text-align: center;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .no-account {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text);
+  }
+  
+  .switch-to-register {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+  }
+  
+  .switch-to-register:hover {
+    color: var(--color-primary-light);
+  }
+  
+  .user-login-success {
+    text-align: center;
+  }
+  
+  .success-icon {
+    margin-bottom: var(--space-4);
+    color: #22c55e;
+  }
+  
+  .user-login-success h3 {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+  
+  .user-login-success p {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+    line-height: 1.5;
+  }
+  
+  .continue-btn {
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+  }
+  
+  .continue-btn:hover {
+    background-color: var(--color-primary-light);
+  }
+  
+  .error-message {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    font-size: 0.875rem;
+    display: none;
+  }
+  
+  .loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  const userLoginModal = document.getElementById('userLoginModal');
+  const userLoginForm = document.getElementById('userLoginForm');
+  const userLoginSuccess = document.getElementById('userLoginSuccess');
+  const closeUserLoginModal = document.getElementById('closeUserLoginModal');
+  const continueUserLoginBtn = document.getElementById('continueUserLoginBtn');
+  const switchToRegisterBtn = document.querySelector('.switch-to-register');
+  const welcomeUserMessage = document.getElementById('welcomeUserMessage');
+  
+  // 打开用户登录modal的函数（全局可用）
+  window.openUserLoginModal = function() {
+    userLoginModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // 聚焦到输入框
+    setTimeout(() => {
+      document.getElementById('userIdentifier').focus();
+    }, 300);
+  };
+  
+  // 关闭用户登录modal的函数
+  function closeUserLoginModalFunc() {
+    userLoginModal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // 重置表单和视图
+    setTimeout(() => {
+      userLoginForm.style.display = 'block';
+      userLoginSuccess.style.display = 'none';
+      userLoginForm.reset();
+      clearErrorMessages();
+    }, 300);
+  }
+  
+  // 显示错误消息
+  function showErrorMessage(message) {
+    let errorDiv = userLoginForm.querySelector('.error-message');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      userLoginForm.insertBefore(errorDiv, userLoginForm.firstChild);
+    }
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+  
+  // 清除错误消息
+  function clearErrorMessages() {
+    const errorDiv = userLoginForm.querySelector('.error-message');
+    if (errorDiv) {
+      errorDiv.style.display = 'none';
+    }
+  }
+  
+  // 事件监听器
+  closeUserLoginModal.addEventListener('click', closeUserLoginModalFunc);
+  continueUserLoginBtn.addEventListener('click', closeUserLoginModalFunc);
+  
+  // 点击外部关闭
+  userLoginModal.addEventListener('click', (e) => {
+    if (e.target === userLoginModal) {
+      closeUserLoginModalFunc();
+    }
+  });
+  
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && userLoginModal.classList.contains('active')) {
+      closeUserLoginModalFunc();
+    }
+  });
+  
+  // 切换到注册modal
+  switchToRegisterBtn.addEventListener('click', () => {
+    closeUserLoginModalFunc();
+    setTimeout(() => {
+      if (window.openRegisterModal) {
+        window.openRegisterModal();
+      }
+    }, 300);
+  });
+  
+  // 表单提交处理
+  userLoginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrorMessages();
+    
+    const formData = new FormData(userLoginForm);
+    const data = {
+      identifier: formData.get('identifier'),
+      password: formData.get('password')
+    };
+    
+    // 简单的前端验证
+    if (!data.identifier) {
+      showErrorMessage('Please enter your username or email');
+      return;
+    }
+    
+    if (!data.password) {
+      showErrorMessage('Please enter your password');
+      return;
+    }
+    
+    // 提交按钮loading状态
+    const submitBtn = userLoginForm.querySelector('.user-login-submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Signing In...';
+    submitBtn.disabled = true;
+    userLoginForm.classList.add('loading');
+    
+    try {
+      const response = await fetch('/api/auth/user-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed');
+      }
+      
+      // 登录成功
+      const displayName = result.user.displayName || result.user.username;
+      welcomeUserMessage.textContent = `Welcome back, ${displayName}!`;
+      
+      userLoginForm.style.display = 'none';
+      userLoginSuccess.style.display = 'block';
+      
+      // 🆕 清除旧的管理员状态，保存新用户信息到localStorage
+      localStorage.removeItem('isLoggedIn'); // 清除旧的管理员登录状态
+      localStorage.removeItem('username');   // 清除旧的管理员用户名
+      localStorage.setItem('currentUser', JSON.stringify(result.user));
+      console.log('✅ User logged in successfully:', result.user);
+      console.log('💾 Saved user data to localStorage:', result.user);
+      
+      // 🆕 立即更新Header状态
+      if (window.updateHeaderForUser) {
+        window.updateHeaderForUser(result.user);
+        console.log('🔄 Updated header for user');
+      }
+      
+      // 触发登录成功事件
+      window.dispatchEvent(new CustomEvent('userLoggedIn', {
+        detail: { user: result.user }
+      }));
+      
+      // 自动关闭modal，不刷新页面
+      setTimeout(() => {
+        closeUserLoginModalFunc();
+        // 🆕 不刷新页面，直接更新状态
+        // window.location.reload();  // 移除页面刷新
+      }, 1500);
+      
+    } catch (error) {
+      showErrorMessage(error.message || 'Login failed. Please try again.');
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+      userLoginForm.classList.remove('loading');
+    }
+  });
+  
+  // 全局函数导出
+  // openUserLoginModal 已在第253行定义
+  window.closeUserLoginModal = closeUserLoginModalFunc;
+</script>

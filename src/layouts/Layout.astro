@@ -1,8 +1,12 @@
 ---
 import Header from '../components/global/Header.astro';
 import Footer from '../components/global/Footer.astro';
-import LoginModal from '../components/global/LoginModal.astro';
+// import LoginModal from '../components/global/LoginModal.astro'; // 已替换为UserLoginModal
 import AdminArticleManager from '../components/global/AdminArticleManager.astro';
+import UserRegisterModal from '../components/global/UserRegisterModal.astro';
+import UserLoginModal from '../components/global/UserLoginModal.astro';
+import UserProfileModal from '../components/global/UserProfileModal.astro';
+import AdminUsersModal from '../components/global/AdminUsersModal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -50,8 +54,12 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
       </main>
       <Footer />
     </div>
-    <LoginModal />
+    <!-- <LoginModal /> 已替换为UserLoginModal -->
     <AdminArticleManager />
+    <UserRegisterModal />
+    <UserLoginModal />
+    <UserProfileModal />
+    <AdminUsersModal />
     
     <!-- External scripts for CSP compliance -->
     <script src="/scripts/smooth-scroll.js" is:inline></script>
