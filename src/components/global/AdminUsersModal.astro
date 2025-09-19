@@ -75,18 +75,21 @@
         </div>
         
         <div id="usersTable" style="display: none;">
-          <div class="table-header">
-            <div class="header-cell col-avatar">Avatar</div>
-            <div class="header-cell col-user">User Info</div>
-            <div class="header-cell col-role">Role</div>
-            <div class="header-cell col-status">Status</div>
-            <div class="header-cell col-activity">Last Activity</div>
-            <div class="header-cell col-actions">Actions</div>
-          </div>
-          
-          <div id="usersListContainer" class="users-list">
-            <!-- 用户列表将在这里动态生成 -->
-          </div>
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th class="col-avatar">Avatar</th>
+                <th class="col-user">User Info</th>
+                <th class="col-role">Role</th>
+                <th class="col-status">Status</th>
+                <th class="col-activity">Last Activity</th>
+                <th class="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersListContainer" class="users-list">
+              <!-- 用户列表将在这里动态生成 -->
+            </tbody>
+          </table>
         </div>
         
         <div id="usersEmpty" class="empty-state" style="display: none;">
@@ -287,13 +290,6 @@
     background-color: var(--color-primary-light);
   }
   
-  .users-container {
-    background-color: var(--color-surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    overflow: hidden;
-  }
-  
   .loading-state {
     display: flex;
     flex-direction: column;
@@ -318,26 +314,66 @@
     100% { transform: rotate(360deg); }
   }
   
-  .table-header {
-    display: grid;
-    grid-template-columns: 70px 2fr 120px 120px 140px 140px;
-    gap: var(--space-4);
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  
+  .users-table thead th {
     padding: var(--space-4) var(--space-5);
     background: linear-gradient(135deg, var(--color-background-alt) 0%, rgba(79, 70, 229, 0.05) 100%);
     border-bottom: 2px solid var(--color-border);
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--color-text);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     position: sticky;
     top: 0;
     z-index: 10;
   }
   
-  .header-cell {
-    display: flex;
-    align-items: center;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  .users-table .col-avatar {
+    width: 70px;
+    text-align: center;
+  }
+  
+  .users-table .col-user {
+    width: auto;
+    min-width: 200px;
+  }
+  
+  .users-table .col-role {
+    width: 120px;
+    text-align: center;
+  }
+  
+  .users-table .col-status {
+    width: 120px;
+    text-align: center;
+  }
+  
+  .users-table .col-activity {
+    width: 140px;
+    text-align: center;
+  }
+  
+  .users-table .col-actions {
+    width: 140px;
+    text-align: center;
+  }
+  
+  .users-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    max-height: 500px;
+    overflow-y: auto;
   }
   
   .users-list {
@@ -363,25 +399,36 @@
     background: var(--color-text-light);
   }
   
-  .user-row {
-    display: grid;
-    grid-template-columns: 70px 2fr 120px 120px 140px 140px;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
+  /* Table行样式 */
+  .users-table tbody tr {
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    align-items: center;
     transition: all 0.2s ease;
-    position: relative;
   }
   
-  .user-row:hover {
+  .users-table tbody tr:hover {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.02) 0%, rgba(79, 70, 229, 0.05) 100%);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .user-row:last-child {
+  .users-table tbody tr:last-child {
     border-bottom: none;
+  }
+  
+  .users-table tbody td {
+    padding: var(--space-4) var(--space-5);
+    vertical-align: middle;
+  }
+  
+  .users-table .col-avatar {
+    text-align: center;
+  }
+  
+  .users-table .col-role,
+  .users-table .col-status,
+  .users-table .col-activity,
+  .users-table .col-actions {
+    text-align: center;
   }
   
   .user-avatar {
@@ -642,7 +689,95 @@
     border: 1px solid #fca5a5;
   }
   
-  @media (max-width: 768px) {
+  /* 大屏幕适配 */
+  @media (max-width: 1200px) {
+    .admin-users-modal {
+      max-width: 95vw;
+    }
+    
+    .users-table .col-avatar {
+      width: 60px;
+    }
+    
+    .users-table .col-role,
+    .users-table .col-status {
+      width: 100px;
+    }
+    
+    .users-table .col-activity,
+    .users-table .col-actions {
+      width: 120px;
+    }
+  }
+
+  /* 中屏幕适配 */
+  @media (max-width: 900px) {
+    .users-table thead th,
+    .users-table tbody td {
+      padding: var(--space-3) var(--space-4);
+    }
+    
+    .users-table .col-avatar {
+      width: 50px;
+    }
+    
+    .users-table .col-role,
+    .users-table .col-status {
+      width: 80px;
+    }
+    
+    .users-table .col-activity,
+    .users-table .col-actions {
+      width: 100px;
+    }
+    
+    .user-filters {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    
+    .filter-group {
+      min-width: auto;
+    }
+  }
+
+  /* 小屏幕适配 */
+  @media (max-width: 600px) {
+    .users-table thead th,
+    .users-table tbody td {
+      padding: var(--space-2) var(--space-3);
+      font-size: 0.75rem;
+    }
+    
+    .users-table .col-avatar {
+      width: 40px;
+    }
+    
+    .users-table .col-role,
+    .users-table .col-status {
+      width: 60px;
+    }
+    
+    .users-table .col-activity,
+    .users-table .col-actions {
+      width: 80px;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      font-size: 0.75rem;
+    }
+    
+    .action-btn {
+      padding: var(--space-1) var(--space-2);
+      font-size: 0.625rem;
+      min-width: 50px;
+    }
+  }
+
+  /* 手机端 - 使用垂直布局 */
+  @media (max-width: 320px) {
     .admin-users-modal {
       max-width: 95vw;
       margin: var(--space-2);
@@ -652,39 +787,34 @@
       grid-template-columns: repeat(2, 1fr);
     }
     
-    .user-filters {
-      flex-direction: column;
-    }
-    
-    .filter-group {
-      min-width: auto;
-    }
-    
-    .table-header,
-    .user-row {
-      grid-template-columns: 1fr;
-      gap: var(--space-2);
-    }
-    
-    .header-cell {
+    .users-table thead {
       display: none;
     }
     
-    .user-row {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+    .users-table,
+    .users-table tbody,
+    .users-table tr,
+    .users-table td {
+      display: block;
+    }
+    
+    .users-table tr {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
       padding: var(--space-4);
     }
     
-    .user-avatar {
-      align-self: center;
-      margin-bottom: var(--space-2);
+    .users-table td {
+      border: none;
+      padding: var(--space-2) 0;
+      text-align: left !important;
     }
     
-    .user-actions {
-      align-self: stretch;
-      justify-content: center;
+    .users-table td:before {
+      content: attr(data-label) ": ";
+      font-weight: 600;
+      color: var(--color-text-light);
     }
   }
 </style>
@@ -894,49 +1024,57 @@
     }
     
     return `
-      <div class="user-row" data-user-id="${user.id}">
-        <div class="user-avatar">
-          ${avatarContent}
-        </div>
-        <div class="user-info">
-          <div class="user-name">${displayName}</div>
-          <div class="user-email">${user.email || 'No email'}</div>
-        </div>
-        <div class="user-role">
+      <tr data-user-id="${user.id}">
+        <td class="col-avatar" data-label="Avatar">
+          <div class="user-avatar">
+            ${avatarContent}
+          </div>
+        </td>
+        <td class="col-user" data-label="User">
+          <div class="user-info">
+            <div class="user-name">${displayName}</div>
+            <div class="user-email">${user.email || 'No email'}</div>
+          </div>
+        </td>
+        <td class="col-role" data-label="Role">
           <span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span>
-        </div>
-        <div class="user-status">
-          <span class="status-indicator status-${isOnline ? 'online' : 'offline'}"></span>
-          <span class="status-text">${isOnline ? 'Online' : 'Offline'}</span>
-        </div>
-        <div class="user-activity">${lastActivity}</div>
-        <div class="user-actions">
-          <button class="action-btn view-btn" onclick="viewUserDetails(${user.id})" title="View Details">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            View
-          </button>
-          ${user.role !== 'ADMIN' ? `<button class="action-btn promote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Promote to Admin">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            Promote
-          </button>` : `<button class="action-btn demote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Demote to User">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <line x1="22" y1="5" x2="16" y2="11"></line>
-              <line x1="16" y1="5" x2="22" y2="11"></line>
-            </svg>
-            Demote
-          </button>`}
-        </div>
-      </div>
+        </td>
+        <td class="col-status" data-label="Status">
+          <div class="user-status">
+            <span class="status-indicator status-${isOnline ? 'online' : 'offline'}"></span>
+            <span class="status-text">${isOnline ? 'Online' : 'Offline'}</span>
+          </div>
+        </td>
+        <td class="col-activity" data-label="Last Activity">${lastActivity}</td>
+        <td class="col-actions" data-label="Actions">
+          <div class="user-actions">
+            <button class="action-btn view-btn" onclick="viewUserDetails(${user.id})" title="View Details">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              View
+            </button>
+            ${user.role !== 'ADMIN' ? `<button class="action-btn promote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Promote to Admin">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              Promote
+            </button>` : `<button class="action-btn demote-btn" onclick="toggleUserRole(${user.id}, '${user.role}')" title="Demote to User">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <line x1="22" y1="5" x2="16" y2="11"></line>
+                <line x1="16" y1="5" x2="22" y2="11"></line>
+              </svg>
+              Demote
+            </button>`}
+          </div>
+        </td>
+      </tr>
     `;
   }
   
