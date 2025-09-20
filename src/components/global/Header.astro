@@ -378,8 +378,6 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 从服务器API检查用户状态
   async function checkUserStatusFromAPI() {
-    console.log('🌐 Checking user status from API...');
-    
     try {
       const response = await fetch('/api/auth/status', {
         method: 'GET',
@@ -387,23 +385,19 @@ import ThemeToggle from './ThemeToggle.astro';
       });
       
       const result = await response.json();
-      console.log('📡 API response:', result);
       
       if (result.success && result.user) {
-        console.log('✅ User authenticated via API:', result.user.username);
         // 同步到localStorage
         localStorage.setItem('currentUser', JSON.stringify(result.user));
         updateHeaderForUser(result.user);
         return true;
       } else {
-        console.log('❌ No valid user from API');
         // 清理localStorage
         localStorage.removeItem('currentUser');
         checkUserStatusFromLocalStorage();
         return false;
       }
     } catch (error) {
-      console.error('❌ API check failed:', error);
       // API失败时回退到localStorage检查
       checkUserStatusFromLocalStorage();
       return false;
@@ -412,8 +406,6 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 从localStorage检查用户状态（回退方案）
   function checkUserStatusFromLocalStorage() {
-    console.log('💾 Checking user status from localStorage...');
-    
     // 检查管理员登录状态（旧系统兼容）
     const isAdminLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const adminUsername = localStorage.getItem('username');
@@ -426,20 +418,16 @@ import ThemeToggle from './ThemeToggle.astro';
       try {
         userData = JSON.parse(currentUser);
       } catch (e) {
-        console.error('Failed to parse user data:', e);
         localStorage.removeItem('currentUser');
       }
     }
     
     // 优先显示普通用户状态，其次是管理员状态
     if (userData && userData.id) {
-      console.log('👤 Updating header for user:', userData.username);
       updateHeaderForUser(userData);
     } else if (isAdminLoggedIn && adminUsername) {
-      console.log('👨‍💼 Updating header for admin:', adminUsername);
       updateHeaderForAdmin(adminUsername);
     } else {
-      console.log('🚫 No user logged in, showing auth buttons');
       updateHeaderForLoggedOut();
     }
   }
@@ -452,33 +440,27 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 更新Header显示普通用户状态
   function updateHeaderForUser(userData: any) {
-    console.log('👤 Updating header for user:', userData);
     const adminManageBtn = document.getElementById('adminManageBtn');
     const adminUsersBtn = document.getElementById('adminUsersBtn');
     const headerUserAvatar = document.getElementById('headerUserAvatar');
     const displayName = userData.displayName || userData.username;
     const roleText = userData.role === 'ADMIN' ? 'Administrator' : 'Member';
     
-    console.log('🎭 User role:', userData.role, '-> Display text:', roleText);
     
     // 隐藏认证按钮，显示用户下拉菜单
     if (authButtons) {
       authButtons.classList.add('hidden');
-      console.log('🔒 Hidden auth buttons');
     }
     if (userDropdown) {
       userDropdown.classList.add('show');
-      console.log('👁️ Showing user dropdown');
     }
     
     // 更新用户信息显示
     if (userName) {
       userName.textContent = displayName;
-      console.log('📝 Updated username to:', displayName);
     }
     if (userRoleSpan) {
       userRoleSpan.textContent = roleText;
-      console.log('🏷️ Updated role to:', roleText);
     }
     
     // 更新用户头像
@@ -486,7 +468,6 @@ import ThemeToggle from './ThemeToggle.astro';
       // 如果有emoji头像，显示emoji
       if (typeof userData.avatar === 'string' && userData.avatar.length <= 10) {
         headerUserAvatar.innerHTML = `<span style="font-size: 24px;">${userData.avatar}</span>`;
-        console.log('🖼️ Updated header avatar to emoji:', userData.avatar);
       }
     }
     
@@ -494,10 +475,8 @@ import ThemeToggle from './ThemeToggle.astro';
     if (adminManageBtn) {
       if (userData.role === 'ADMIN') {
         adminManageBtn.style.display = 'flex';
-        console.log('🔧 Showing admin button for ADMIN user');
       } else {
         adminManageBtn.style.display = 'none';
-        console.log('🚫 Hiding admin button for USER');
       }
     }
     
@@ -505,10 +484,8 @@ import ThemeToggle from './ThemeToggle.astro';
     if (adminUsersBtn) {
       if (userData.role === 'ADMIN') {
         adminUsersBtn.style.display = 'flex';
-        console.log('👥 Showing admin users button for ADMIN user');
       } else {
         adminUsersBtn.style.display = 'none';
-        console.log('🚫 Hiding admin users button for USER');
       }
     }
     
@@ -523,11 +500,9 @@ import ThemeToggle from './ThemeToggle.astro';
     // 隐藏认证按钮，显示用户下拉菜单
     if (authButtons) {
       authButtons.classList.add('hidden');
-      console.log('🔒 Hidden auth buttons for admin');
     }
     if (userDropdown) {
       userDropdown.classList.add('show');
-      console.log('👁️ Showing admin dropdown');
     }
     
     // 更新用户信息显示
@@ -545,20 +520,16 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 更新Header为未登录状态
   function updateHeaderForLoggedOut() {
-    console.log('🔧 Setting header for logged out state');
     const adminManageBtn = document.getElementById('adminManageBtn');
     
     // 显示认证按钮，隐藏用户下拉菜单
     if (authButtons) {
       authButtons.classList.remove('hidden');
-      console.log('🔓 Showing auth buttons');
     } else {
-      console.error('❌ Auth buttons not found');
     }
     
     if (userDropdown) {
       userDropdown.classList.remove('show');
-      console.log('🙈 Hiding user dropdown');
     }
     
     // 隐藏管理按钮
@@ -571,10 +542,8 @@ import ThemeToggle from './ThemeToggle.astro';
       loginBtn.onclick = () => {
         // 只打开普通用户登录
         if (window.openUserLoginModal) {
-          console.log('🚀 Opening user login modal');
           window.openUserLoginModal();
         } else {
-          console.error('❌ openUserLoginModal function not found');
         }
       };
     }
@@ -582,10 +551,8 @@ import ThemeToggle from './ThemeToggle.astro';
     if (registerBtn) {
       registerBtn.onclick = () => {
         if (window.openRegisterModal) {
-          console.log('🚀 Opening user register modal');
           window.openRegisterModal();
         } else {
-          console.error('❌ openRegisterModal function not found');
         }
       };
     }
@@ -598,7 +565,6 @@ import ThemeToggle from './ThemeToggle.astro';
       userInfo.onclick = (e) => {
         e.stopPropagation();
         userDropdown.classList.toggle('active');
-        console.log('🔽 Toggle dropdown:', userDropdown.classList.contains('active') ? 'open' : 'closed');
       };
     }
     
@@ -614,7 +580,6 @@ import ThemeToggle from './ThemeToggle.astro';
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       if (confirm('Do you want to logout?')) {
-        console.log('👋 User logging out...');
         
         try {
           // 调用logout API清除服务器端cookie
@@ -624,20 +589,15 @@ import ThemeToggle from './ThemeToggle.astro';
           });
           
           if (response.ok) {
-            console.log('✅ Server logout successful');
           } else {
-            console.warn('⚠️ Server logout failed, but continuing with client logout');
           }
         } catch (error) {
-          console.error('❌ Logout API error:', error);
-          console.warn('⚠️ Continuing with client-side logout');
         }
         
         // 清除所有用户数据
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
         localStorage.removeItem('currentUser');
-        console.log('🧹 Cleared all user data from localStorage');
         
         // 关闭下拉菜单
         if (userDropdown) {
@@ -676,7 +636,6 @@ import ThemeToggle from './ThemeToggle.astro';
       if (window.openUserProfileModal) {
         window.openUserProfileModal();
       } else {
-        console.error('❌ openUserProfileModal function not found');
       }
     });
   }
@@ -691,7 +650,6 @@ import ThemeToggle from './ThemeToggle.astro';
       if (window.openAdminUsersModal) {
         window.openAdminUsersModal();
       } else {
-        console.error('❌ openAdminUsersModal function not found');
       }
     });
   }
@@ -712,15 +670,8 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 初始化页面时检查用户状态
   document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 DOM loaded, checking user status...');
     // 从API检查用户状态
     await checkUserStatus();
-    
-    // 🆕 延迟再次检查，确保数据正确加载
-    setTimeout(async () => {
-      console.log('🔄 Double-checking user status...');
-      await checkUserStatus();
-    }, 500);
   });
   
   // 🆕 监听用户登录事件（从登录模态框触发）
@@ -737,19 +688,4 @@ import ThemeToggle from './ThemeToggle.astro';
   window.updateHeaderForLoggedOut = updateHeaderForLoggedOut;
   
   // 🆕 导出调试函数
-  window.debugUserStatus = async function() {
-    console.log('🔧 Debug User Status:');
-    console.log('localStorage.currentUser:', localStorage.getItem('currentUser'));
-    console.log('localStorage.isLoggedIn:', localStorage.getItem('isLoggedIn'));
-    console.log('localStorage.username:', localStorage.getItem('username'));
-    
-    const authButtons = document.getElementById('authButtons');
-    const userDropdown = document.getElementById('userDropdown');
-    console.log('authButtons display:', authButtons?.style.display);
-    console.log('userDropdown display:', userDropdown?.style.display);
-    
-    // 强制从API重新检查
-    console.log('🌐 Force checking from API...');
-    await checkUserStatus();
-  };
 </script>

@@ -275,8 +275,11 @@ const {
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: var(--space-1);
+    white-space: nowrap;
   }
 
   .cancel-btn {
@@ -480,8 +483,9 @@ const {
     }
 
     .form-actions {
-      flex-direction: column;
-      align-items: stretch;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
       gap: var(--space-2);
     }
 
@@ -490,7 +494,7 @@ const {
     }
 
     .character-count {
-      text-align: center;
+      font-size: 0.625rem;
     }
   }
 
@@ -512,6 +516,17 @@ const {
 
     .comment-form textarea {
       font-size: 16px; /* 防止iOS缩放 */
+    }
+
+    .cancel-btn, .submit-btn {
+      padding: var(--space-2) var(--space-2);
+      font-size: 0.75rem;
+      flex-direction: row;
+      white-space: nowrap;
+    }
+
+    .action-buttons {
+      gap: var(--space-1);
     }
   }
 
@@ -547,6 +562,8 @@ const {
     private currentPage: number = 1;
     private hasMoreComments: boolean = true;
     private isLoading: boolean = false;
+    private loadCommentsTimeout: number | null = null;
+    private isSubmitting: boolean = false;
 
     constructor(container: HTMLElement) {
       this.container = container;
@@ -661,7 +678,7 @@ const {
     private async handleCommentSubmit(event: Event) {
       event.preventDefault();
       
-      if (this.isLoading) return;
+      if (this.isLoading || this.isSubmitting) return;
 
       const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
       const submitBtn = this.container.querySelector('#submitComment') as HTMLButtonElement;
@@ -684,6 +701,7 @@ const {
 
       try {
         this.isLoading = true;
+        this.isSubmitting = true;
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
           <svg class="icon spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -712,23 +730,23 @@ const {
           // 显示成功提示
           this.showSuccessMessage('Comment posted successfully!');
           
-          // 如果返回了新评论数据，立即添加到列表顶部
+          // 如果返回了新评论数据，立即显示
           if (result.data && result.data.comment) {
             this.prependNewComment(result.data.comment);
             this.updateCommentCount(result.data.totalComments || 0);
             
-            // 确保隐藏加载状态
+            // 确保评论列表可见
             const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
+            const listEl = this.container.querySelector('#commentList') as HTMLElement;
+            const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
+            
             loadingEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            listEl.style.display = 'block';
+          } else {
+            // 如果没有返回评论数据，重新加载
+            this.scheduleCommentsReload();
           }
-          
-          // 重置加载状态，然后重新加载评论（确保数据同步）
-          this.isLoading = false;
-          
-          // 减少延时，因为我们已经立即显示了新评论
-          setTimeout(async () => {
-            await this.loadComments(true);
-          }, 1000);
         } else {
           this.showError(result.message || 'Failed to post comment');
         }
@@ -738,6 +756,7 @@ const {
       } finally {
         // 确保重置加载状态
         this.isLoading = false;
+        this.isSubmitting = false;
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -761,15 +780,15 @@ const {
       const listEl = this.container.querySelector('#commentList') as HTMLElement;
       const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
       
-      // 显示加载状态
-      if (this.currentPage === 1) {
-        loadingEl.style.display = 'block';
-        listEl.style.display = 'none';
-        emptyEl.style.display = 'none';
-      }
-
       try {
         this.isLoading = true;
+        
+        // 只在首次加载或明确需要重置时显示加载状态
+        if (this.currentPage === 1 && (!listEl.children.length || reset)) {
+          loadingEl.style.display = 'block';
+          listEl.style.display = 'none';
+          emptyEl.style.display = 'none';
+        }
         
         const response = await fetch(
           `/api/interactions/comment?articleId=${this.articleId}&page=${this.currentPage}&limit=10`
@@ -779,28 +798,32 @@ const {
         if (result.success) {
           const { comments, pagination } = result.data;
           
+          // 使用批量更新避免中间状态
           if (reset || this.currentPage === 1) {
-            this.renderComments(comments);
+            // 先隐藏所有状态
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            
+            if (comments.length === 0) {
+              listEl.style.display = 'none';
+              emptyEl.style.display = 'block';
+            } else {
+              // 一次性渲染所有评论
+              this.renderComments(comments);
+              listEl.style.display = 'block';
+            }
           } else {
             this.appendComments(comments);
           }
           
+          // 批量更新UI状态
           this.updateCommentCount(pagination.totalComments);
           this.hasMoreComments = pagination.hasNextPage;
           this.updatePaginationControls();
           
-          // 隐藏加载状态
-          loadingEl.style.display = 'none';
-          
-          if (comments.length === 0 && this.currentPage === 1) {
-            emptyEl.style.display = 'block';
-            listEl.style.display = 'none';
-          } else {
-            emptyEl.style.display = 'none';
-            listEl.style.display = 'block';
-          }
         } else {
           this.showError(result.message || 'Failed to load comments');
+          loadingEl.style.display = 'none';
         }
       } catch (error) {
         console.error('Failed to load comments:', error);
@@ -826,10 +849,12 @@ const {
     private prependNewComment(comment: Comment) {
       const listEl = this.container.querySelector('#commentList') as HTMLElement;
       const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
+      const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
       
-      // 确保评论列表可见
-      listEl.style.display = 'block';
+      // 确保评论列表可见，隐藏其他状态
+      loadingEl.style.display = 'none';
       emptyEl.style.display = 'none';
+      listEl.style.display = 'block';
       
       let newCommentEl: HTMLElement | null = null;
       
@@ -879,6 +904,12 @@ const {
       const avatar = comment.user.avatar || displayName.charAt(0).toUpperCase();
       const timeAgo = this.formatTimeAgo(comment.createdAt);
       
+      // 检查是否可以删除：用户自己的评论或管理员
+      const canDelete = this.currentUser && (
+        this.currentUser.id === comment.user.id || 
+        this.currentUser.role === 'ADMIN'
+      );
+      
       return `
         <div class="comment-item" data-comment-id="${comment.id}">
           <div class="comment-avatar">
@@ -888,8 +919,8 @@ const {
             <div class="comment-header">
               <span class="comment-author">${displayName}</span>
               <span class="comment-time">${timeAgo}</span>
-              ${this.currentUser?.role === 'ADMIN' ? `
-                <button class="delete-comment-btn" data-comment-id="${comment.id}">
+              ${canDelete ? `
+                <button class="delete-comment-btn" data-comment-id="${comment.id}" title="${this.currentUser.id === comment.user.id ? 'Delete your comment' : 'Delete comment (Admin)'}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3,6 5,6 21,6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -924,6 +955,12 @@ const {
       const avatar = reply.user.avatar || displayName.charAt(0).toUpperCase();
       const timeAgo = this.formatTimeAgo(reply.createdAt);
       
+      // 检查是否可以删除：用户自己的回复或管理员
+      const canDelete = this.currentUser && (
+        this.currentUser.id === reply.user.id || 
+        this.currentUser.role === 'ADMIN'
+      );
+      
       return `
         <div class="comment-reply" data-comment-id="${reply.id}">
           <div class="reply-avatar">
@@ -933,6 +970,14 @@ const {
             <div class="reply-header">
               <span class="reply-author">${displayName}</span>
               <span class="reply-time">${timeAgo}</span>
+              ${canDelete ? `
+                <button class="delete-comment-btn small" data-comment-id="${reply.id}" title="${this.currentUser.id === reply.user.id ? 'Delete your reply' : 'Delete reply (Admin)'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              ` : ''}
             </div>
             <div class="reply-body">${this.escapeHtml(reply.body)}</div>
             <div class="reply-actions">
@@ -955,6 +1000,35 @@ const {
       const badge = this.container.querySelector('#commentCountBadge') as HTMLElement;
       if (badge) {
         badge.textContent = count.toString();
+      }
+    }
+
+    private calculateDeletedCommentCount(commentElement: HTMLElement): number {
+      if (!commentElement) return 1;
+      
+      // 计算主评论 + 所有回复的数量
+      let count = 1; // 主评论本身
+      
+      // 如果是主评论（comment-item），计算其回复数量
+      if (commentElement.classList.contains('comment-item')) {
+        const repliesContainer = commentElement.querySelector('.comment-replies');
+        if (repliesContainer) {
+          const replies = repliesContainer.querySelectorAll('.comment-reply');
+          count += replies.length;
+        }
+      }
+      // 如果是回复（comment-reply），只计算1个
+      
+      return count;
+    }
+
+    private updateCommentCountAfterDelete(deletedCount: number = 1) {
+      // 根据删除的评论数量递减评论计数，避免额外的API调用
+      const badge = this.container.querySelector('#commentCountBadge') as HTMLElement;
+      if (badge) {
+        const currentCount = parseInt(badge.textContent || '0');
+        const newCount = Math.max(0, currentCount - deletedCount);
+        badge.textContent = newCount.toString();
       }
     }
 
@@ -1026,9 +1100,21 @@ const {
     }
 
     private async handleDeleteComment(commentId: string) {
-      if (!confirm('Are you sure you want to delete this comment?')) {
+      // 检查是否是用户自己的评论
+      const commentElement = this.container.querySelector(`[data-comment-id="${commentId}"]`);
+      const deleteBtn = commentElement?.querySelector('.delete-comment-btn');
+      const isOwnComment = deleteBtn?.getAttribute('title')?.includes('your');
+      
+      const confirmMessage = isOwnComment 
+        ? 'Are you sure you want to delete your comment?' 
+        : 'Are you sure you want to delete this comment?';
+        
+      if (!confirm(confirmMessage)) {
         return;
       }
+
+      // 在删除前计算要删除的评论数量（包括回复）
+      const deletedCount = this.calculateDeletedCommentCount(commentElement as HTMLElement);
 
       try {
         const response = await fetch('/api/interactions/comment', {
@@ -1042,10 +1128,30 @@ const {
         if (result.success) {
           this.showSuccessMessage('Comment deleted successfully');
           
-          // 添加小延时确保数据库事务完成，然后重新加载评论
-          setTimeout(async () => {
-            await this.loadComments(true);
-          }, 200);
+          // 立即移除被删除的评论元素，避免重新加载整个列表
+          const commentElement = this.container.querySelector(`[data-comment-id="${commentId}"]`) as HTMLElement;
+          if (commentElement) {
+            commentElement.style.opacity = '0';
+            commentElement.style.transform = 'translateX(-20px)';
+            commentElement.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+              commentElement.remove();
+              
+              // 检查是否需要显示空状态
+              const commentList = this.container.querySelector('#commentList') as HTMLElement;
+              const emptyState = this.container.querySelector('#emptyState') as HTMLElement;
+              
+              if (commentList.children.length === 0) {
+                commentList.style.display = 'none';
+                emptyState.style.display = 'block';
+                this.updateCommentCount(0);
+              } else {
+                // 更新评论计数，减去删除的评论数量
+                this.updateCommentCountAfterDelete(deletedCount);
+              }
+            }, 300);
+          }
         } else {
           this.showError(result.message || 'Failed to delete comment');
         }
@@ -1058,6 +1164,27 @@ const {
     private async loadMoreComments() {
       this.currentPage++;
       await this.loadComments();
+    }
+
+    private scheduleCommentsReload() {
+      // 如果正在提交，不执行重新加载
+      if (this.isSubmitting) {
+        return;
+      }
+      
+      // 清除之前的定时器
+      if (this.loadCommentsTimeout) {
+        clearTimeout(this.loadCommentsTimeout);
+      }
+      
+      // 设置新的定时器
+      this.loadCommentsTimeout = setTimeout(async () => {
+        // 再次检查是否正在提交
+        if (!this.isSubmitting) {
+          await this.loadComments(true);
+        }
+        this.loadCommentsTimeout = null;
+      }, 300) as any;
     }
 
     private formatTimeAgo(dateString: string): string {
@@ -1263,6 +1390,32 @@ const {
     .reply-time {
       color: var(--color-text-light);
       font-size: 0.625rem;
+    }
+
+    .delete-comment-btn.small {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--color-text-light);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 3px;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+
+    .comment-reply:hover .delete-comment-btn.small {
+      opacity: 1;
+    }
+
+    .delete-comment-btn.small:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .delete-comment-btn.small svg {
+      width: 12px;
+      height: 12px;
     }
 
     .reply-body {

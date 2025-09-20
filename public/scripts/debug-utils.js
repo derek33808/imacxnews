@@ -68,5 +68,7 @@
     }
   };
   
-  console.log('🐞 Debug utilities loaded. Development mode:', window.isDevelopment);
+  if (window.isDevelopment) {
+    console.log('🐞 Debug utilities loaded. Development mode:', window.isDevelopment);
+  }
 })();

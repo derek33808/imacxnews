@@ -257,10 +257,10 @@ export const GET: APIRoute = async ({ request }) => {
   }
 };
 
-// DELETE: 删除评论（管理员功能）
+// DELETE: 删除评论（用户可以删除自己的评论，管理员可以删除任意评论）
 export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
-    // 验证用户身份和管理员权限
+    // 验证用户身份
     const token = cookies.get('token')?.value;
     if (!token) {
       return new Response(JSON.stringify({
@@ -277,20 +277,20 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     const db = createDatabaseConnection();
 
-    // 检查用户是否为管理员
+    // 获取用户信息
     const user = await withRetry(async () => {
       return await db.user.findUnique({
         where: { id: userId },
-        select: { role: true }
+        select: { role: true, username: true }
       });
-    }, 'Check user role');
+    }, 'Check user info');
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user) {
       return new Response(JSON.stringify({
         success: false,
-        message: 'Admin privileges required'
+        message: 'User not found'
       }), {
-        status: 403,
+        status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -316,7 +316,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         where: { id: commentIdInt },
         include: {
           user: {
-            select: { username: true }
+            select: { id: true, username: true }
           }
         }
       });
@@ -328,6 +328,20 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         message: 'Comment not found'
       }), {
         status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 检查权限：用户只能删除自己的评论，管理员可以删除任意评论
+    const isOwner = comment.userId === userId;
+    const isAdmin = user.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'You can only delete your own comments'
+      }), {
+        status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -345,7 +359,8 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
       });
     }, 'Delete comment and replies');
 
-    console.log(`✅ Admin ${userId} deleted comment ${commentId} by user ${comment.user.username}`);
+    const actionType = isAdmin && !isOwner ? 'Admin' : 'User';
+    console.log(`✅ ${actionType} ${user.username} (${userId}) deleted comment ${commentId} by user ${comment.user.username}`);
 
     return new Response(JSON.stringify({
       success: true,

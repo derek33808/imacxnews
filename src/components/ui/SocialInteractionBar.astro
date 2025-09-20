@@ -93,14 +93,14 @@ const {
   .interaction-group {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-3);
     padding: var(--space-3);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
     border: 2px solid var(--color-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
-    justify-content: space-around;
+    justify-content: space-evenly;
   }
 
   .interaction-item {
@@ -276,7 +276,7 @@ const {
   .loading-indicator {
     position: absolute;
     top: 50%;
-    right: var(--space-3);
+    right: var(--space-12);
     transform: translateY(-50%);
   }
 
@@ -345,6 +345,11 @@ const {
     .share-text {
       display: none;
     }
+
+    /* 移动端加载指示器位置调整 */
+    .loading-indicator {
+      right: var(--space-6);
+    }
   }
 
   @media (max-width: 480px) {
@@ -381,6 +386,11 @@ const {
       font-size: 0.875rem;
       min-width: auto;
       font-weight: 600;
+    }
+
+    /* 小屏幕设备加载指示器进一步调整 */
+    .loading-indicator {
+      right: var(--space-6);
     }
   }
 
@@ -543,7 +553,6 @@ const {
       // 优先复制链接，让功能更明显
       navigator.clipboard.writeText(window.location.href).then(() => {
         this.showFeedback(this.container.querySelector('.share-btn')!, 'Link copied to clipboard!');
-        console.log('✅ Article link copied to clipboard');
       }).catch(() => {
         // 复制失败时尝试原生分享
         if (navigator.share) {
