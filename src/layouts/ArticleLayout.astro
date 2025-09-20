@@ -4,6 +4,8 @@ import { formatDate } from '../utils/dateFormatter';
 import { getCategoryById } from '../data/categories';
 import ArticleCard from '../components/ui/ArticleCard.astro';
 import MiniRelatedCard from '../components/ui/MiniRelatedCard.astro';
+import SocialInteractionBar from '../components/ui/SocialInteractionBar.astro';
+import CommentSection from '../components/ui/CommentSection.astro';
 import { createDatabaseConnection, withRetry } from '../lib/database';
 
 const { article } = Astro.props;
@@ -168,6 +170,21 @@ const description = article.excerpt;
         )}
       </div>
       
+      <!-- 社交互动区域 -->
+      <div class="article-interactions">
+        <SocialInteractionBar 
+          articleId={article.id} 
+          size="large" 
+          showCounts={true}
+        />
+        
+        <CommentSection 
+          articleId={article.id}
+          showTitle={true}
+          maxHeight="800px"
+        />
+      </div>
+      
       {relatedArticles.length > 0 && (
         <div class="related-articles">
           <h2 class="related-title">Related Articles</h2>
@@ -269,6 +286,8 @@ const description = article.excerpt;
     margin: 0 auto var(--space-12);
     font-size: 1.125rem;
     line-height: 1.7;
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
   }
 
   .english-content,
@@ -289,6 +308,35 @@ const description = article.excerpt;
   .chinese-content {
     font-size: 1.125rem;
     line-height: 1.8;
+  }
+  
+  /* 社交互动区域样式 */
+  .article-interactions {
+    max-width: 800px;
+    margin: var(--space-12) auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 var(--space-4);
+  }
+
+  .article-interactions .social-interaction-bar {
+    align-self: stretch;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: unset;
+    justify-content: space-around;
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+  
+  .article-interactions .comment-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box;
   }
   
   .related-articles {
@@ -332,6 +380,30 @@ const description = article.excerpt;
       font-size: 2rem;
     }
     
+    .article-content {
+      padding: 0 var(--space-2);
+    }
+    
+    .article-interactions {
+      margin: var(--space-8) auto;
+      gap: var(--space-6);
+      padding: 0 var(--space-2);
+    }
+
+    .article-interactions .social-interaction-bar {
+      min-width: unset;
+      width: auto !important;
+      max-width: 100% !important;
+      justify-content: center;
+      margin: 0 auto !important;
+    }
+    
+    .article-interactions .comment-section {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    
     .related-grid {
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: var(--space-3);
@@ -339,6 +411,14 @@ const description = article.excerpt;
   }
   
   @media (max-width: 480px) {
+    .article-content {
+      padding: 0 var(--space-1);
+    }
+    
+    .article-interactions {
+      padding: 0 var(--space-1);
+    }
+
     .related-grid {
       grid-template-columns: 1fr;
       gap: var(--space-2);
