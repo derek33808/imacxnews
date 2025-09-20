@@ -157,7 +157,7 @@ export const GET: APIRoute = async ({ request }) => {
     const url = new URL(request.url);
     const articleId = url.searchParams.get('articleId');
     const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
     
     if (!articleId) {
       return new Response(JSON.stringify({
@@ -241,7 +241,10 @@ export const GET: APIRoute = async ({ request }) => {
       }
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60'
+      }
     });
 
   } catch (error: any) {

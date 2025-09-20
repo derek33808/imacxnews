@@ -452,6 +452,15 @@ const {
     100% { opacity: 0.5; }
   }
 
+  /* 优化骨架屏动画性能 */
+  .loading-skeleton {
+    animation-duration: 1.2s;
+  }
+
+  .skeleton-comment {
+    transition: opacity 0.3s ease;
+  }
+
   /* 主题变体 */
   .comment-section.dark {
     background: var(--color-surface-dark);
@@ -538,6 +547,31 @@ const {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
   }
+
+  /* 性能优化：减少重绘和回流 */
+  .comment-section {
+    contain: layout style;
+  }
+
+  .comment-list {
+    contain: layout;
+  }
+
+  .comment-item {
+    contain: layout style;
+  }
+
+  /* 优化动画性能 */
+  .skeleton-avatar,
+  .skeleton-header,
+  .skeleton-body {
+    will-change: opacity;
+  }
+
+  /* 减少hover重绘 */
+  .comment-item:hover {
+    transform: translateZ(0);
+  }
 </style>
 
 <script>
@@ -564,6 +598,7 @@ const {
     private isLoading: boolean = false;
     private loadCommentsTimeout: number | null = null;
     private isSubmitting: boolean = false;
+    private currentRequest: Promise<any> | null = null;
 
     constructor(container: HTMLElement) {
       this.container = container;
@@ -774,7 +809,9 @@ const {
         this.hasMoreComments = true;
       }
 
+      // 防止重复请求
       if (this.isLoading) return;
+      if (this.currentRequest) return this.currentRequest;
 
       const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
       const listEl = this.container.querySelector('#commentList') as HTMLElement;
@@ -790,9 +827,12 @@ const {
           emptyEl.style.display = 'none';
         }
         
-        const response = await fetch(
+        // 创建请求并存储
+        this.currentRequest = fetch(
           `/api/interactions/comment?articleId=${this.articleId}&page=${this.currentPage}&limit=10`
         );
+        
+        const response = await this.currentRequest;
         const result = await response.json();
         
         if (result.success) {
@@ -831,6 +871,7 @@ const {
         loadingEl.style.display = 'none';
       } finally {
         this.isLoading = false;
+        this.currentRequest = null;
       }
     }
 
