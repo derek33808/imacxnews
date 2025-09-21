@@ -352,15 +352,31 @@ import ThemeToggle from './ThemeToggle.astro';
 </style>
 
 <script>
+  // 类型声明
+  declare global {
+    interface Window {
+      openUserLoginModal: () => void;
+      openRegisterModal: () => void;
+      openAdminManagerModal: () => void;
+      openUserProfileModal: () => void;
+      openAdminUsersModal: () => void;
+      updateHeaderForUser: (userData: any) => void;
+      updateHeaderForAdmin: (username: string) => void;
+      updateHeaderForLoggedOut: () => void;
+      checkUserStatus: () => Promise<void>;
+      closeUserLoginModal: () => void;
+    }
+  }
+
   // Header scroll behavior
-  const header = document.querySelector('.site-header');
+  const header = document.querySelector('.site-header') as HTMLElement;
   let lastScrollY = window.scrollY;
   
   window.addEventListener('scroll', () => {
     if (window.scrollY > 100) {
-      header.classList.add('scrolled');
+      header?.classList.add('scrolled');
     } else {
-      header.classList.remove('scrolled');
+      header?.classList.remove('scrolled');
     }
     
     lastScrollY = window.scrollY;
@@ -389,15 +405,18 @@ import ThemeToggle from './ThemeToggle.astro';
       if (result.success && result.user) {
         // 同步到localStorage
         localStorage.setItem('currentUser', JSON.stringify(result.user));
+        localStorage.setItem('lastStatusCheck', Date.now().toString());
         updateHeaderForUser(result.user);
         return true;
       } else {
         // 清理localStorage
         localStorage.removeItem('currentUser');
-        checkUserStatusFromLocalStorage();
+        localStorage.removeItem('lastStatusCheck');
+        updateHeaderForLoggedOut();
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.warn('🔄 API status check failed, using localStorage:', error.message);
       // API失败时回退到localStorage检查
       checkUserStatusFromLocalStorage();
       return false;
@@ -432,9 +451,35 @@ import ThemeToggle from './ThemeToggle.astro';
     }
   }
   
+  // 🆕 智能缓存检查，避免频繁API调用
+  function shouldCheckAPI() {
+    const lastCheck = localStorage.getItem('lastStatusCheck');
+    if (!lastCheck) return true;
+    
+    const timeSinceLastCheck = Date.now() - parseInt(lastCheck);
+    const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+    
+    return timeSinceLastCheck > CACHE_DURATION;
+  }
+  
   // 🆕 统一的用户状态检查入口
   async function checkUserStatus() {
-    // 优先从API检查，失败时回退到localStorage
+    // 先检查localStorage，如果有用户数据且缓存未过期，直接使用
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser && !shouldCheckAPI()) {
+      try {
+        const userData = JSON.parse(currentUser);
+        updateHeaderForUser(userData);
+        console.log('🚀 Using cached user status:', userData.username);
+        return;
+      } catch (e) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('lastStatusCheck');
+      }
+    }
+    
+    // 缓存过期或无数据时，从API检查
+    console.log('🔄 Checking user status from API...');
     await checkUserStatusFromAPI();
   }
   
@@ -570,7 +615,7 @@ import ThemeToggle from './ThemeToggle.astro';
     
     // 点击外部关闭下拉菜单
     document.addEventListener('click', (e) => {
-      if (userDropdown && !userDropdown.contains(e.target)) {
+      if (userDropdown && e.target instanceof Node && !userDropdown.contains(e.target)) {
         userDropdown.classList.remove('active');
       }
     });
@@ -598,6 +643,7 @@ import ThemeToggle from './ThemeToggle.astro';
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('lastStatusCheck');
         
         // 关闭下拉菜单
         if (userDropdown) {
@@ -610,8 +656,8 @@ import ThemeToggle from './ThemeToggle.astro';
         // 触发登出事件
         window.dispatchEvent(new CustomEvent('userLoggedOut'));
         
-        // 刷新页面重置状态
-        window.location.reload();
+        // 不再强制刷新页面，让状态自然更新
+        console.log('✅ User logged out successfully');
       }
     });
   }
@@ -656,15 +702,15 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
-    if (userMenu && !userMenu.contains(e.target)) {
-      userDropdown.classList.remove('active');
+    if (userMenu && e.target instanceof Node && !userMenu.contains(e.target)) {
+      userDropdown?.classList.remove('active');
     }
   });
   
   // Close dropdown when ESC key is pressed
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && userDropdown.classList.contains('active')) {
-      userDropdown.classList.remove('active');
+    if (e.key === 'Escape' && userDropdown?.classList.contains('active')) {
+      userDropdown?.classList.remove('active');
     }
   });
   
@@ -672,6 +718,14 @@ import ThemeToggle from './ThemeToggle.astro';
   document.addEventListener('DOMContentLoaded', async () => {
     // 从API检查用户状态
     await checkUserStatus();
+  });
+  
+  // 🆕 页面可见性变化时检查状态（防止后台运行时状态过期）
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden && shouldCheckAPI()) {
+      console.log('🔄 Page became visible, checking user status...');
+      await checkUserStatusFromAPI();
+    }
   });
   
   // 🆕 监听用户登录事件（从登录模态框触发）

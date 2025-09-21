@@ -423,11 +423,11 @@ import Layout from '../layouts/Layout.astro';
     height: 18px;
   }
 
-  /* 文章网格 */
+  /* 文章网格 - 采用类似首页Latest News的2列紧凑布局 */
   .articles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-5);
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
     margin-top: var(--space-6);
     align-items: start;
   }
@@ -560,13 +560,6 @@ import Layout from '../layouts/Layout.astro';
   }
 
   /* 响应式设计 */
-  @media (max-width: 1200px) {
-    .articles-grid {
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: var(--space-4);
-    }
-  }
-
   @media (max-width: 768px) {
     .page-title {
       font-size: 2rem;
@@ -588,67 +581,36 @@ import Layout from '../layouts/Layout.astro';
       margin-top: var(--space-4);
     }
 
-    .card-content {
-      padding: var(--space-3);
+    :global(.thumb-title) {
+      font-size: 1rem;
     }
 
-    .card-title {
-      font-size: 1.125rem;
+    :global(.thumb-meta) {
+      font-size: 0.8rem;
     }
 
-    .card-stats {
-      gap: var(--space-3);
-      justify-content: space-around;
-    }
-
-    .stat-icon {
-      width: 14px;
-      height: 14px;
-    }
-
-    .stat-count {
-      font-size: 0.7rem;
-    }
-
-    .video-indicator {
-      padding: 3px 6px;
-      font-size: 0.7rem;
-      bottom: 6px;
-      right: 6px;
-    }
-    
-    .video-indicator svg {
-      width: 12px;
-      height: 12px;
-    }
-    
-    .duration {
-      font-size: 0.65rem;
-    }
-    
-    .meta-tags {
-      gap: var(--space-1);
-    }
-    
-    .media-type-tag {
+    :global(.thumb-category) {
       font-size: 0.7rem;
       padding: 1px 4px;
     }
-    
-    .media-type-tag svg {
+
+    .favorite-badge-thumb {
+      padding: 4px;
+    }
+
+    .favorite-badge-thumb svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    :global(.video-badge.enhanced) {
+      font-size: 0.7rem;
+      padding: 3px 6px;
+    }
+
+    :global(.video-badge.enhanced svg) {
       width: 8px;
       height: 8px;
-    }
-
-    .favorite-badge {
-      top: 8px;
-      right: 8px;
-      padding: 6px;
-    }
-
-    .favorite-badge svg {
-      width: 14px;
-      height: 14px;
     }
 
     .pagination-controls {
@@ -678,34 +640,6 @@ import Layout from '../layouts/Layout.astro';
       grid-template-columns: 1fr;
       gap: var(--space-4);
     }
-
-    .card-stats {
-      gap: var(--space-2);
-      justify-content: space-around;
-    }
-
-    .stat {
-      font-size: 0.7rem;
-    }
-
-    .stat-icon {
-      width: 12px;
-      height: 12px;
-    }
-
-    .stat-count {
-      font-size: 0.65rem;
-    }
-
-    .favorite-info {
-      font-size: 0.7rem;
-    }
-
-    .card-footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
   }
 
   @media (max-width: 480px) {
@@ -724,29 +658,17 @@ import Layout from '../layouts/Layout.astro';
       height: 28px;
     }
 
-    .card-content {
-      padding: var(--space-2);
+    :global(.thumb-title) {
+      font-size: 0.95rem;
     }
 
-    .card-title {
-      font-size: 1rem;
+    :global(.thumb-meta) {
+      font-size: 0.75rem;
     }
 
-    .card-footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-1);
-    }
-
-    .favorite-badge {
-      top: 6px;
-      right: 6px;
-      padding: 4px;
-    }
-
-    .favorite-badge svg {
-      width: 12px;
-      height: 12px;
+    :global(.thumb-category) {
+      font-size: 0.65rem;
+      padding: 1px 3px;
     }
   }
 </style>
@@ -945,13 +867,30 @@ import Layout from '../layouts/Layout.astro';
     }
 
     private renderArticleCard(article: FavoriteArticle): string {
-      const favoriteDate = new Date(article.favoriteDate).toLocaleDateString();
-      const publishDate = new Date(article.publishDate).toLocaleDateString();
+      const publishDate = new Date(article.publishDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
       // 🎬 优化图片回退逻辑，确保视频有合适的预览图
       let displayImage = '/images/fallback/imacx-news-placeholder.svg';
       
       if (article.mediaType === 'VIDEO') {
-        displayImage = article.videoPoster || article.image || '/images/fallback/imacx-news-placeholder.svg';
+        // 如果有videoPoster，直接使用
+        if (article.videoPoster && article.videoPoster.trim() !== '') {
+          displayImage = article.videoPoster;
+        }
+        // 如果有普通image，使用它
+        else if (article.image && article.image.trim() !== '') {
+          displayImage = article.image;
+        }
+        // 如果都没有，但有YouTube URL，尝试生成缩略图
+        else if (article.videoUrl && (article.videoUrl.includes('youtube') || article.videoUrl.includes('youtu.be'))) {
+          const youtubeThumb = this.generateYouTubeThumbnail(article.videoUrl);
+          if (youtubeThumb) {
+            displayImage = youtubeThumb;
+          }
+        }
       } else {
         displayImage = article.image || '/images/fallback/imacx-news-placeholder.svg';
       }
@@ -962,93 +901,39 @@ import Layout from '../layouts/Layout.astro';
       }
       
       return `
-        <article class="article-card favorite-article ${article.mediaType === 'VIDEO' ? 'has-video' : 'has-image'}">
-          <a href="/article/${article.slug}" class="card-image-link">
-            <div class="image-container">
-              <img 
-                src="${displayImage}" 
-                alt="${article.imageAlt || article.title}"
-                class="card-image"
-                loading="lazy"
-                width="400"
-                height="225"
-                onerror="this.src='/images/fallback/imacx-news-placeholder.svg'"
-              >
-              
-              ${article.mediaType === 'VIDEO' ? `
-                <div class="video-indicator">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M5 3l14 9-14 9z"></path>
-                  </svg>
-                  ${article.videoDuration ? `
-                    <span class="duration">
-                      ${Math.floor(article.videoDuration / 60)}:${(article.videoDuration % 60).toString().padStart(2, '0')}
-                    </span>
-                  ` : ''}
-                </div>
-              ` : ''}
-              
-              <div class="favorite-badge">
-                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        <article class="thumb-card">
+          <div class="thumb-image-wrap">
+            <img 
+              src="${displayImage}" 
+              alt="${article.imageAlt || article.title}"
+              class="thumb-img"
+              loading="lazy"
+              onerror="this.src='/images/fallback/imacx-news-placeholder.svg'"
+            >
+            <div class="thumb-gradient"></div>
+            
+            ${article.mediaType === 'VIDEO' ? `
+              <div class="video-badge enhanced">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 3l14 9-14 9z"></path>
                 </svg>
+                VIDEO
               </div>
-            </div>
-          </a>
-          
-          <div class="card-content">
-            <div class="card-meta">
-              <div class="meta-tags">
-                <a href="/category/${article.category}" class="category-tag ${article.category}">
-                  ${this.getCategoryName(article.category)}
-                </a>
-                ${article.mediaType === 'VIDEO' ? `
-                  <span class="media-type-tag video">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M23 7l-7 5 7 5z"/>
-                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                    </svg>
-                    Video
-                  </span>
-                ` : ''}
-              </div>
-              <span class="publish-date">${publishDate}</span>
+            ` : ''}
+            
+            <div class="favorite-badge-thumb">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
             </div>
             
-            <h3 class="card-title">
-              <a href="/article/${article.slug}">${article.title}</a>
-            </h3>
-            
-            <p class="card-excerpt">${article.excerpt}</p>
-            
-            <div class="card-stats">
-              <span class="stat stat-likes" title="${article.stats.likes} likes">
-                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-                <span class="stat-count">${article.stats.likes}</span>
-              </span>
-              <span class="stat stat-comments" title="${article.stats.comments} comments">
-                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span class="stat-count">${article.stats.comments}</span>
-              </span>
-              <span class="stat stat-favorites" title="${article.stats.favorites} favorites">
-                <svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span class="stat-count">${article.stats.favorites}</span>
-              </span>
-            </div>
-            
-            <div class="card-footer">
-              <span class="author">By ${article.author}</span>
-              <div class="favorite-info">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span class="favorite-date">${favoriteDate}</span>
+            <div class="thumb-text">
+              <h3 class="thumb-title">
+                <a href="/article/${article.slug}">${article.title}</a>
+              </h3>
+              <div class="thumb-meta">
+                <span class="thumb-date">${publishDate}</span>
+                <span class="thumb-category">${this.getCategoryName(article.category)}</span>
               </div>
             </div>
           </div>
@@ -1065,6 +950,33 @@ import Layout from '../layouts/Layout.astro';
         'Entertainment': 'Entertainment'
       };
       return categoryMap[category] || category;
+    }
+
+    private generateYouTubeThumbnail(videoUrl: string): string | null {
+      try {
+        let videoId = null;
+        
+        // YouTube embed URLs (https://www.youtube.com/embed/VIDEO_ID)
+        if (videoUrl.includes('youtube.com/embed/')) {
+          videoId = videoUrl.split('embed/')[1]?.split('?')[0];
+        }
+        // YouTube watch URLs (https://www.youtube.com/watch?v=VIDEO_ID)
+        else if (videoUrl.includes('youtube.com/watch?v=')) {
+          videoId = videoUrl.split('v=')[1]?.split('&')[0];
+        }
+        // YouTube short URLs (https://youtu.be/VIDEO_ID)
+        else if (videoUrl.includes('youtu.be/')) {
+          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+        }
+
+        if (videoId && videoId.length > 0) {
+          return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        }
+      } catch (error) {
+        console.error('Error generating YouTube thumbnail:', error);
+      }
+      
+      return null;
     }
 
     private updateFilters(filters: NonNullable<FavoritesResponse['data']>['filters']) {
@@ -1184,82 +1096,49 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <style>
-  /* 采用与主站一致的文章卡片样式 */
-  .article-card {
+  /* 收藏页面紧凑卡片样式 - 基于首页Latest News设计 */
+  :global(.thumb-card) {
     display: flex;
     flex-direction: column;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    background-color: var(--color-surface);
-    transition: all 0.3s ease;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text);
+    background-color: var(--color-background);
     border: 1px solid var(--color-border);
-    height: 100%;
-    position: relative;
+    border-radius: var(--radius-md);
+    padding: 0;
+    transition: transform var(--transition), box-shadow var(--transition);
   }
-  
-  .article-card:hover {
+
+  :global(.thumb-card:hover) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
   }
-  
-  .card-image-link {
-    display: block;
+
+  :global(.thumb-image-wrap) {
+    position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    position: relative;
-    flex-shrink: 0;
+    border-radius: var(--radius-md);
   }
-  
-  .image-container {
-    position: relative;
+
+  :global(.thumb-img) {
     width: 100%;
     height: 100%;
-  }
-  
-  .card-image {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.4s ease;
     object-fit: cover;
-  }
-  
-  .article-card:hover .card-image {
-    transform: scale(1.03);
+    border-radius: var(--radius-md);
   }
 
-  /* 视频标识样式 */
-  .video-indicator {
+  :global(.thumb-gradient) {
     position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 4px 6px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    backdrop-filter: blur(4px);
-    z-index: 2;
-    transition: opacity 0.3s ease;
-  }
-  
-  .video-indicator svg {
-    width: 12px;
-    height: 12px;
-  }
-  
-  .duration {
-    font-size: 0.7rem;
-    font-family: 'Courier New', monospace;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05) 20%, rgba(0,0,0,0.7) 100%);
+    border-radius: var(--radius-md);
   }
 
-  /* 收藏徽章 - 收藏页面特有 */
-  .favorite-badge {
+  /* 收藏页面特有的收藏徽章 */
+  .favorite-badge-thumb {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -1267,220 +1146,94 @@ import Layout from '../layouts/Layout.astro';
     color: white;
     border-radius: 50%;
     padding: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     z-index: 3;
   }
 
-  .favorite-badge svg {
+  .favorite-badge-thumb svg {
     width: 12px;
     height: 12px;
   }
-  
-  .card-content {
-    padding: var(--space-4);
-    flex: 1;
+
+  :global(.thumb-text) {
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
     display: flex;
     flex-direction: column;
-  }
-  
-  .card-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-3);
-  }
-  
-  .meta-tags {
-    display: flex;
     gap: var(--space-2);
-    align-items: center;
-    flex-wrap: wrap;
   }
-  
-  .media-type-tag {
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-  }
-  
-  .media-type-tag.video {
-    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-    color: white;
-  }
-  
-  .media-type-tag svg {
-    width: 10px;
-    height: 10px;
-  }
-  
-  .publish-date {
-    font-size: 0.875rem;
-    color: var(--color-text-light);
-  }
-  
-  .card-title {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-3);
-    line-height: 1.3;
-  }
-  
-  .card-title a {
-    color: var(--color-text);
-    text-decoration: none;
-    transition: color var(--transition);
-  }
-  
-  .card-title a:hover {
-    color: var(--color-primary);
-  }
-  
-  .card-excerpt {
-    font-size: 0.875rem;
-    color: var(--color-text-light);
-    margin-bottom: auto;
-    line-height: 1.5;
+
+  :global(.thumb-title) {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    flex: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    margin: 0;
   }
 
-  /* 统计信息 - 收藏页面特有 */
-  .card-stats {
-    display: flex;
-    gap: var(--space-4);
-    margin-bottom: var(--space-3);
-    padding: var(--space-2) 0;
-    border-top: 1px solid var(--color-border);
-    align-items: center;
+  :global(.thumb-title a) {
+    color: inherit;
+    text-decoration: none;
   }
 
-  .stat {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    font-size: 0.8rem;
-    color: var(--color-text-light);
-    transition: color 0.2s ease;
-    cursor: default;
-  }
-
-  .stat:hover {
-    color: var(--color-text);
-  }
-
-  .stat-icon {
-    width: 12px;
-    height: 12px;
-    transition: transform 0.2s ease;
-  }
-
-  .stat-count {
-    font-weight: 500;
-    font-size: 0.75rem;
-  }
-
-  /* 特定统计图标颜色 */
-  .stat-likes:hover .stat-icon {
-    color: #ef4444;
-    transform: scale(1.1);
-  }
-
-  .stat-comments:hover .stat-icon {
-    color: #3b82f6;
-    transform: scale(1.1);
-  }
-
-  .stat-favorites .stat-icon {
-    color: var(--color-primary);
-  }
-
-  .stat-favorites:hover .stat-icon {
-    transform: scale(1.1);
-  }
-  
-  .card-footer {
+  :global(.thumb-meta) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.875rem;
-    margin-top: var(--space-3);
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--color-border);
-  }
-  
-  .author {
-    color: var(--color-text-light);
-    font-weight: 500;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
-  /* 收藏信息 - 收藏页面特有 */
-  .favorite-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    color: var(--color-primary);
-    font-size: 0.75rem;
-    font-weight: 500;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
+  :global(.thumb-date) {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
-  .favorite-info:hover {
-    opacity: 1;
-  }
-
-  .favorite-info svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  /* 分类标签样式 */
-  .category-tag {
+  :global(.thumb-category) {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 600;
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
   }
 
-  .category-tag:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 视频徽章样式 - 继承自首页 */
+  :global(.video-badge.enhanced) {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
-  /* 分类颜色 */
-  .category-tag.TodayNews {
-    background: #dbeafe;
-    color: #1e40af;
-  }
-
-  .category-tag.PastNews {
-    background: #f3e8ff;
-    color: #7c3aed;
-  }
-
-  .category-tag.Technology {
-    background: #dcfce7;
-    color: #15803d;
-  }
-
-  .category-tag.Sports {
-    background: #fed7d7;
-    color: #c53030;
-  }
-
-  .category-tag.Entertainment {
-    background: #fef3c7;
-    color: #d97706;
+  :global(.video-badge.enhanced svg) {
+    color: white;
+    width: 10px;
+    height: 10px;
   }
 </style>

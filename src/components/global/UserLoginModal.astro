@@ -241,42 +241,58 @@
 </style>
 
 <script>
-  const userLoginModal = document.getElementById('userLoginModal');
-  const userLoginForm = document.getElementById('userLoginForm');
-  const userLoginSuccess = document.getElementById('userLoginSuccess');
-  const closeUserLoginModal = document.getElementById('closeUserLoginModal');
-  const continueUserLoginBtn = document.getElementById('continueUserLoginBtn');
-  const switchToRegisterBtn = document.querySelector('.switch-to-register');
-  const welcomeUserMessage = document.getElementById('welcomeUserMessage');
+  // 类型声明
+  declare global {
+    interface Window {
+      openUserLoginModal: () => void;
+      openRegisterModal: () => void;
+      updateHeaderForUser: (userData: any) => void;
+      closeUserLoginModal: () => void;
+    }
+  }
+
+  const userLoginModal = document.getElementById('userLoginModal') as HTMLElement | null;
+  const userLoginForm = document.getElementById('userLoginForm') as HTMLFormElement | null;
+  const userLoginSuccess = document.getElementById('userLoginSuccess') as HTMLElement | null;
+  const closeUserLoginModal = document.getElementById('closeUserLoginModal') as HTMLElement | null;
+  const continueUserLoginBtn = document.getElementById('continueUserLoginBtn') as HTMLElement | null;
+  const switchToRegisterBtn = document.querySelector('.switch-to-register') as HTMLElement | null;
+  const welcomeUserMessage = document.getElementById('welcomeUserMessage') as HTMLElement | null;
   
   // 打开用户登录modal的函数（全局可用）
   window.openUserLoginModal = function() {
-    userLoginModal.classList.add('active');
+    userLoginModal?.classList.add('active');
     document.body.style.overflow = 'hidden';
     
     // 聚焦到输入框
     setTimeout(() => {
-      document.getElementById('userIdentifier').focus();
+      (document.getElementById('userIdentifier') as HTMLInputElement)?.focus();
     }, 300);
   };
   
   // 关闭用户登录modal的函数
   function closeUserLoginModalFunc() {
-    userLoginModal.classList.remove('active');
+    userLoginModal?.classList.remove('active');
     document.body.style.overflow = '';
     
     // 重置表单和视图
     setTimeout(() => {
-      userLoginForm.style.display = 'block';
-      userLoginSuccess.style.display = 'none';
-      userLoginForm.reset();
+      if (userLoginForm) {
+        userLoginForm.style.display = 'block';
+        userLoginForm.reset();
+      }
+      if (userLoginSuccess) {
+        userLoginSuccess.style.display = 'none';
+      }
       clearErrorMessages();
     }, 300);
   }
   
   // 显示错误消息
-  function showErrorMessage(message) {
-    let errorDiv = userLoginForm.querySelector('.error-message');
+  function showErrorMessage(message: string) {
+    if (!userLoginForm) return;
+    
+    let errorDiv = userLoginForm.querySelector('.error-message') as HTMLElement;
     if (!errorDiv) {
       errorDiv = document.createElement('div');
       errorDiv.className = 'error-message';
@@ -288,18 +304,20 @@
   
   // 清除错误消息
   function clearErrorMessages() {
-    const errorDiv = userLoginForm.querySelector('.error-message');
+    if (!userLoginForm) return;
+    
+    const errorDiv = userLoginForm.querySelector('.error-message') as HTMLElement;
     if (errorDiv) {
       errorDiv.style.display = 'none';
     }
   }
   
   // 事件监听器
-  closeUserLoginModal.addEventListener('click', closeUserLoginModalFunc);
-  continueUserLoginBtn.addEventListener('click', closeUserLoginModalFunc);
+  closeUserLoginModal?.addEventListener('click', closeUserLoginModalFunc);
+  continueUserLoginBtn?.addEventListener('click', closeUserLoginModalFunc);
   
   // 点击外部关闭
-  userLoginModal.addEventListener('click', (e) => {
+  userLoginModal?.addEventListener('click', (e) => {
     if (e.target === userLoginModal) {
       closeUserLoginModalFunc();
     }
@@ -307,13 +325,13 @@
   
   // ESC键关闭
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && userLoginModal.classList.contains('active')) {
+    if (e.key === 'Escape' && userLoginModal?.classList.contains('active')) {
       closeUserLoginModalFunc();
     }
   });
   
   // 切换到注册modal
-  switchToRegisterBtn.addEventListener('click', () => {
+  switchToRegisterBtn?.addEventListener('click', () => {
     closeUserLoginModalFunc();
     setTimeout(() => {
       if (window.openRegisterModal) {
@@ -323,9 +341,11 @@
   });
   
   // 表单提交处理
-  userLoginForm.addEventListener('submit', async (e) => {
+  userLoginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrorMessages();
+    
+    if (!userLoginForm) return;
     
     const formData = new FormData(userLoginForm);
     const data = {
@@ -345,11 +365,13 @@
     }
     
     // 提交按钮loading状态
-    const submitBtn = userLoginForm.querySelector('.user-login-submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Signing In...';
-    submitBtn.disabled = true;
-    userLoginForm.classList.add('loading');
+    const submitBtn = userLoginForm.querySelector('.user-login-submit-btn') as HTMLButtonElement;
+    const originalText = submitBtn?.textContent || 'Sign In';
+    if (submitBtn) {
+      submitBtn.textContent = 'Signing In...';
+      submitBtn.disabled = true;
+    }
+    userLoginForm?.classList.add('loading');
     
     try {
       const response = await fetch('/api/auth/user-login', {
@@ -368,15 +390,22 @@
       
       // 登录成功
       const displayName = result.user.displayName || result.user.username;
-      welcomeUserMessage.textContent = `Welcome back, ${displayName}!`;
+      if (welcomeUserMessage) {
+        welcomeUserMessage.textContent = `Welcome back, ${displayName}!`;
+      }
       
-      userLoginForm.style.display = 'none';
-      userLoginSuccess.style.display = 'block';
+      if (userLoginForm) {
+        userLoginForm.style.display = 'none';
+      }
+      if (userLoginSuccess) {
+        userLoginSuccess.style.display = 'block';
+      }
       
       // 🆕 清除旧的管理员状态，保存新用户信息到localStorage
       localStorage.removeItem('isLoggedIn'); // 清除旧的管理员登录状态
       localStorage.removeItem('username');   // 清除旧的管理员用户名
       localStorage.setItem('currentUser', JSON.stringify(result.user));
+      localStorage.setItem('lastStatusCheck', Date.now().toString()); // 设置缓存时间戳
       console.log('✅ User logged in successfully:', result.user);
       console.log('💾 Saved user data to localStorage:', result.user);
       
@@ -394,16 +423,18 @@
       // 自动关闭modal，不刷新页面
       setTimeout(() => {
         closeUserLoginModalFunc();
-        // 🆕 不刷新页面，直接更新状态
-        // window.location.reload();  // 移除页面刷新
+        // 🆕 不刷新页面，状态已经更新完毕
+        console.log('🎉 Login completed, modal closed');
       }, 1500);
       
-    } catch (error) {
+    } catch (error: any) {
       showErrorMessage(error.message || 'Login failed. Please try again.');
     } finally {
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-      userLoginForm.classList.remove('loading');
+      if (submitBtn) {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+      userLoginForm?.classList.remove('loading');
     }
   });
   
