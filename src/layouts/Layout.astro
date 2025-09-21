@@ -26,7 +26,11 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <!-- Content Security Policy for better security -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss: ws:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
+    {import.meta.env.DEV ? (
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension: moz-extension: safari-extension:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss: ws: localhost:*; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
+    ) : (
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss:; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
+    )}
     <title>{title}</title>
     <style>
       .app-layout {
@@ -88,7 +92,45 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
       const lazyScript = document.createElement('script');
       lazyScript.src = '/scripts/lazy-loader.js';
       lazyScript.async = true;
+      lazyScript.onerror = function() {
+        console.warn('⚠️ Lazy loader script failed to load, using fallback');
+      };
       document.head.appendChild(lazyScript);
+    </script>
+    
+    <!-- Global error handling for better UX -->
+    <script is:inline>
+      // Global error handling to reduce console noise
+      window.addEventListener('error', function(e) {
+        // Suppress common development/extension errors
+        const message = e.message || '';
+        const source = e.filename || '';
+        
+        // Filter out browser extension errors and common dev issues
+        if (
+          source.includes('chrome-extension://') ||
+          source.includes('moz-extension://') ||
+          source.includes('safari-extension://') ||
+          message.includes('Non-Error promise rejection') ||
+          message.includes('ResizeObserver loop limit exceeded')
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
+      
+      // Handle unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(e) {
+        const reason = e.reason || '';
+        if (
+          reason.toString().includes('chrome-extension') ||
+          reason.toString().includes('moz-extension') ||
+          reason.toString().includes('safari-extension')
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
     </script>
     
     <!-- Image optimization script -->

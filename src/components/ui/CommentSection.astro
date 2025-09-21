@@ -575,6 +575,13 @@ const {
 </style>
 
 <script>
+  // 扩展Window接口以包含自定义函数
+  declare global {
+    interface Window {
+      openUserLoginModal: () => void;
+    }
+  }
+
   interface Comment {
     id: number;
     body: string;
@@ -662,7 +669,11 @@ const {
       loginLink?.addEventListener('click', (e) => {
         e.preventDefault();
         // 触发登录模态框
-        window.dispatchEvent(new CustomEvent('openLoginModal'));
+        if (window.openUserLoginModal) {
+          window.openUserLoginModal();
+        } else {
+          console.error('User login modal function not found');
+        }
       });
 
       // 评论表单

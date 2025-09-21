@@ -674,6 +674,13 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script>
+  // 扩展Window接口以包含自定义函数
+  declare global {
+    interface Window {
+      openUserLoginModal: () => void;
+    }
+  }
+
   interface FavoriteArticle {
     id: number;
     title: string;
@@ -781,7 +788,11 @@ import Layout from '../layouts/Layout.astro';
       // 登录按钮
       const openLoginBtn = document.getElementById('openLoginBtn');
       openLoginBtn?.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('openLoginModal'));
+        if (window.openUserLoginModal) {
+          window.openUserLoginModal();
+        } else {
+          console.error('User login modal function not found');
+        }
       });
 
       // 重试按钮

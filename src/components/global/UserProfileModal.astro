@@ -769,9 +769,9 @@
     will-change: opacity, transform;
   }
   
-  .message[style*="opacity: 1"] {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  .message.show {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
   }
   
   .message.success {
@@ -1039,18 +1039,21 @@
   function showMessage(text: string, type: string = 'success', autoHide: boolean = true) {
     console.log(`📢 Showing message: "${text}" (type: ${type})`);
     
-    profileMessage.textContent = text;
-    profileMessage.className = `message ${type}`;
-    profileMessage.style.display = 'block';
-    profileMessage.style.visibility = 'visible';
-    profileMessage.style.opacity = '1';
+    // 先隐藏消息以重置动画
+    profileMessage.style.opacity = '0';
     
-    // 移除滚动行为以避免布局闪动
-    // profileMessage.scrollIntoView({ 
-    //   behavior: 'smooth', 
-    //   block: 'nearest',
-    //   inline: 'nearest'
-    // });
+    // 使用requestAnimationFrame确保DOM更新
+    requestAnimationFrame(() => {
+      profileMessage.textContent = text;
+      profileMessage.className = `message ${type}`;
+      profileMessage.style.display = 'block';
+      profileMessage.style.visibility = 'visible';
+      
+      // 触发动画
+      requestAnimationFrame(() => {
+        profileMessage.classList.add('show');
+      });
+    });
     
     console.log('📢 Message element updated:', {
       display: profileMessage.style.display,
@@ -1060,18 +1063,27 @@
       text: profileMessage.textContent
     });
     
+    // 滚动到消息位置
+    setTimeout(() => {
+      profileMessage.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }, 100);
+    
     // 根据参数决定是否自动隐藏
     if (autoHide) {
       setTimeout(() => {
         console.log('📢 Hiding message automatically');
         hideMessage();
-      }, 4000); // 减少到4秒
+      }, 5000); // 增加到5秒让用户有足够时间看到
     }
   }
   
   // 隐藏消息
   function hideMessage() {
-    profileMessage.style.opacity = '0';
+    profileMessage.classList.remove('show');
     setTimeout(() => {
       profileMessage.style.display = 'none';
       profileMessage.style.visibility = 'hidden';
@@ -1300,9 +1312,12 @@
         showMessage(successMessage);
         updateProfileUI();
         
-        // 更新header
+        // 强制更新header显示 - 先清除缓存再更新
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('lastStatusCheck');
         if (window.checkUserStatus) {
-          window.checkUserStatus();
+          console.log('🔄 Forcing header update after profile change');
+          await window.checkUserStatus();
         }
       }
     } catch (error) {
