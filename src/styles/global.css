@@ -76,10 +76,21 @@
   
   --color-text: #e8eaed;
   --color-text-light: #9aa0a6;
+  --color-text-lighter: #5f6368;
   --color-background: #202124;
   --color-background-alt: #292a2d;
   --color-surface: #292a2d;
+  --color-surface-hover: #3c4043;
+  --color-surface-dark: #1a1a1a;
+  --color-surface-dark-hover: #2d2d2d;
   --color-border: #3c4043;
+  --color-border-dark: #5f6368;
+  
+  /* 阴影在深色主题下需要调整 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -103,6 +114,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: visible;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 main {

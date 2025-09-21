@@ -15,7 +15,7 @@ const {
 } = Astro.props;
 ---
 
-<div class={`comment-section ${theme}`} id="comment-section" data-article-id={articleId}>
+<div class="comment-section" id="comment-section" data-article-id={articleId}>
   {showTitle && (
     <div class="comment-header">
       <h3 class="comment-title">
@@ -138,6 +138,7 @@ const {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .comment-header {
@@ -203,7 +204,7 @@ const {
     background: var(--color-surface-hover);
     border-radius: var(--radius-md);
     border: 1px solid transparent;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.3s ease;
   }
 
   .comment-form:focus-within {
@@ -364,6 +365,13 @@ const {
     border-radius: var(--radius-md);
     font-size: 0.875rem;
   }
+  
+  /* 深色主题下的错误消息样式 */
+  .dark-theme .error-message {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
 
   .error-message .icon {
     width: 16px;
@@ -461,19 +469,56 @@ const {
     transition: opacity 0.3s ease;
   }
 
-  /* 主题变体 */
-  .comment-section.dark {
-    background: var(--color-surface-dark);
-    border-color: var(--color-border-dark);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  /* 深色主题适配 - 使用系统级别的主题切换 */
+  .dark-theme .comment-section {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
   }
 
-  .comment-section.dark .comment-form {
-    background: var(--color-surface-dark-hover);
+  .dark-theme .comment-form {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
   }
 
-  .comment-section.dark .comment-form:focus-within {
-    background: var(--color-surface-dark);
+  .dark-theme .comment-form:focus-within {
+    background: var(--color-surface);
+    border-color: var(--color-primary);
+  }
+  
+  .dark-theme .login-prompt {
+    background: var(--color-surface-hover);
+    color: var(--color-text-light);
+  }
+  
+  .dark-theme .comment-form textarea {
+    color: var(--color-text);
+  }
+  
+  .dark-theme .comment-form textarea::placeholder {
+    color: var(--color-text-lighter);
+  }
+  
+  .dark-theme .cancel-btn {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+  }
+  
+  .dark-theme .cancel-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  
+  .dark-theme .load-more-btn {
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+  }
+  
+  .dark-theme .load-more-btn:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 
   /* 响应式设计 */
@@ -539,12 +584,12 @@ const {
     }
   }
 
-  /* 暗色模式适配 */
+  /* 系统偏好的暗色模式适配 - 仅在没有手动设置主题时生效 */
   @media (prefers-color-scheme: dark) {
-    .comment-section.light {
-      background: var(--color-surface-dark, #1f2937);
-      border-color: var(--color-border-dark, #374151);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    :root:not(.dark-theme):not([data-theme]) .comment-section {
+      background: var(--color-surface, #1f2937);
+      border-color: var(--color-border, #374151);
+      color: var(--color-text, #e8eaed);
     }
   }
 
@@ -1335,6 +1380,11 @@ const {
     .comment-item:hover {
       background: var(--color-surface-hover);
     }
+    
+    /* 深色主题下的评论项样式 */
+    .dark-theme .comment-item:hover {
+      background: var(--color-surface-hover);
+    }
 
     .comment-avatar .avatar-emoji {
       display: inline-block;
@@ -1389,6 +1439,12 @@ const {
     .delete-comment-btn:hover {
       background: #fee2e2;
       color: #dc2626;
+    }
+    
+    /* 深色主题下的删除按钮 */
+    .dark-theme .delete-comment-btn:hover {
+      background: rgba(220, 38, 38, 0.2);
+      color: #fca5a5;
     }
 
     .delete-comment-btn svg {
@@ -1464,6 +1520,12 @@ const {
       background: #fee2e2;
       color: #dc2626;
     }
+    
+    /* 深色主题下的小删除按钮 */
+    .dark-theme .delete-comment-btn.small:hover {
+      background: rgba(220, 38, 38, 0.2);
+      color: #fca5a5;
+    }
 
     .delete-comment-btn.small svg {
       width: 12px;
@@ -1499,6 +1561,18 @@ const {
     }
 
     .reply-btn:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    
+    /* 深色主题下的回复按钮 */
+    .dark-theme .reply-btn {
+      border-color: var(--color-border);
+      color: var(--color-text-light);
+    }
+    
+    .dark-theme .reply-btn:hover {
       background: var(--color-surface-hover);
       color: var(--color-primary);
       border-color: var(--color-primary);
@@ -1553,6 +1627,17 @@ const {
     }
 
     .remove-quote-btn:hover {
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    
+    /* 深色主题下的引用移除按钮 */
+    .dark-theme .quote-preview {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border);
+    }
+    
+    .dark-theme .remove-quote-btn:hover {
       background: var(--color-surface);
       color: var(--color-text);
     }
