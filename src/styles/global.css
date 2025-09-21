@@ -69,6 +69,8 @@
   --transition: 0.2s ease-in-out;
 }
 
+html.dark-theme,
+body.dark-theme,
 .dark-theme {
   --color-primary: #4285f4;
   --color-primary-light: #8ab4f8;
@@ -91,6 +93,17 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* 确保深色主题下的背景色正确应用 */
+html.dark-theme {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+body.dark-theme {
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
 
 * {

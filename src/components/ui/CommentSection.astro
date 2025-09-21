@@ -470,33 +470,46 @@ const {
   }
 
   /* 深色主题适配 - 使用系统级别的主题切换 */
+  html.dark-theme .comment-section,
+  body.dark-theme .comment-section,
   .dark-theme .comment-section {
-    background: var(--color-surface);
-    border-color: var(--color-border);
-    color: var(--color-text);
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+    box-shadow: var(--shadow-md) !important;
   }
 
+  html.dark-theme .comment-form,
+  body.dark-theme .comment-form,
   .dark-theme .comment-form {
-    background: var(--color-surface-hover);
-    border-color: var(--color-border);
+    background: var(--color-surface-hover) !important;
+    border-color: var(--color-border) !important;
   }
 
+  html.dark-theme .comment-form:focus-within,
+  body.dark-theme .comment-form:focus-within,
   .dark-theme .comment-form:focus-within {
-    background: var(--color-surface);
-    border-color: var(--color-primary);
+    background: var(--color-surface) !important;
+    border-color: var(--color-primary) !important;
   }
   
+  html.dark-theme .login-prompt,
+  body.dark-theme .login-prompt,
   .dark-theme .login-prompt {
-    background: var(--color-surface-hover);
-    color: var(--color-text-light);
+    background: var(--color-surface-hover) !important;
+    color: var(--color-text-light) !important;
   }
   
+  html.dark-theme .comment-form textarea,
+  body.dark-theme .comment-form textarea,
   .dark-theme .comment-form textarea {
-    color: var(--color-text);
+    color: var(--color-text) !important;
   }
   
+  html.dark-theme .comment-form textarea::placeholder,
+  body.dark-theme .comment-form textarea::placeholder,
   .dark-theme .comment-form textarea::placeholder {
-    color: var(--color-text-lighter);
+    color: var(--color-text-lighter) !important;
   }
   
   .dark-theme .cancel-btn {
