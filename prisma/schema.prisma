@@ -12,15 +12,36 @@ enum Role {
   ADMIN
 }
 
+// 🆕 通知类型枚举
+enum NotificationType {
+  NEW_ARTICLE     // 新文章发布
+  COMMENT_REPLY   // 评论回复
+  SYSTEM          // 系统通知
+}
+
 model User {
-  id        Int           @id @default(autoincrement())
-  username  String        @unique
-  password  String
-  role      Role          @default(USER)
-  createdAt DateTime      @default(now())
-  comments  Comment[]
-  likes     ArticleLike[]
-  uploadedMedia MediaFile[] // 新增：用户上传的媒体文件
+  id            Int           @id @default(autoincrement())
+  username      String        @unique
+  email         String        @unique  // 🆕 邮箱登录支持
+  password      String
+  role          Role          @default(USER)
+  createdAt     DateTime      @default(now())
+  
+  // 🆕 用户资料字段
+  displayName   String?       // 显示名称（可选）
+  avatar        String?       // 头像URL（可选）
+  lastLoginAt   DateTime?     // 最后登录时间
+  
+  // 关系
+  comments      Comment[]
+  likes         ArticleLike[]
+  favorites     ArticleFavorite[] // 🆕 用户收藏
+  subscriptions NewsSubscription[] // 🆕 新闻订阅
+  notifications Notification[]     // 🆕 用户通知
+  uploadedMedia MediaFile[]
+  
+  @@index([email])
+  @@index([createdAt])
 }
 
 model Article {
@@ -50,6 +71,7 @@ model Article {
   readingTime   Int? // 预估阅读时间（分钟）
   comments      Comment[]
   likes         ArticleLike[]
+  favorites     ArticleFavorite[] // 🆕 文章收藏
 
   @@index([category])
   @@index([featured])
@@ -63,13 +85,22 @@ model Article {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
-  article   Article  @relation(fields: [articleId], references: [id])
-  articleId Int
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  body      String
-  createdAt DateTime @default(now())
+  id          Int       @id @default(autoincrement())
+  article     Article   @relation(fields: [articleId], references: [id])
+  articleId   Int
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  body        String
+  createdAt   DateTime  @default(now())
+  
+  // 🆕 回复功能支持
+  parentId    Int?      // 父评论ID（支持回复）
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+  
+  @@index([articleId, createdAt])
+  @@index([userId])
+  @@index([parentId])
 }
 
 model ArticleLike {
@@ -78,8 +109,25 @@ model ArticleLike {
   articleId Int
   user      User    @relation(fields: [userId], references: [id])
   userId    Int
+  createdAt DateTime @default(now()) // 🆕 记录点赞时间
 
   @@unique([articleId, userId])
+  @@index([createdAt]) // 🆕 点赞历史索引
+}
+
+// 🆕 文章收藏模型
+model ArticleFavorite {
+  id        Int     @id @default(autoincrement())
+  article   Article @relation(fields: [articleId], references: [id])
+  articleId Int
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now()) // 记录收藏时间
+
+  @@unique([articleId, userId]) // 确保每个用户对每篇文章只能收藏一次
+  @@index([createdAt]) // 收藏历史索引
+  @@index([userId]) // 用户收藏索引
+  @@index([articleId]) // 文章收藏索引
 }
 
 // 🆕 媒体文件管理模型
@@ -108,4 +156,37 @@ model MediaFile {
   @@index([uploadedAt])
   @@index([category])
   @@index([uploadedBy])
+}
+
+// 🆕 新闻订阅模型
+model NewsSubscription {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  email     String   // 冗余存储邮箱，方便批量发送
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId]) // 每个用户只能有一个订阅记录
+  @@index([isActive])
+  @@index([email])
+}
+
+// 🆕 通知模型（站内通知）
+model Notification {
+  id        Int              @id @default(autoincrement())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    Int
+  type      NotificationType
+  title     String
+  content   String
+  isRead    Boolean          @default(false)
+  relatedId Int?             // 相关内容ID（如文章ID、评论ID）
+  createdAt DateTime         @default(now())
+  readAt    DateTime?        // 阅读时间
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([type])
 }

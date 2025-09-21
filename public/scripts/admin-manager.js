@@ -42,7 +42,7 @@ window.clearAllArticleCaches = function() {
     cacheKeys.forEach(key => {
       try {
         localStorage.removeItem(key);
-        console.log(`✅ Cleared cache: ${key}`);
+        if (window.isDevelopment) console.log(`✅ Cleared cache: ${key}`);
       } catch (e) {
         console.warn(`⚠️ Failed to clear cache: ${key}`, e);
       }
@@ -67,7 +67,7 @@ window.forceRefreshAdminList = async function() {
   // Force refresh if Admin Manager is open
   if (typeof loadArticlesList === 'function') {
     await loadArticlesList(true);
-    console.log('✅ Admin Manager list force refreshed');
+    if (window.isDevelopment) console.log('✅ Admin Manager list force refreshed');
   } else {
     console.warn('⚠️ loadArticlesList function not available');
   }
@@ -76,7 +76,9 @@ window.forceRefreshAdminList = async function() {
 // Admin Article Manager functionality
 // 🔧 立即执行的调试函数
 (function() {
-  console.log('🚀 Admin Manager Script Loading...');
+  if (window.isDevelopment || window.location.search.includes('debug=true')) {
+    console.log('🚀 Admin Manager Script Loading...');
+  }
   
   // 确保全局函数立即可用
   window.debugMediaCenter = function() {
@@ -89,19 +91,19 @@ window.forceRefreshAdminList = async function() {
   
   // 立即可用的Media Center点击处理
   window.forceMediaCenterInit = function() {
-    console.log('🎯 Force Media Center initialization...');
+    if (window.isDevelopment) console.log('🎯 Force Media Center initialization...');
     setTimeout(() => {
       const mediaTab = document.getElementById('mediaTab');
       if (mediaTab) {
         mediaTab.classList.add('active');
-        console.log('✅ Media tab activated');
+        if (window.isDevelopment) console.log('✅ Media tab activated');
       }
       
       if (window.initializeMediaCenter) {
         window.initializeMediaCenter();
-        console.log('✅ Media center initialized');
+        if (window.isDevelopment) console.log('✅ Media center initialized');
       } else {
-        console.log('❌ initializeMediaCenter not found');
+        if (window.isDevelopment) console.log('❌ initializeMediaCenter not found');
       }
     }, 100);
   };
@@ -164,11 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function ensureFormModal() {
     if (formModal && formTitleEl && formEl && submitBtnEl) {
-      console.log('✅ Modal already initialized');
+      if (window.isDevelopment) console.log('✅ Modal already initialized');
       return; // All elements already initialized
     }
     
-    console.log('🔧 Initializing form modal...');
+    if (window.isDevelopment) console.log('🔧 Initializing form modal...');
     
     if (formModal) {
       // Modal exists but elements may not be initialized
@@ -577,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
       throw new Error('Modal initialization failed: Missing critical elements');
     }
     
-    console.log('✅ Modal elements initialized successfully:', {
+    if (window.isDevelopment) console.log('✅ Modal elements initialized successfully:', {
       formEl: !!formEl,
       formTitleEl: !!formTitleEl,
       submitBtnEl: !!submitBtnEl
@@ -648,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Handle successful load
       img.onload = function() {
-        console.log('✅ Image loaded successfully:', trimmedUrl);
+        if (window.isDevelopment) console.log('✅ Image loaded successfully:', trimmedUrl);
         if (currentImagePreview) {
           currentImagePreview.innerHTML = '';
           currentImagePreview.appendChild(img);
@@ -3827,7 +3829,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 🚀 Direct upload to Supabase (primary upload method)
     async function directUploadToSupabase(file, mediaType) {
-      console.log(`🚀 Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      if (window.isDevelopment) console.log(`🚀 Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       
       try {
         // Step 1: Get upload URL from our API

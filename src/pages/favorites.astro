@@ -1,0 +1,1239 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="My Favorites | IMACX-news" description="View your saved articles">
+  <main class="favorites-page">
+    <div class="container">
+      <!-- 页面头部 -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1 class="page-title">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            My Favorites
+          </h1>
+          <p class="page-description">Articles you've saved for later reading</p>
+        </div>
+        
+        <!-- 筛选控件 -->
+        <div class="filters-section">
+          <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Search in your favorites..." 
+              class="search-input"
+            >
+          </div>
+          
+          <select id="categoryFilter" class="category-filter">
+            <option value="all">All Categories</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 认证状态检查 -->
+      <div class="auth-required" id="authRequired" style="display: none;">
+        <div class="auth-message">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c0 1.3-.14 2.54-.4 3.73a9.96 9.96 0 01-1.85 3.05 10 10 0 01-3.05 1.85c-1.19.26-2.43.4-3.73.4s-2.54-.14-3.73-.4a9.96 9.96 0 01-3.05-1.85 10 10 0 01-1.85-3.05C3.14 14.54 3 13.3 3 12s.14-2.54.4-3.73a9.96 9.96 0 011.85-3.05 10 10 0 013.05-1.85C9.46 3.14 10.7 3 12 3s2.54.14 3.73.4a9.96 9.96 0 013.05 1.85 10 10 0 011.85 3.05c.26 1.19.4 2.43.4 3.73z"></path>
+          </svg>
+          <h2>Sign In Required</h2>
+          <p>Please sign in to view your favorite articles.</p>
+          <button class="login-btn" id="openLoginBtn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10,17 15,12 10,7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </div>
+
+      <!-- 加载状态 -->
+      <div class="loading-section" id="loadingSection">
+        <div class="loading-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-meta"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h2>No Favorites Yet</h2>
+        <p>Start exploring articles and save your favorites by clicking the bookmark icon.</p>
+        <a href="/" class="browse-btn">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
+          Browse Articles
+        </a>
+      </div>
+
+      <!-- 文章网格 -->
+      <div class="articles-grid" id="articlesGrid" style="display: none;">
+        <!-- 文章卡片将在这里动态生成 -->
+      </div>
+
+      <!-- 分页控制 -->
+      <div class="pagination-section" id="paginationSection" style="display: none;">
+        <div class="pagination-info">
+          <span id="paginationInfo">Showing 1-12 of 0 articles</span>
+        </div>
+        <div class="pagination-controls">
+          <button class="pagination-btn" id="prevPageBtn" disabled>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+            Previous
+          </button>
+          <div class="page-numbers" id="pageNumbers">
+            <!-- 页码将在这里生成 -->
+          </div>
+          <button class="pagination-btn" id="nextPageBtn" disabled>
+            Next
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 错误状态 -->
+      <div class="error-state" id="errorState" style="display: none;">
+        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        <h2>Failed to Load Favorites</h2>
+        <p>Something went wrong while loading your favorites.</p>
+        <button class="retry-btn" id="retryBtn">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23,4 23,10 17,10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Try Again
+        </button>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .favorites-page {
+    min-height: calc(100vh - 200px);
+    padding: var(--space-8) 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+  }
+
+  /* 页面头部 */
+  .page-header {
+    margin-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--space-6);
+    animation: fadeInUp 0.6s ease;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .header-content {
+    text-align: center;
+    margin-bottom: var(--space-6);
+  }
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .page-title .icon {
+    width: 32px;
+    height: 32px;
+    color: var(--color-primary);
+  }
+
+  .page-description {
+    font-size: 1.125rem;
+    color: var(--color-text-light);
+    margin: 0;
+  }
+
+  /* 筛选区域 */
+  .filters-section {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-light);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 12px 12px 12px 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--color-surface);
+    transition: border-color 0.2s ease;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+  }
+
+  .category-filter {
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: 0.875rem;
+    min-width: 160px;
+    cursor: pointer;
+  }
+
+  .category-filter:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+  }
+
+  /* 认证提示 */
+  .auth-required {
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .auth-message {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .auth-message .icon {
+    width: 64px;
+    height: 64px;
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+  }
+
+  .auth-message h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+
+  .auth-message p {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+  }
+
+  .login-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .login-btn:hover {
+    background: var(--color-primary-dark);
+  }
+
+  .login-btn .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 加载状态 */
+  .loading-section {
+    margin-top: var(--space-8);
+  }
+
+  .loading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .skeleton-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+
+  .skeleton-image {
+    height: 200px;
+    background: var(--color-surface-hover);
+    animation: pulse 2s ease-in-out infinite alternate;
+  }
+
+  .skeleton-content {
+    padding: var(--space-4);
+  }
+
+  .skeleton-title, .skeleton-text, .skeleton-meta {
+    height: 16px;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    animation: pulse 2s ease-in-out infinite alternate;
+  }
+
+  .skeleton-title {
+    height: 20px;
+    width: 80%;
+  }
+
+  .skeleton-text {
+    width: 100%;
+  }
+
+  .skeleton-meta {
+    width: 60%;
+    margin-bottom: 0;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+    color: var(--color-text-light);
+  }
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-4);
+    opacity: 0.5;
+  }
+
+  .empty-state h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+
+  .empty-state p {
+    margin-bottom: var(--space-6);
+  }
+
+  .browse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .browse-btn:hover {
+    background: var(--color-primary-dark);
+  }
+
+  .browse-btn .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 文章网格 - 采用类似首页Latest News的2列紧凑布局 */
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+    align-items: start;
+  }
+
+  /* 分页 */
+  .pagination-section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pagination-info {
+    text-align: center;
+    margin-bottom: var(--space-4);
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+  }
+
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pagination-btn .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .page-numbers {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .page-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .page-number:hover {
+    background: var(--color-surface-hover);
+  }
+
+  .page-number.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  /* 错误状态 */
+  .error-state {
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .error-icon {
+    width: 64px;
+    height: 64px;
+    color: #ef4444;
+    margin: 0 auto var(--space-4);
+  }
+
+  .error-state h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+
+  .error-state p {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-6);
+  }
+
+  .retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    background: var(--color-primary-dark);
+  }
+
+  .retry-btn .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .filters-section {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+
+    .search-container {
+      max-width: none;
+    }
+
+    .articles-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+
+    :global(.thumb-title) {
+      font-size: 1rem;
+    }
+
+    :global(.thumb-meta) {
+      font-size: 0.8rem;
+    }
+
+    :global(.thumb-category) {
+      font-size: 0.7rem;
+      padding: 1px 4px;
+    }
+
+    .favorite-badge-thumb {
+      padding: 4px;
+    }
+
+    .favorite-badge-thumb svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    :global(.video-badge.enhanced) {
+      font-size: 0.7rem;
+      padding: 3px 6px;
+    }
+
+    :global(.video-badge.enhanced svg) {
+      width: 8px;
+      height: 8px;
+    }
+
+    .pagination-controls {
+      flex-wrap: wrap;
+      gap: var(--space-1);
+    }
+
+    .page-numbers {
+      order: 1;
+      width: 100%;
+      justify-content: center;
+      margin: var(--space-2) 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      padding: 0 var(--space-3);
+    }
+
+    .page-header {
+      margin-bottom: var(--space-6);
+      padding-bottom: var(--space-4);
+    }
+
+    .articles-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 0 var(--space-2);
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .page-title .icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    :global(.thumb-title) {
+      font-size: 0.95rem;
+    }
+
+    :global(.thumb-meta) {
+      font-size: 0.75rem;
+    }
+
+    :global(.thumb-category) {
+      font-size: 0.65rem;
+      padding: 1px 3px;
+    }
+  }
+</style>
+
+<script>
+  interface FavoriteArticle {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    category: string;
+    image: string;
+    imageAlt: string | null;
+    author: string;
+    publishDate: string;
+    featured: boolean;
+    mediaType: string;
+    videoUrl: string | null;
+    videoPoster: string | null;
+    videoDuration: number | null;
+    favoriteDate: string;
+    stats: {
+      likes: number;
+      favorites: number;
+      comments: number;
+    };
+  }
+
+  interface FavoritesResponse {
+    success: boolean;
+    data?: {
+      articles: FavoriteArticle[];
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+      };
+      filters: {
+        categories: string[];
+        currentCategory: string;
+        currentSearch: string;
+      };
+    };
+    message?: string;
+  }
+
+  class FavoritesPage {
+    private currentPage: number = 1;
+    private currentCategory: string = 'all';
+    private currentSearch: string = '';
+    private isLoading: boolean = false;
+    private isAuthenticated: boolean = false;
+
+    constructor() {
+      this.init();
+    }
+
+    private async init() {
+      await this.checkAuth();
+      if (this.isAuthenticated) {
+        this.setupEventListeners();
+        await this.loadFavorites();
+      }
+    }
+
+    private async checkAuth() {
+      try {
+        const response = await fetch('/api/auth/status');
+        const result = await response.json();
+        
+        this.isAuthenticated = result.success && result.user;
+        
+        if (!this.isAuthenticated) {
+          this.showAuthRequired();
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        this.showAuthRequired();
+      }
+    }
+
+    private showAuthRequired() {
+      document.getElementById('authRequired')!.style.display = 'block';
+      document.getElementById('loadingSection')!.style.display = 'none';
+    }
+
+    private setupEventListeners() {
+      // 搜索输入
+      const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+      let searchTimeout: NodeJS.Timeout;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          this.currentSearch = (e.target as HTMLInputElement).value;
+          this.currentPage = 1;
+          this.loadFavorites();
+        }, 500);
+      });
+
+      // 分类筛选
+      const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+      categoryFilter.addEventListener('change', (e) => {
+        this.currentCategory = (e.target as HTMLSelectElement).value;
+        this.currentPage = 1;
+        this.loadFavorites();
+      });
+
+      // 登录按钮
+      const openLoginBtn = document.getElementById('openLoginBtn');
+      openLoginBtn?.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('openLoginModal'));
+      });
+
+      // 重试按钮
+      const retryBtn = document.getElementById('retryBtn');
+      retryBtn?.addEventListener('click', () => {
+        this.loadFavorites();
+      });
+
+      // 监听登录成功事件
+      window.addEventListener('userLoggedIn', () => {
+        this.checkAuth().then(() => {
+          if (this.isAuthenticated) {
+            this.loadFavorites();
+          }
+        });
+      });
+    }
+
+    private async loadFavorites() {
+      if (this.isLoading) return;
+
+      this.isLoading = true;
+      this.showLoading();
+
+      try {
+        const params = new URLSearchParams({
+          page: this.currentPage.toString(),
+          limit: '12'
+        });
+
+        if (this.currentCategory !== 'all') {
+          params.append('category', this.currentCategory);
+        }
+
+        if (this.currentSearch) {
+          params.append('search', this.currentSearch);
+        }
+
+        const response = await fetch(`/api/user/favorites?${params}`);
+        const result: FavoritesResponse = await response.json();
+
+        if (result.success && result.data) {
+          this.renderFavorites(result.data);
+          this.updateFilters(result.data.filters);
+          this.updatePagination(result.data.pagination);
+        } else {
+          this.showError(result.message || 'Failed to load favorites');
+        }
+      } catch (error) {
+        console.error('Failed to load favorites:', error);
+        this.showError('Failed to load favorites');
+      } finally {
+        this.isLoading = false;
+      }
+    }
+
+    private showLoading() {
+      document.getElementById('loadingSection')!.style.display = 'block';
+      document.getElementById('articlesGrid')!.style.display = 'none';
+      document.getElementById('emptyState')!.style.display = 'none';
+      document.getElementById('errorState')!.style.display = 'none';
+      document.getElementById('paginationSection')!.style.display = 'none';
+    }
+
+    private renderFavorites(data: FavoritesResponse['data']) {
+      const grid = document.getElementById('articlesGrid')!;
+      const { articles } = data!;
+
+      document.getElementById('loadingSection')!.style.display = 'none';
+
+      if (articles.length === 0) {
+        document.getElementById('emptyState')!.style.display = 'block';
+        grid.style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = articles.map(article => this.renderArticleCard(article)).join('');
+      grid.style.display = 'grid';
+      document.getElementById('emptyState')!.style.display = 'none';
+      
+      // 触发新添加图片的懒加载
+      this.triggerLazyLoading();
+    }
+
+    private renderArticleCard(article: FavoriteArticle): string {
+      const publishDate = new Date(article.publishDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      // 🎬 优化图片回退逻辑，确保视频有合适的预览图
+      let displayImage = '/images/fallback/imacx-news-placeholder.svg';
+      
+      if (article.mediaType === 'VIDEO') {
+        // 如果有videoPoster，直接使用
+        if (article.videoPoster && article.videoPoster.trim() !== '') {
+          displayImage = article.videoPoster;
+        }
+        // 如果有普通image，使用它
+        else if (article.image && article.image.trim() !== '') {
+          displayImage = article.image;
+        }
+        // 如果都没有，但有YouTube URL，尝试生成缩略图
+        else if (article.videoUrl && (article.videoUrl.includes('youtube') || article.videoUrl.includes('youtu.be'))) {
+          const youtubeThumb = this.generateYouTubeThumbnail(article.videoUrl);
+          if (youtubeThumb) {
+            displayImage = youtubeThumb;
+          }
+        }
+      } else {
+        displayImage = article.image || '/images/fallback/imacx-news-placeholder.svg';
+      }
+      
+      // 确保图片URL有效
+      if (!displayImage || displayImage.trim() === '') {
+        displayImage = '/images/fallback/imacx-news-placeholder.svg';
+      }
+      
+      return `
+        <article class="thumb-card">
+          <div class="thumb-image-wrap">
+            <img 
+              src="${displayImage}" 
+              alt="${article.imageAlt || article.title}"
+              class="thumb-img"
+              loading="lazy"
+              onerror="this.src='/images/fallback/imacx-news-placeholder.svg'"
+            >
+            <div class="thumb-gradient"></div>
+            
+            ${article.mediaType === 'VIDEO' ? `
+              <div class="video-badge enhanced">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 3l14 9-14 9z"></path>
+                </svg>
+                VIDEO
+              </div>
+            ` : ''}
+            
+            <div class="favorite-badge-thumb">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            
+            <div class="thumb-text">
+              <h3 class="thumb-title">
+                <a href="/article/${article.slug}">${article.title}</a>
+              </h3>
+              <div class="thumb-meta">
+                <span class="thumb-date">${publishDate}</span>
+                <span class="thumb-category">${this.getCategoryName(article.category)}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    private getCategoryName(category: string): string {
+      const categoryMap: Record<string, string> = {
+        'TodayNews': 'Today News',
+        'PastNews': 'Past News',
+        'Technology': 'Technology',
+        'Sports': 'Sports',
+        'Entertainment': 'Entertainment'
+      };
+      return categoryMap[category] || category;
+    }
+
+    private generateYouTubeThumbnail(videoUrl: string): string | null {
+      try {
+        let videoId = null;
+        
+        // YouTube embed URLs (https://www.youtube.com/embed/VIDEO_ID)
+        if (videoUrl.includes('youtube.com/embed/')) {
+          videoId = videoUrl.split('embed/')[1]?.split('?')[0];
+        }
+        // YouTube watch URLs (https://www.youtube.com/watch?v=VIDEO_ID)
+        else if (videoUrl.includes('youtube.com/watch?v=')) {
+          videoId = videoUrl.split('v=')[1]?.split('&')[0];
+        }
+        // YouTube short URLs (https://youtu.be/VIDEO_ID)
+        else if (videoUrl.includes('youtu.be/')) {
+          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+        }
+
+        if (videoId && videoId.length > 0) {
+          return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        }
+      } catch (error) {
+        console.error('Error generating YouTube thumbnail:', error);
+      }
+      
+      return null;
+    }
+
+    private updateFilters(filters: NonNullable<FavoritesResponse['data']>['filters']) {
+      const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+      
+      // 更新分类选项
+      categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+      filters!.categories.forEach((category: string) => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = this.getCategoryName(category);
+        if (category === filters!.currentCategory) {
+          option.selected = true;
+        }
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    private updatePagination(pagination: NonNullable<FavoritesResponse['data']>['pagination']) {
+      const paginationSection = document.getElementById('paginationSection')!;
+      const paginationInfo = document.getElementById('paginationInfo')!;
+      const prevBtn = document.getElementById('prevPageBtn') as HTMLButtonElement;
+      const nextBtn = document.getElementById('nextPageBtn') as HTMLButtonElement;
+      const pageNumbers = document.getElementById('pageNumbers')!;
+
+      if (pagination!.totalItems === 0) {
+        paginationSection.style.display = 'none';
+        return;
+      }
+
+      // 更新分页信息
+      const start = (pagination!.currentPage - 1) * 12 + 1;
+      const end = Math.min(pagination!.currentPage * 12, pagination!.totalItems);
+      paginationInfo.textContent = `Showing ${start}-${end} of ${pagination!.totalItems} articles`;
+
+      // 更新按钮状态
+      prevBtn.disabled = !pagination!.hasPrevPage;
+      nextBtn.disabled = !pagination!.hasNextPage;
+
+      // 更新页码
+      this.renderPageNumbers(pageNumbers, pagination!);
+
+      // 绑定事件
+      prevBtn.onclick = () => {
+        if (pagination!.hasPrevPage) {
+          this.currentPage--;
+          this.loadFavorites();
+        }
+      };
+
+      nextBtn.onclick = () => {
+        if (pagination!.hasNextPage) {
+          this.currentPage++;
+          this.loadFavorites();
+        }
+      };
+
+      paginationSection.style.display = 'block';
+    }
+
+    private renderPageNumbers(container: HTMLElement, pagination: NonNullable<FavoritesResponse['data']>['pagination']) {
+      container.innerHTML = '';
+      
+      const { currentPage, totalPages } = pagination!;
+      const maxVisible = 5;
+      
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement('button');
+        button.className = `page-number${i === currentPage ? ' active' : ''}`;
+        button.textContent = i.toString();
+        button.onclick = () => {
+          this.currentPage = i;
+          this.loadFavorites();
+        };
+        container.appendChild(button);
+      }
+    }
+
+    private triggerLazyLoading() {
+      // 触发全局懒加载器观察新添加的图片
+      const globalWindow = window as any;
+      if (globalWindow.LazyLoader && globalWindow.LazyLoader.observeNewImages) {
+        globalWindow.LazyLoader.observeNewImages();
+      }
+      
+      // 如果没有全局懒加载器，手动处理图片加载
+      const images = document.querySelectorAll('#articlesGrid img[data-src]') as NodeListOf<HTMLImageElement>;
+      images.forEach(img => {
+        if (img.dataset.src) {
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          img.classList.add('loaded');
+        }
+      });
+    }
+
+    private showError(message: string) {
+      document.getElementById('loadingSection')!.style.display = 'none';
+      document.getElementById('articlesGrid')!.style.display = 'none';
+      document.getElementById('emptyState')!.style.display = 'none';
+      document.getElementById('errorState')!.style.display = 'block';
+      document.getElementById('paginationSection')!.style.display = 'none';
+    }
+  }
+
+  // 初始化收藏页面
+  document.addEventListener('DOMContentLoaded', () => {
+    new FavoritesPage();
+  });
+</script>
+
+<style>
+  /* 收藏页面紧凑卡片样式 - 基于首页Latest News设计 */
+  :global(.thumb-card) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  :global(.thumb-card:hover) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  :global(.thumb-image-wrap) {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+
+  :global(.thumb-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+
+  :global(.thumb-gradient) {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05) 20%, rgba(0,0,0,0.7) 100%);
+    border-radius: var(--radius-md);
+  }
+
+  /* 收藏页面特有的收藏徽章 */
+  .favorite-badge-thumb {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 3;
+  }
+
+  .favorite-badge-thumb svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  :global(.thumb-text) {
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  :global(.thumb-title) {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    margin: 0;
+  }
+
+  :global(.thumb-title a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :global(.thumb-meta) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  :global(.thumb-date) {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  :global(.thumb-category) {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 视频徽章样式 - 继承自首页 */
+  :global(.video-badge.enhanced) {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  :global(.video-badge.enhanced svg) {
+    color: white;
+    width: 10px;
+    height: 10px;
+  }
+</style>

@@ -1,0 +1,1516 @@
+---
+// 用户个人资料管理模态框
+---
+
+<div id="userProfileModal" class="modal">
+  <div class="modal-content profile-modal">
+    <div class="modal-header">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        Profile Settings
+      </h2>
+      <button class="close-btn" id="closeProfileModal">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div id="profileMessage" class="message" style="display: none;"></div>
+      
+      <!-- Profile Information Section -->
+      <div class="profile-section">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Profile Information
+        </h3>
+        <div class="profile-info-container">
+          <!-- Avatar Part -->
+          <div class="avatar-section">
+            <h4>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21,15 16,10 5,21"></polyline>
+              </svg>
+              Profile Picture
+            </h4>
+            <div class="avatar-container">
+              <div class="current-avatar" id="currentAvatar">
+                <span class="avatar-emoji">👤</span>
+              </div>
+              <div class="avatar-selection">
+                <p class="avatar-instruction">Choose your avatar:</p>
+                <div class="avatar-grid" id="avatarGrid">
+                  <!-- 卡通头像选项将在这里动态生成 -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Display Name Part -->
+          <div class="display-name-section">
+            <h4>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Display Name
+            </h4>
+            <div class="input-group">
+              <input 
+                type="text" 
+                id="displayNameInput" 
+                placeholder="Enter display name"
+                maxlength="50"
+              >
+            </div>
+            <small class="input-hint">This is how your name will appear to other users</small>
+          </div>
+          
+          <!-- Combined Actions -->
+          <div class="profile-actions">
+            <button class="save-btn" id="saveProfileBtn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              Save Changes
+            </button>
+            <button class="cancel-btn" id="cancelProfileBtn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18"></path>
+                <path d="M6 6L18 18"></path>
+              </svg>
+              Cancel
+            </button>
+          </div>
+          
+          <!-- Status Indicator -->
+          <div class="profile-status" id="profileStatus">
+            <span class="status-icon">ℹ️</span>
+            <span class="status-text">Make changes to your profile information</span>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- Password Section -->
+      <div class="profile-section">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <circle cx="12" cy="16" r="1"></circle>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Change Password
+        </h3>
+        <form id="passwordForm">
+          <div class="input-group">
+            <input 
+              type="password" 
+              id="currentPasswordInput" 
+              placeholder="Current password"
+              required
+            >
+          </div>
+          <div class="input-group">
+            <input 
+              type="password" 
+              id="newPasswordInput" 
+              placeholder="New password"
+              required
+              minlength="6"
+            >
+          </div>
+          <div class="input-group">
+            <input 
+              type="password" 
+              id="confirmPasswordInput" 
+              placeholder="Confirm new password"
+              required
+              minlength="6"
+            >
+          </div>
+          <button type="submit" class="save-btn">Change Password</button>
+        </form>
+      </div>
+      
+      <!-- Account Info Section -->
+      <div class="profile-section">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          Account Information
+        </h3>
+        <div class="account-info">
+          <div class="info-item">
+            <span class="info-label">Username:</span>
+            <span class="info-value" id="profileUsername">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value" id="profileEmail">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Role:</span>
+            <span class="info-value" id="profileRole">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Member since:</span>
+            <span class="info-value" id="profileMemberSince">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Modern Profile Modal Variables */
+  :root {
+    --profile-primary: #6366f1;
+    --profile-primary-light: #8b5cf6;
+    --profile-primary-dark: #4f46e5;
+    --profile-text: #1e293b;
+    --profile-text-light: #64748b;
+    --profile-bg: rgba(255, 255, 255, 0.95);
+    --profile-glass: rgba(255, 255, 255, 0.8);
+    --profile-border: rgba(99, 102, 241, 0.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --profile-text: #f1f5f9;
+      --profile-text-light: #94a3b8;
+      --profile-bg: rgba(15, 23, 42, 0.95);
+      --profile-glass: rgba(30, 41, 59, 0.8);
+      --profile-border: rgba(99, 102, 241, 0.2);
+    }
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5002;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 20px;
+    contain: layout style paint;
+    will-change: opacity, visibility;
+  }
+  
+  .modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-content {
+    background: var(--profile-bg);
+    backdrop-filter: blur(12px);
+    border: none;
+    border-radius: 24px;
+    padding: 0;
+    width: 100%;
+    position: relative;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.3s ease;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    contain: layout style;
+    will-change: transform;
+  }
+  
+  .modal.active .modal-content {
+    transform: translateY(0) scale(1);
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #4f46e5 100%);
+    color: white !important;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    border-bottom: none;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .modal-header * {
+    color: white !important;
+  }
+  
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .modal-header h2 svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  
+  .close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .modal-body {
+    padding: 32px;
+    max-height: 65vh;
+    overflow-y: auto;
+    background: rgba(248, 250, 252, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .profile-modal {
+    max-width: 580px;
+    max-height: 90vh;
+  }
+  
+  .profile-section {
+    margin-bottom: var(--space-8);
+    padding: 24px;
+    background: var(--profile-glass);
+    border: 1px solid var(--profile-border);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    box-shadow: 
+      0 4px 20px rgba(99, 102, 241, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  
+  .profile-section:hover {
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 
+      0 8px 32px rgba(99, 102, 241, 0.12),
+      0 2px 8px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+  }
+  
+  .profile-section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .profile-section h3 {
+    margin: 0 0 var(--space-4) 0;
+    color: #6366f1;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .profile-section h3 svg {
+    width: 18px;
+    height: 18px;
+    stroke: #6366f1;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  
+  .profile-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    transition: all var(--transition);
+  }
+  
+  .profile-info-container:hover {
+    /* No background change needed since container is transparent */
+  }
+  
+  .avatar-section, .display-name-section {
+    background: white;
+    padding: var(--space-5);
+    border-radius: 12px;
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.08),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      0 1px 2px rgba(0, 0, 0, 0.04);
+    margin-bottom: var(--space-3);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  
+  .avatar-section h4, 
+  .display-name-section h4 {
+    margin: 0 0 var(--space-3) 0;
+    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .avatar-section h4 svg,
+  .display-name-section h4 svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  
+  .avatar-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  
+  .current-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(26, 115, 232, 0.3);
+    margin: 0 auto;
+    font-size: 2.5rem;
+  }
+  
+  .avatar-emoji {
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+  
+  .avatar-selection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .avatar-instruction {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: var(--space-2);
+    max-width: 100%;
+    margin-bottom: var(--space-4);
+    max-height: 300px;
+    overflow-y: auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+  }
+  
+  .profile-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding: var(--space-5);
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+  }
+  
+  .profile-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    transition: all var(--transition);
+    margin-top: var(--space-3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+  }
+  
+  .profile-status.pending {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+    color: #92400e;
+  }
+  
+  .profile-status.success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+    color: #065f46;
+  }
+  
+  .cancel-btn {
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-text-light);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.875rem;
+  }
+  
+  .cancel-btn:hover:not(:disabled) {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+  }
+  
+  .cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .avatar-option {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .avatar-option:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+  }
+  
+  .avatar-option.selected {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    transform: scale(1.1);
+  }
+  
+  .avatar-option.selected::after {
+    content: "✓";
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    background: #10b981;
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .input-group {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    align-items: stretch;
+  }
+  
+  .input-group input {
+    flex: 1;
+    padding: var(--space-4);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    transition: all var(--transition);
+    font-family: var(--font-sans);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .input-group input:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  .input-group input::placeholder {
+    color: var(--color-text-light);
+  }
+  
+  .save-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    box-shadow: 
+      0 4px 14px rgba(99, 102, 241, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 6px 20px rgba(99, 102, 241, 0.4),
+      0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .save-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    opacity: 0.6;
+  }
+  
+  .input-hint {
+    color: var(--color-text-light);
+    font-size: 0.8rem;
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .input-hint::before {
+    content: "💡";
+    font-size: 0.875rem;
+  }
+  
+  #passwordForm {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #passwordForm .input-group {
+    margin-bottom: var(--space-4);
+  }
+  
+  #passwordForm .input-group input {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+  }
+  
+  #passwordForm .save-btn {
+    align-self: flex-start;
+    margin-top: var(--space-4);
+  }
+  
+  .account-info {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    padding: var(--space-6);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid rgba(26, 115, 232, 0.1);
+    transition: all var(--transition);
+  }
+  
+  .info-item:hover {
+    background: rgba(26, 115, 232, 0.03);
+    border-radius: 6px;
+    margin: 0 calc(-1 * var(--space-2));
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    box-shadow: 0 1px 3px rgba(26, 115, 232, 0.1);
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .info-label::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    content: "";
+  }
+  
+  .info-value {
+    color: var(--color-text-light);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.7);
+    padding: var(--space-1) var(--space-2);
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .message {
+    padding: var(--space-4) var(--space-6);
+    border-radius: 12px;
+    margin-bottom: var(--space-6);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 1px solid;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1000;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    contain: layout style;
+    will-change: opacity, transform;
+  }
+  
+  .message[style*="opacity: 1"] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  
+  .message.success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+    color: #065f46;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+  
+  .message.success::before {
+    content: "✅";
+    font-size: 1.1rem;
+  }
+  
+  .message.error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+    color: #991b1b;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+  
+  .message.error::before {
+    content: "❌";
+    font-size: 1.1rem;
+  }
+  
+  .message.info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+    color: #1e40af;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  
+  .message.info::before {
+    content: "ℹ️";
+    font-size: 1.1rem;
+    margin-right: var(--space-2);
+  }
+  
+  /* 滚动条美化 */
+  .modal-body::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .modal-body::-webkit-scrollbar-track {
+    background: var(--color-background-alt);
+    border-radius: 3px;
+  }
+  
+  .modal-body::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 3px;
+  }
+  
+  .modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-dark);
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .modal {
+      padding: var(--space-2);
+    }
+    
+    .profile-modal {
+      max-width: 100vw;
+      max-height: 95vh;
+    }
+    
+    .modal-header {
+      padding: var(--space-4);
+    }
+    
+    .modal-header h2 {
+      font-size: 1.25rem;
+    }
+    
+    .modal-body {
+      padding: var(--space-4);
+    }
+    
+    .profile-section {
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    
+    .avatar-container {
+      align-items: center;
+      text-align: center;
+      gap: var(--space-4);
+    }
+    
+    .current-avatar {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .avatar-grid {
+      grid-template-columns: repeat(6, 1fr);
+      gap: var(--space-2);
+      max-height: 250px;
+    }
+    
+    .avatar-option {
+      width: 44px;
+      height: 44px;
+      font-size: 1.25rem;
+    }
+    
+    .input-group {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    
+    .save-btn {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .info-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      text-align: left;
+    }
+    
+    .info-value {
+      align-self: stretch;
+      text-align: right;
+    }
+    
+    #passwordForm .save-btn {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .modal-header h2 {
+      font-size: 1.1rem;
+    }
+    
+    .modal-header h2 svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .close-btn {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .profile-section h3 {
+      font-size: 1rem;
+    }
+    
+    .current-avatar {
+      width: 72px;
+      height: 72px;
+    }
+    
+    .avatar-grid {
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-1);
+      max-height: 200px;
+    }
+    
+    .avatar-option {
+      width: 40px;
+      height: 40px;
+      font-size: 1.1rem;
+    }
+    
+    .input-group input {
+      padding: var(--space-3);
+      font-size: 0.9rem;
+    }
+    
+    .save-btn {
+      padding: var(--space-3) var(--space-4);
+      font-size: 0.8rem;
+    }
+    
+    .avatar-container {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .profile-actions {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    
+    .cancel-btn {
+      padding: var(--space-3) var(--space-4);
+      font-size: 0.8rem;
+    }
+  }
+</style>
+
+<script>
+  // 扩展Window接口
+  declare global {
+    interface Window {
+      openUserProfileModal: () => void;
+      checkUserStatus: () => Promise<void>;
+    }
+  }
+
+  // 获取模态框元素
+  const profileModal = document.getElementById('userProfileModal') as HTMLElement;
+  const closeProfileModalBtn = document.getElementById('closeProfileModal') as HTMLButtonElement;
+  const profileMessage = document.getElementById('profileMessage') as HTMLElement;
+  
+  // Profile elements
+  const currentAvatar = document.getElementById('currentAvatar') as HTMLElement;
+  const avatarGrid = document.getElementById('avatarGrid') as HTMLElement;
+  const displayNameInput = document.getElementById('displayNameInput') as HTMLInputElement;
+  const saveProfileBtn = document.getElementById('saveProfileBtn') as HTMLButtonElement;
+  const cancelProfileBtn = document.getElementById('cancelProfileBtn') as HTMLButtonElement;
+  const profileStatus = document.getElementById('profileStatus') as HTMLElement;
+  
+  // Password elements
+  const passwordForm = document.getElementById('passwordForm') as HTMLFormElement;
+  const currentPasswordInput = document.getElementById('currentPasswordInput') as HTMLInputElement;
+  const newPasswordInput = document.getElementById('newPasswordInput') as HTMLInputElement;
+  const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement;
+  
+  // Account info elements
+  const profileUsername = document.getElementById('profileUsername') as HTMLElement;
+  const profileEmail = document.getElementById('profileEmail') as HTMLElement;
+  const profileRole = document.getElementById('profileRole') as HTMLElement;
+  const profileMemberSince = document.getElementById('profileMemberSince') as HTMLElement;
+  
+  // 当前用户数据
+  let currentUser: any = null;
+  
+  // 预设头像选项
+  const avatarOptions = [
+    '😀', '😃', '😄', '😁', '😊', '🙂',
+    '😎', '🤓', '🧐', '😇', '😍', '🥰',
+    '🤗', '🤔', '😴', '🤠', '👩', '👨',
+    '👩‍💼', '👨‍💼', '👩‍🎓', '👨‍🎓', '👩‍🚀', '👨‍🚀',
+    '👩‍🎨', '👨‍🎨', '👩‍💻', '👨‍💻', '🧑‍🎤', '👩‍🔬',
+    '🦸‍♀️', '🦸‍♂️', '🧚‍♀️', '🧚‍♂️', 
+    // 动物头像 - 常见宠物
+    '🐱', '🐶', '🐰', '🐹', '🐨', '🐼',
+    // 农场动物
+    '🐷', '🐮', '🐴', '🐸', '🐥', '🐣',
+    // 野生动物
+    '🦁', '🐯', '🐻', '🐺', '🦊', '🐵',
+    // 鸟类
+    '🐦', '🐧', '🦉', '🦅', '🐔', '🦆',
+    // 海洋动物
+    '🐙', '🐠', '🐬', '🐳', '🦈', '🐡',
+    // 昆虫和小动物
+    '🐛', '🦋', '🐝', '🐞', '🕷️', '🦗',
+    // 爬行动物
+    '🐢', '🦎', '🐍', '🐊', '🦕', '🦖'
+  ];
+  
+  let selectedAvatar: string = '👤';
+  let originalAvatar: string = '👤';
+  let selectedDisplayName: string = '';
+  let originalDisplayName: string = '';
+  let hasProfileChanges: boolean = false;
+  
+  // 显示消息
+  function showMessage(text: string, type: string = 'success', autoHide: boolean = true) {
+    console.log(`📢 Showing message: "${text}" (type: ${type})`);
+    
+    profileMessage.textContent = text;
+    profileMessage.className = `message ${type}`;
+    profileMessage.style.display = 'block';
+    profileMessage.style.visibility = 'visible';
+    profileMessage.style.opacity = '1';
+    
+    // 移除滚动行为以避免布局闪动
+    // profileMessage.scrollIntoView({ 
+    //   behavior: 'smooth', 
+    //   block: 'nearest',
+    //   inline: 'nearest'
+    // });
+    
+    console.log('📢 Message element updated:', {
+      display: profileMessage.style.display,
+      visibility: profileMessage.style.visibility,
+      opacity: profileMessage.style.opacity,
+      className: profileMessage.className,
+      text: profileMessage.textContent
+    });
+    
+    // 根据参数决定是否自动隐藏
+    if (autoHide) {
+      setTimeout(() => {
+        console.log('📢 Hiding message automatically');
+        hideMessage();
+      }, 4000); // 减少到4秒
+    }
+  }
+  
+  // 隐藏消息
+  function hideMessage() {
+    profileMessage.style.opacity = '0';
+    setTimeout(() => {
+      profileMessage.style.display = 'none';
+      profileMessage.style.visibility = 'hidden';
+    }, 300); // 等待淡出动画完成
+  }
+  
+  // 加载用户数据
+  async function loadUserProfile() {
+    try {
+      const response = await fetch('/api/auth/status', {
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.user) {
+        currentUser = result.user;
+        updateProfileDisplay();
+      } else {
+        showMessage('Failed to load profile data', 'error');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      showMessage('Failed to load profile data', 'error');
+    }
+  }
+  
+  // 生成头像选择器
+  function generateAvatarGrid() {
+    avatarGrid.innerHTML = avatarOptions.map(emoji => 
+      `<div class="avatar-option" data-avatar="${emoji}">${emoji}</div>`
+    ).join('');
+    
+    // 添加点击事件监听器
+    avatarGrid.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('avatar-option')) {
+        selectAvatar(target.dataset.avatar || '👤');
+      }
+    });
+  }
+  
+  // 选择头像
+  function selectAvatar(emoji: string) {
+    selectedAvatar = emoji;
+    
+    // 更新当前头像显示
+    const avatarEmojiEl = currentAvatar.querySelector('.avatar-emoji');
+    if (avatarEmojiEl) {
+      avatarEmojiEl.textContent = emoji;
+    }
+    
+    // 更新选择状态
+    avatarGrid.querySelectorAll('.avatar-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    
+    const selectedOption = avatarGrid.querySelector(`[data-avatar="${emoji}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('selected');
+    }
+    
+    // 检查变更并更新UI
+    checkProfileChanges();
+  }
+  
+  // 检查资料变更
+  function checkProfileChanges() {
+    const avatarChanged = selectedAvatar !== originalAvatar;
+    const displayNameChanged = displayNameInput.value.trim() !== originalDisplayName;
+    hasProfileChanges = avatarChanged || displayNameChanged;
+    
+    updateProfileUI();
+  }
+  
+  // 监听显示名称变更
+  function setupDisplayNameListener() {
+    displayNameInput.addEventListener('input', checkProfileChanges);
+  }
+  
+  // 更新资料UI状态
+  function updateProfileUI() {
+    if (hasProfileChanges) {
+      saveProfileBtn.disabled = false;
+      cancelProfileBtn.disabled = false;
+      profileStatus.className = 'profile-status pending';
+      profileStatus.querySelector('.status-icon')!.textContent = '⏳';
+      profileStatus.querySelector('.status-text')!.textContent = 'Changes pending - click Save to confirm';
+    } else {
+      saveProfileBtn.disabled = true;
+      cancelProfileBtn.disabled = true;
+      profileStatus.className = 'profile-status';
+      profileStatus.querySelector('.status-icon')!.textContent = 'ℹ️';
+      profileStatus.querySelector('.status-text')!.textContent = 'Make changes to your profile information';
+    }
+  }
+  
+  // 取消资料更改
+  function cancelProfileChanges() {
+    // 恢复头像
+    selectedAvatar = originalAvatar;
+    const avatarEmojiEl = currentAvatar.querySelector('.avatar-emoji');
+    if (avatarEmojiEl) {
+      avatarEmojiEl.textContent = originalAvatar;
+    }
+    
+    // 恢复头像选择状态
+    avatarGrid.querySelectorAll('.avatar-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    const originalOption = avatarGrid.querySelector(`[data-avatar="${originalAvatar}"]`);
+    if (originalOption) {
+      originalOption.classList.add('selected');
+    }
+    
+    // 恢复显示名称
+    displayNameInput.value = originalDisplayName;
+    
+    hasProfileChanges = false;
+    updateProfileUI();
+    showMessage('Profile changes cancelled', 'info');
+  }
+  
+  // 保存资料信息
+  async function saveProfile() {
+    try {
+      console.log('🚀 Starting profile save...');
+      
+      const avatarChanged = selectedAvatar !== originalAvatar;
+      const displayNameChanged = displayNameInput.value.trim() !== originalDisplayName;
+      const newDisplayName = displayNameInput.value.trim();
+      
+      console.log('📝 Changes detected:', { avatarChanged, displayNameChanged, selectedAvatar, originalAvatar, newDisplayName, originalDisplayName });
+      
+      // 检查是否有任何变更
+      if (!avatarChanged && !displayNameChanged) {
+        showMessage('No changes to save', 'info');
+        return;
+      }
+      
+      // 验证显示名称
+      if (displayNameChanged && (!newDisplayName || newDisplayName.length < 1)) {
+        showMessage('Display name cannot be empty', 'error');
+        return;
+      }
+      
+      // 禁用按钮防止重复提交
+      saveProfileBtn.disabled = true;
+      saveProfileBtn.textContent = 'Saving...';
+      
+      let avatarSuccess = true;
+      let displayNameSuccess = true;
+      let changedItems = [];
+      
+      // 保存头像（如果有变更）
+      if (avatarChanged) {
+        console.log('💾 Saving avatar:', selectedAvatar);
+        try {
+          const avatarResponse = await fetch('/api/profile/update-avatar', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar: selectedAvatar })
+          });
+          const avatarResult = await avatarResponse.json();
+          console.log('🖼️ Avatar API response:', avatarResult);
+          
+          if (avatarResult.success) {
+            changedItems.push('avatar');
+            console.log('✅ Avatar updated successfully');
+          } else {
+            avatarSuccess = false;
+            showMessage(avatarResult.error || 'Failed to update avatar', 'error');
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Avatar update error:', error);
+          avatarSuccess = false;
+          showMessage('Failed to update avatar', 'error');
+          return;
+        }
+      }
+      
+      // 保存显示名称（如果有变更）
+      if (displayNameChanged) {
+        console.log('💾 Saving display name:', newDisplayName);
+        try {
+          const nameResponse = await fetch('/api/profile/update-display-name', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayName: newDisplayName })
+          });
+          const nameResult = await nameResponse.json();
+          console.log('📝 Display name API response:', nameResult);
+          
+          if (nameResult.success) {
+            changedItems.push('display name');
+            console.log('✅ Display name updated successfully');
+          } else {
+            displayNameSuccess = false;
+            showMessage(nameResult.error || 'Failed to update display name', 'error');
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Display name update error:', error);
+          displayNameSuccess = false;
+          showMessage('Failed to update display name', 'error');
+          return;
+        }
+      }
+      
+      // 更新成功
+      if (avatarSuccess && displayNameSuccess && changedItems.length > 0) {
+        if (currentUser) {
+          if (avatarChanged) currentUser.avatar = selectedAvatar;
+          if (displayNameChanged) currentUser.displayName = newDisplayName;
+        }
+        
+        originalAvatar = selectedAvatar;
+        originalDisplayName = newDisplayName;
+        hasProfileChanges = false;
+        
+        const successMessage = `Successfully updated ${changedItems.join(' and ')}! 🎉`;
+        console.log('🎉 Profile update complete:', successMessage);
+        showMessage(successMessage);
+        updateProfileUI();
+        
+        // 更新header
+        if (window.checkUserStatus) {
+          window.checkUserStatus();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error updating profile:', error);
+      showMessage('Failed to update profile', 'error');
+    } finally {
+      // 恢复按钮状态
+      saveProfileBtn.disabled = hasProfileChanges ? false : true;
+      saveProfileBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 6L9 17l-5-5"></path>
+        </svg>
+        Save Changes
+      `;
+    }
+  }
+  
+  // 更新资料显示
+  function updateProfileDisplay() {
+    if (!currentUser) return;
+    
+    // 更新头像
+    const avatarEmoji = currentUser.avatar || '👤';
+    selectedAvatar = avatarEmoji;
+    originalAvatar = avatarEmoji;
+    
+    const avatarEmojiEl = currentAvatar.querySelector('.avatar-emoji');
+    if (avatarEmojiEl) {
+      avatarEmojiEl.textContent = avatarEmoji;
+    }
+    
+    // 更新头像选择器状态
+    avatarGrid.querySelectorAll('.avatar-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    
+    const selectedOption = avatarGrid.querySelector(`[data-avatar="${avatarEmoji}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('selected');
+    }
+    
+    // 更新显示名称
+    const displayName = currentUser.displayName || '';
+    displayNameInput.value = displayName;
+    originalDisplayName = displayName;
+    
+    // 重置变更状态
+    hasProfileChanges = false;
+    updateProfileUI();
+    
+    // 更新账户信息
+    profileUsername.textContent = currentUser.username;
+    profileEmail.textContent = currentUser.email || 'Not set';
+    profileRole.textContent = currentUser.role === 'ADMIN' ? 'Administrator' : 'Member';
+    
+    // 格式化注册时间
+    if (currentUser.createdAt) {
+      const date = new Date(currentUser.createdAt);
+      profileMemberSince.textContent = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  }
+  
+  // 初始化头像选择器
+  generateAvatarGrid();
+  
+  // 更改密码
+  passwordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const currentPassword = currentPasswordInput.value;
+    const newPassword = newPasswordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    
+    if (newPassword !== confirmPassword) {
+      showMessage('New passwords do not match', 'error');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      showMessage('New password must be at least 6 characters long', 'error');
+      return;
+    }
+    
+    try {
+      const submitBtn = passwordForm.querySelector('.save-btn') as HTMLButtonElement;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Changing...';
+      }
+      
+      const response = await fetch('/api/profile/change-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showMessage('Password changed successfully!');
+        passwordForm.reset();
+      } else {
+        showMessage(result.error || 'Failed to change password', 'error');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      showMessage('Failed to change password', 'error');
+    } finally {
+      const submitBtn = passwordForm.querySelector('.save-btn') as HTMLButtonElement;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Change Password';
+      }
+    }
+  });
+  
+  // 关闭模态框
+  function closeProfileModal() {
+    // 检查是否有未保存的资料更改
+    if (hasProfileChanges) {
+      const confirmed = confirm('You have unsaved profile changes. Are you sure you want to close without saving?');
+      if (!confirmed) {
+        return;
+      }
+      // 如果用户确认关闭，恢复原始状态
+      cancelProfileChanges();
+    }
+    
+    // 隐藏消息
+    hideMessage();
+    
+    // 先移除 active 类触发动画
+    profileModal.classList.remove('active');
+    
+    // 等待动画完成后隐藏模态框
+    setTimeout(() => {
+      profileModal.style.display = 'none';
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = ''; // 移除滚动条补偿
+      
+      // 重置表单
+      passwordForm.reset();
+    }, 400); // 与CSS过渡时间匹配
+  }
+  
+  closeProfileModalBtn.addEventListener('click', closeProfileModal);
+  
+  // 资料保存和取消按钮事件
+  saveProfileBtn.addEventListener('click', () => {
+    if (hasProfileChanges) {
+      saveProfile();
+    }
+  });
+  
+  cancelProfileBtn.addEventListener('click', cancelProfileChanges);
+  
+  // 点击外部关闭
+  profileModal.addEventListener('click', (e) => {
+    if (e.target === profileModal) {
+      closeProfileModal();
+    }
+  });
+  
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && profileModal.classList.contains('active')) {
+      closeProfileModal();
+    }
+  });
+  
+  // 全局打开函数
+  window.openUserProfileModal = function() {
+    console.log('🚀 Opening user profile modal');
+    
+    // 防止页面滚动条变化导致的布局偏移
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    
+    // 使用 requestAnimationFrame 确保DOM准备好
+    requestAnimationFrame(() => {
+      profileModal.style.display = 'flex';
+      
+      // 在下一帧添加 active 类，确保过渡动画正常
+      requestAnimationFrame(() => {
+        profileModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // 立即加载用户数据和设置监听器
+        loadUserProfile();
+        setupDisplayNameListener();
+        
+        // 延迟显示欢迎消息，但时间更短，避免闪动
+        setTimeout(() => {
+          showMessage('Welcome to Profile Settings!', 'info', true);
+        }, 150); // 减少延迟时间
+      });
+    });
+  };
+  
+  console.log('✅ User Profile Modal initialized');
+</script>

@@ -1,8 +1,12 @@
 ---
 import Header from '../components/global/Header.astro';
 import Footer from '../components/global/Footer.astro';
-import LoginModal from '../components/global/LoginModal.astro';
+// import LoginModal from '../components/global/LoginModal.astro'; // 已替换为UserLoginModal
 import AdminArticleManager from '../components/global/AdminArticleManager.astro';
+import UserRegisterModal from '../components/global/UserRegisterModal.astro';
+import UserLoginModal from '../components/global/UserLoginModal.astro';
+import UserProfileModal from '../components/global/UserProfileModal.astro';
+import AdminUsersModal from '../components/global/AdminUsersModal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -21,8 +25,8 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <!-- Temporarily disable CSP for YouTube testing -->
-    <!-- <meta http-equiv="Content-Security-Policy" content="..." /> -->
+    <!-- Content Security Policy for better security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss: ws:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
     <title>{title}</title>
     <style>
       .app-layout {
@@ -50,8 +54,12 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
       </main>
       <Footer />
     </div>
-    <LoginModal />
+    <!-- <LoginModal /> 已替换为UserLoginModal -->
     <AdminArticleManager />
+    <UserRegisterModal />
+    <UserLoginModal />
+    <UserProfileModal />
+    <AdminUsersModal />
     
     <!-- External scripts for CSP compliance -->
     <script src="/scripts/smooth-scroll.js" is:inline></script>
@@ -113,7 +121,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
                             request.url.includes('example.com') ||
                             request.url.includes('via.placeholder.com')) {
                           cache.delete(request);
-                          window.debugLog('🗑️ 清理无效图片缓存:', request.url);
                         }
                       });
                     });
@@ -136,7 +143,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
             // 检测并替换无效的外部图片URL
             if (src.includes('example.com') || src.includes('placeholder.com') || src.includes('via.placeholder.com')) {
               img.src = '/images/placeholder.svg';
-              window.debugLog('🔄 替换无效图片URL:', src);
               return;
             }
             
@@ -145,7 +151,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
               const timeout = setTimeout(() => {
                 if (!img.complete) {
                   img.src = '/images/placeholder.svg';
-                  window.debugLog('⏰ 图片加载超时，使用占位图:', src);
                 }
               }, 5000); // 减少到5秒超时
               
@@ -188,7 +193,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <script is:inline>
       // 图片懒加载工具 - 内联版本，解决Netlify环境下的模块导入问题
       function initLazyImageLoader() {
-        window.debugLog('🚀 初始化图片懒加载（内联版本）');
         
         if ('IntersectionObserver' in window) {
           const imageObserver = new IntersectionObserver((entries) => {
@@ -198,7 +202,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
                 const src = img.dataset.src;
                 
                 if (src) {
-                  window.debugLog('🖼️ 加载懒加载图片:', src);
                   // 直接设置图片src，避免预加载导致的控制台错误
                   img.src = src;
                   img.classList.remove('lazy');
@@ -224,19 +227,24 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
           // 观察所有懒加载图片
           const observeImages = () => {
             const lazyImages = document.querySelectorAll('img[data-src]:not(.observed)');
-            window.debugLog('🔍 发现懒加载图片数量:', lazyImages.length);
-            lazyImages.forEach(img => {
-              img.classList.add('observed');
-              imageObserver.observe(img);
-              window.debugLog('👀 观察图片:', img.dataset.src);
-            });
+            // 只在确实有新图片时才进行处理，避免重复调用
+            if (lazyImages.length > 0) {
+              lazyImages.forEach(img => {
+                img.classList.add('observed');
+                imageObserver.observe(img);
+              });
+            }
           };
           
           observeImages();
           
-          // 监听DOM变化，观察新添加的图片
+          // 监听DOM变化，观察新添加的图片（添加防抖机制）
+          let observeTimeout;
           const mutationObserver = new MutationObserver(() => {
-            observeImages();
+            clearTimeout(observeTimeout);
+            observeTimeout = setTimeout(() => {
+              observeImages();
+            }, 100); // 100ms防抖
           });
           
           mutationObserver.observe(document.body, {
@@ -246,9 +254,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
           
         } else {
           // 降级处理
-          window.debugLog('🔄 IntersectionObserver不支持，使用降级懒加载处理');
           document.querySelectorAll('img[data-src]').forEach(img => {
-            window.debugLog('🖼️ 降级加载图片:', img.dataset.src);
             img.src = img.dataset.src;
             img.classList.remove('lazy');
             img.classList.add('loaded');
@@ -260,7 +266,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
       function clearImageCache() {
         if ('caches' in window) {
           caches.delete('imacx-images-cache-v1').then(() => {
-            window.debugLog('✅ 图片缓存已清理');
           });
         }
       }
@@ -286,7 +291,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           const messageChannel = new MessageChannel();
           messageChannel.port1.onmessage = (event) => {
-            window.debugLog('✅ 图片缓存已清理');
           };
           
           navigator.serviceWorker.controller.postMessage(
@@ -300,7 +304,6 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           const messageChannel = new MessageChannel();
           messageChannel.port1.onmessage = (event) => {
-            window.debugLog('✅ 图片缓存已清理');
           };
           
           navigator.serviceWorker.controller.postMessage(

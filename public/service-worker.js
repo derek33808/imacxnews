@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE_NAME) {
-            console.log('🗑️ 删除旧缓存:', cacheName);
+            // console.log('🗑️ 删除旧缓存:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -45,7 +45,6 @@ self.addEventListener('fetch', (event) => {
         const cachedResponse = await cache.match(event.request);
         
         if (cachedResponse) {
-          console.log('📦 从缓存获取API数据:', url.pathname);
           
           // 后台更新缓存 (stale-while-revalidate)
           fetch(event.request).then(response => {
@@ -87,7 +86,6 @@ self.addEventListener('fetch', (event) => {
         const cachedResponse = await cache.match(event.request);
         
         if (cachedResponse) {
-          console.log('🖼️ 从缓存加载图片:', url.pathname);
           
           // 后台更新缓存（stale-while-revalidate策略）
           fetch(event.request).then((networkResponse) => {
@@ -101,7 +99,6 @@ self.addEventListener('fetch', (event) => {
         
         // 缓存中没有，从网络获取
         try {
-          console.log('📡 从网络加载图片:', url.pathname);
           const networkResponse = await fetch(event.request);
           
           if (networkResponse && networkResponse.status === 200) {
@@ -113,7 +110,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         } catch (error) {
           // 静默处理图片加载失败，避免控制台噪音
-          console.warn('图片加载失败，尝试使用占位图:', url.pathname);
           
           // 返回占位图
           if (url.pathname.includes('/images/')) {
@@ -135,7 +131,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CLEAR_IMAGE_CACHE') {
     caches.delete(IMAGE_CACHE_NAME).then(() => {
-      console.log('🗑️ 图片缓存已清理');
+      // console.log('🗑️ 图片缓存已清理');
       event.ports[0].postMessage({ success: true });
     });
   }
@@ -146,7 +142,7 @@ self.addEventListener('message', (event) => {
       caches.delete(API_CACHE_NAME),
       caches.delete(CACHE_NAME)
     ]).then(() => {
-      console.log('🗑️ 所有缓存已清理');
+      // console.log('🗑️ 所有缓存已清理');
       event.ports[0].postMessage({ success: true });
     });
   }

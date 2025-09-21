@@ -1,0 +1,689 @@
+---
+// 社交互动栏组件 - 点赞、收藏、评论、分享
+export interface Props {
+  articleId: number;
+  showCounts?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  theme?: 'light' | 'dark';
+}
+
+const { 
+  articleId, 
+  showCounts = true, 
+  size = 'medium',
+  theme = 'light'
+} = Astro.props;
+---
+
+<div class={`social-interaction-bar ${size} ${theme}`} data-article-id={articleId}>
+  <!-- 所有按钮的分组容器 -->
+  <div class="interaction-group">
+    <!-- 点赞按钮 -->
+    <div class="interaction-item">
+      <span class="interaction-label">Like</span>
+      <button class="interaction-btn like-btn" data-action="like" data-article-id={articleId}>
+        <svg class="icon like-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span class="btn-text">Like</span>
+        {showCounts && <span class="count like-count">0</span>}
+      </button>
+    </div>
+
+    <!-- 收藏按钮 -->
+    <div class="interaction-item">
+      <span class="interaction-label">Bookmark</span>
+      <button class="interaction-btn favorite-btn" data-action="favorite" data-article-id={articleId}>
+        <svg class="icon favorite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="btn-text">Bookmark</span>
+        {showCounts && <span class="count favorite-count">0</span>}
+      </button>
+    </div>
+
+    <!-- 评论按钮 -->
+    <div class="interaction-item">
+      <span class="interaction-label">Comments</span>
+      <button class="interaction-btn comment-btn" data-action="comment" data-article-id={articleId}>
+        <svg class="icon comment-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="btn-text">Comments</span>
+        {showCounts && <span class="count comment-count">0</span>}
+      </button>
+    </div>
+
+    <!-- 分享按钮 -->
+    <div class="interaction-item">
+      <span class="interaction-label">Share</span>
+      <button class="interaction-btn share-btn" data-action="share" data-article-id={articleId}>
+        <svg class="icon share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span class="btn-text">Share</span>
+        {showCounts && <span class="count share-text">Copy Link</span>}
+      </button>
+    </div>
+  </div>
+
+  <!-- 加载状态指示器 -->
+  <div class="loading-indicator" style="display: none;">
+    <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12a9 9 0 11-6.219-8.56"></path>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .social-interaction-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 0;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .interaction-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    justify-content: space-evenly;
+  }
+
+  .interaction-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    flex: 1;
+  }
+
+  .interaction-label {
+    display: none;
+  }
+
+  .interaction-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+    min-width: auto;
+    justify-content: center;
+  }
+
+  .interaction-btn:hover {
+    background: var(--color-surface-hover);
+    transform: translateY(-1px);
+  }
+
+  .interaction-btn:active {
+    transform: translateY(0);
+  }
+
+  .interaction-btn.loading {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* 图标样式 */
+  .icon {
+    width: 20px;
+    height: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .count {
+    min-width: 20px;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .btn-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+
+  /* 点赞样式 */
+  .like-btn:hover {
+    color: #ef4444;
+  }
+
+  .like-btn.active {
+    color: #ef4444;
+  }
+
+  .like-btn.active .like-icon {
+    fill: currentColor;
+    transform: scale(1.1);
+  }
+
+  /* 收藏样式 */
+  .favorite-btn:hover {
+    color: #f59e0b;
+  }
+
+  .favorite-btn.active {
+    color: #f59e0b;
+  }
+
+  .favorite-btn.active .favorite-icon {
+    fill: currentColor;
+    transform: scale(1.1);
+  }
+
+  /* 评论样式 */
+  .comment-btn:hover {
+    color: #3b82f6;
+  }
+
+  .comment-btn.active {
+    color: #3b82f6;
+  }
+
+  /* 分享样式 */
+  .share-btn:hover {
+    color: var(--color-primary);
+  }
+
+  .share-text {
+    display: none;
+  }
+
+  /* 尺寸变体 */
+  .social-interaction-bar.small {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .social-interaction-bar.small .interaction-btn {
+    padding: var(--space-1) var(--space-2);
+    font-size: 0.75rem;
+    gap: var(--space-1);
+  }
+
+  .social-interaction-bar.small .btn-text {
+    font-size: 0.75rem;
+  }
+
+  .social-interaction-bar.small .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .social-interaction-bar.large {
+    gap: var(--space-6);
+    padding: var(--space-4);
+  }
+
+  .social-interaction-bar.large .interaction-btn {
+    padding: var(--space-3) var(--space-4);
+    font-size: 1rem;
+    gap: var(--space-3);
+  }
+
+  .social-interaction-bar.large .btn-text {
+    font-size: 1rem;
+  }
+
+  .social-interaction-bar.large .icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 主题变体 */
+  .social-interaction-bar.dark .interaction-group {
+    background: var(--color-surface-dark);
+    border-color: var(--color-border-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .social-interaction-bar.dark .interaction-btn {
+    color: var(--color-text-dark-light);
+  }
+
+  .social-interaction-bar.dark .interaction-btn:hover {
+    background: var(--color-surface-dark-hover);
+  }
+
+  /* 加载指示器 */
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    right: var(--space-12);
+    transform: translateY(-50%);
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    color: var(--color-primary);
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* 动画效果 */
+  .interaction-btn .count {
+    transition: all 0.3s ease;
+  }
+
+  .interaction-btn.count-updated .count {
+    transform: scale(1.2);
+    color: var(--color-primary);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .social-interaction-bar {
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .interaction-group {
+      gap: var(--space-1);
+      padding: var(--space-2);
+      justify-content: space-around;
+    }
+
+    .interaction-item {
+      gap: 2px;
+    }
+
+    .interaction-label {
+      font-size: 0.625rem;
+      letter-spacing: 0.3px;
+    }
+
+    .interaction-btn {
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      min-width: 45px;
+      gap: 4px;
+      flex-direction: row;
+    }
+
+    .btn-text {
+      display: none;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* 移动端隐藏部分文字，只显示图标和数字 */
+    .share-text {
+      display: none;
+    }
+
+    /* 移动端加载指示器位置调整 */
+    .loading-indicator {
+      right: var(--space-6);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .social-interaction-bar {
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .interaction-group {
+      gap: 4px;
+      padding: var(--space-2);
+      justify-content: space-around;
+    }
+
+    .interaction-item {
+      gap: 1px;
+    }
+
+    .interaction-label {
+      font-size: 0.5rem;
+    }
+
+    .interaction-btn {
+      padding: 6px 8px;
+      min-width: 40px;
+      flex-direction: row;
+    }
+
+    .btn-text {
+      display: none;
+    }
+
+    .count {
+      font-size: 0.875rem;
+      min-width: auto;
+      font-weight: 600;
+    }
+
+    /* 小屏幕设备加载指示器进一步调整 */
+    .loading-indicator {
+      right: var(--space-6);
+    }
+  }
+
+  /* 无障碍支持 */
+  .interaction-btn:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .interaction-btn:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* 暗色模式适配 */
+  @media (prefers-color-scheme: dark) {
+    .social-interaction-bar.light .interaction-group {
+      background: var(--color-surface-dark, #1f2937);
+      border-color: var(--color-border-dark, #374151);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .social-interaction-bar.light .interaction-btn {
+      color: var(--color-text-dark-light, #d1d5db);
+    }
+
+    .social-interaction-bar.light .interaction-btn:hover {
+      background: var(--color-surface-dark-hover, #374151);
+    }
+  }
+</style>
+
+<script>
+  class SocialInteractionBar {
+    private container: HTMLElement;
+    private articleId: number;
+    private isLoading: boolean = false;
+
+    constructor(container: HTMLElement) {
+      this.container = container;
+      this.articleId = parseInt(container.dataset.articleId || '0');
+      this.init();
+    }
+
+    private async init() {
+      this.bindEvents();
+      await this.loadStats();
+    }
+
+    private bindEvents() {
+      // 绑定按钮点击事件
+      this.container.addEventListener('click', this.handleButtonClick.bind(this));
+    }
+
+    private async handleButtonClick(event: Event) {
+      const target = event.target as HTMLElement;
+      const button = target.closest('.interaction-btn') as HTMLButtonElement;
+      
+      if (!button || this.isLoading) return;
+
+      const action = button.dataset.action;
+      if (!action) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      switch (action) {
+        case 'like':
+          await this.handleLike(button);
+          break;
+        case 'favorite':
+          await this.handleFavorite(button);
+          break;
+        case 'comment':
+          this.handleComment();
+          break;
+        case 'share':
+          this.handleShare();
+          break;
+      }
+    }
+
+    private async handleLike(button: HTMLButtonElement) {
+      const isActive = button.classList.contains('active');
+      const newAction = isActive ? 'unlike' : 'like';
+      
+      try {
+        this.setLoading(true);
+        
+        const response = await fetch('/api/interactions/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            articleId: this.articleId,
+            action: newAction
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          this.updateLikeButton(button, result.data.userLiked, result.data.likeCount);
+          this.showFeedback(button, newAction === 'like' ? 'Liked!' : 'Unliked');
+        } else {
+          this.showError(result.message);
+        }
+      } catch (error) {
+        console.error('Like error:', error);
+        this.showError('Failed to update like status');
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
+    private async handleFavorite(button: HTMLButtonElement) {
+      const isActive = button.classList.contains('active');
+      const newAction = isActive ? 'unfavorite' : 'favorite';
+      
+      try {
+        this.setLoading(true);
+        
+        const response = await fetch('/api/interactions/favorite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            articleId: this.articleId,
+            action: newAction
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          this.updateFavoriteButton(button, result.data.userFavorited, result.data.favoriteCount);
+          this.showFeedback(button, newAction === 'favorite' ? 'Favorited!' : 'Unfavorited');
+        } else {
+          this.showError(result.message);
+        }
+      } catch (error) {
+        console.error('Favorite error:', error);
+        this.showError('Failed to update favorite status');
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
+    private handleComment() {
+      // 滚动到评论区或打开评论模态框
+      const commentSection = document.querySelector('#comment-section');
+      if (commentSection) {
+        commentSection.scrollIntoView({ behavior: 'smooth' });
+        // 聚焦到评论输入框
+        const commentInput = commentSection.querySelector('textarea, input[type="text"]') as HTMLElement;
+        if (commentInput) {
+          setTimeout(() => commentInput.focus(), 300);
+        }
+      }
+    }
+
+    private handleShare() {
+      // 优先复制链接，让功能更明显
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        this.showFeedback(this.container.querySelector('.share-btn')!, 'Link copied to clipboard!');
+      }).catch(() => {
+        // 复制失败时尝试原生分享
+        if (navigator.share) {
+          navigator.share({
+            title: document.title,
+            url: window.location.href
+          }).catch(error => {
+            console.log('Share error:', error);
+            this.showError('Failed to share article');
+          });
+        } else {
+          this.showError('Copy to clipboard not supported');
+        }
+      });
+    }
+
+    private async loadStats() {
+      try {
+        const response = await fetch(`/api/interactions/stats?articleId=${this.articleId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          const { stats, userInteractions } = result.data;
+          this.updateAllButtons(stats, userInteractions);
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    private updateAllButtons(stats: any, userInteractions: any) {
+      // 更新点赞按钮
+      const likeBtn = this.container.querySelector('.like-btn') as HTMLButtonElement;
+      this.updateLikeButton(likeBtn, userInteractions.liked, stats.likes);
+
+      // 更新收藏按钮
+      const favoriteBtn = this.container.querySelector('.favorite-btn') as HTMLButtonElement;
+      this.updateFavoriteButton(favoriteBtn, userInteractions.favorited, stats.favorites);
+
+      // 更新评论数
+      const commentCount = this.container.querySelector('.comment-count');
+      if (commentCount) {
+        commentCount.textContent = this.formatCount(stats.comments);
+      }
+    }
+
+    private updateLikeButton(button: HTMLButtonElement, isLiked: boolean, count: number) {
+      button.classList.toggle('active', isLiked);
+      const countElement = button.querySelector('.like-count');
+      if (countElement) {
+        countElement.textContent = this.formatCount(count);
+        button.classList.add('count-updated');
+        setTimeout(() => button.classList.remove('count-updated'), 300);
+      }
+    }
+
+    private updateFavoriteButton(button: HTMLButtonElement, isFavorited: boolean, count: number) {
+      button.classList.toggle('active', isFavorited);
+      const countElement = button.querySelector('.favorite-count');
+      if (countElement) {
+        countElement.textContent = this.formatCount(count);
+        button.classList.add('count-updated');
+        setTimeout(() => button.classList.remove('count-updated'), 300);
+      }
+    }
+
+    private formatCount(count: number): string {
+      if (count < 1000) return count.toString();
+      if (count < 1000000) return (count / 1000).toFixed(1) + 'k';
+      return (count / 1000000).toFixed(1) + 'm';
+    }
+
+    private setLoading(loading: boolean) {
+      this.isLoading = loading;
+      const indicator = this.container.querySelector('.loading-indicator') as HTMLElement;
+      if (indicator) {
+        indicator.style.display = loading ? 'block' : 'none';
+      }
+    }
+
+    private showFeedback(button: HTMLElement, message: string) {
+      // 创建临时反馈提示
+      const feedback = document.createElement('div');
+      feedback.className = 'feedback-toast';
+      feedback.textContent = message;
+      feedback.style.cssText = `
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-primary);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        animation: fadeInOut 2s ease forwards;
+      `;
+      
+      button.style.position = 'relative';
+      button.appendChild(feedback);
+      
+      setTimeout(() => {
+        if (feedback.parentNode) {
+          feedback.parentNode.removeChild(feedback);
+        }
+      }, 2000);
+    }
+
+    private showError(message: string) {
+      console.error('Social interaction error:', message);
+      // 可以在这里显示错误提示
+    }
+  }
+
+  // 初始化所有社交互动栏
+  document.addEventListener('DOMContentLoaded', () => {
+    const bars = document.querySelectorAll('.social-interaction-bar');
+    bars.forEach(bar => new SocialInteractionBar(bar as HTMLElement));
+  });
+
+  // 添加CSS动画
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+      20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+    }
+  `;
+  document.head.appendChild(style);
+</script>

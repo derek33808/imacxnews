@@ -1,0 +1,1566 @@
+---
+// 评论区组件 - 显示评论列表和评论表单
+export interface Props {
+  articleId: number;
+  showTitle?: boolean;
+  maxHeight?: string;
+  theme?: 'light' | 'dark';
+}
+
+const { 
+  articleId, 
+  showTitle = true,
+  maxHeight = '600px',
+  theme = 'light'
+} = Astro.props;
+---
+
+<div class={`comment-section ${theme}`} id="comment-section" data-article-id={articleId}>
+  {showTitle && (
+    <div class="comment-header">
+      <h3 class="comment-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        Comments
+        <span class="comment-count-badge" id="commentCountBadge">0</span>
+      </h3>
+    </div>
+  )}
+
+  <!-- 评论表单 -->
+  <div class="comment-form-container" id="commentFormContainer">
+    <div class="login-prompt" id="loginPrompt" style="display: none;">
+      <p>Please <a href="#" class="login-link" id="loginLink">sign in</a> to leave a comment.</p>
+    </div>
+    
+    <form class="comment-form" id="commentForm" style="display: none;">
+      <div class="user-avatar">
+        <span class="avatar-emoji" id="userAvatar">👤</span>
+      </div>
+      <div class="form-content">
+        <!-- 引用预览区域 -->
+        <div class="quote-preview" id="quotePreview" style="display: none;">
+          <div class="quote-header">
+            <span class="quote-author" id="quoteAuthor"></span>
+            <button type="button" class="remove-quote-btn" id="removeQuoteBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="quote-body" id="quoteBody"></div>
+        </div>
+        <textarea 
+          id="commentBody" 
+          placeholder="Write a comment..." 
+          maxlength="2000"
+          rows="3"
+        ></textarea>
+        <div class="form-actions">
+          <div class="character-count">
+            <span id="charCount">0</span>/2000
+          </div>
+          <div class="action-buttons">
+            <button type="button" class="cancel-btn" id="cancelComment" style="display: none;">Cancel</button>
+            <button type="submit" class="submit-btn" id="submitComment" disabled>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22,2 15,22 11,13 2,9"></polygon>
+              </svg>
+              Post Comment
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- 评论列表 -->
+  <div class="comment-list-container" style={`max-height: ${maxHeight}`}>
+    <div class="loading-skeleton" id="commentsLoading">
+      <div class="skeleton-comment">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-body"></div>
+        </div>
+      </div>
+      <div class="skeleton-comment">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comment-list" id="commentList" style="display: none;">
+      <!-- 评论将在这里动态加载 -->
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <p>No comments yet. Be the first to share your thoughts!</p>
+    </div>
+
+    <!-- 分页控制 -->
+    <div class="pagination-controls" id="paginationControls" style="display: none;">
+      <button class="load-more-btn" id="loadMoreBtn">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+        Load More Comments
+      </button>
+    </div>
+  </div>
+
+  <!-- 错误提示 -->
+  <div class="error-message" id="errorMessage" style="display: none;">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    <span id="errorText">Failed to load comments</span>
+  </div>
+</div>
+
+<style>
+  .comment-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    border: 2px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .comment-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .comment-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .comment-title .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-primary);
+  }
+
+  .comment-count-badge {
+    background: var(--color-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* 评论表单样式 */
+  .comment-form-container {
+    margin-bottom: var(--space-6);
+  }
+
+  .login-prompt {
+    text-align: center;
+    padding: var(--space-4);
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-md);
+    color: var(--color-text-light);
+  }
+
+  .login-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .login-link:hover {
+    text-decoration: underline;
+  }
+
+  .comment-form {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .comment-form:focus-within {
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+  }
+
+  .user-avatar {
+    flex-shrink: 0;
+  }
+
+  .avatar-emoji {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .form-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .comment-form textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    outline: none;
+    min-height: 60px;
+    max-height: 200px;
+  }
+
+  .comment-form textarea::placeholder {
+    color: var(--color-text-lighter);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .character-count {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .cancel-btn, .submit-btn {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    white-space: nowrap;
+  }
+
+  .cancel-btn {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-light);
+  }
+
+  .cancel-btn:hover {
+    background: var(--color-surface-hover);
+  }
+
+  .submit-btn {
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    color: white;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .submit-btn .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 评论列表样式 */
+  .comment-list-container {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .comment-list-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .comment-list-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .comment-list-container::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* 空状态样式 */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    color: var(--color-text-light);
+  }
+
+  .empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--space-4);
+    opacity: 0.5;
+  }
+
+  /* 错误消息样式 */
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+  }
+
+  .error-message .icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  /* 分页控制样式 */
+  .pagination-controls {
+    text-align: center;
+    padding-top: var(--space-4);
+  }
+
+  .load-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .load-more-btn:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .load-more-btn .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 加载骨架屏样式 */
+  .loading-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .skeleton-comment {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-surface-hover);
+    animation: pulse 2s ease-in-out infinite alternate;
+  }
+
+  .skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .skeleton-header {
+    height: 16px;
+    width: 120px;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    animation: pulse 2s ease-in-out infinite alternate;
+  }
+
+  .skeleton-body {
+    height: 12px;
+    width: 100%;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    animation: pulse 2s ease-in-out infinite alternate;
+    animation-delay: 0.2s;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+
+  /* 优化骨架屏动画性能 */
+  .loading-skeleton {
+    animation-duration: 1.2s;
+  }
+
+  .skeleton-comment {
+    transition: opacity 0.3s ease;
+  }
+
+  /* 主题变体 */
+  .comment-section.dark {
+    background: var(--color-surface-dark);
+    border-color: var(--color-border-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .comment-section.dark .comment-form {
+    background: var(--color-surface-dark-hover);
+  }
+
+  .comment-section.dark .comment-form:focus-within {
+    background: var(--color-surface-dark);
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .comment-section {
+      padding: var(--space-3);
+    }
+
+    .comment-form {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .user-avatar {
+      align-self: flex-start;
+    }
+
+    .form-actions {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .action-buttons {
+      justify-content: flex-end;
+    }
+
+    .character-count {
+      font-size: 0.625rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .comment-section {
+      padding: var(--space-2);
+    }
+
+    .comment-title {
+      font-size: 1.125rem;
+    }
+
+    .avatar-emoji {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 1rem;
+    }
+
+    .comment-form textarea {
+      font-size: 16px; /* 防止iOS缩放 */
+    }
+
+    .cancel-btn, .submit-btn {
+      padding: var(--space-2) var(--space-2);
+      font-size: 0.75rem;
+      flex-direction: row;
+      white-space: nowrap;
+    }
+
+    .action-buttons {
+      gap: var(--space-1);
+    }
+  }
+
+  /* 暗色模式适配 */
+  @media (prefers-color-scheme: dark) {
+    .comment-section.light {
+      background: var(--color-surface-dark, #1f2937);
+      border-color: var(--color-border-dark, #374151);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  /* 性能优化：减少重绘和回流 */
+  .comment-section {
+    contain: layout style;
+  }
+
+  .comment-list {
+    contain: layout;
+  }
+
+  .comment-item {
+    contain: layout style;
+  }
+
+  /* 优化动画性能 */
+  .skeleton-avatar,
+  .skeleton-header,
+  .skeleton-body {
+    will-change: opacity;
+  }
+
+  /* 减少hover重绘 */
+  .comment-item:hover {
+    transform: translateZ(0);
+  }
+</style>
+
+<script>
+  interface Comment {
+    id: number;
+    body: string;
+    createdAt: string;
+    parentId: number | null;
+    user: {
+      id: number;
+      username: string;
+      displayName: string | null;
+      avatar: string | null;
+    };
+    replies?: Comment[];
+  }
+
+  class CommentSection {
+    private container: HTMLElement;
+    private articleId: number;
+    private currentUser: any = null;
+    private currentPage: number = 1;
+    private hasMoreComments: boolean = true;
+    private isLoading: boolean = false;
+    private loadCommentsTimeout: number | null = null;
+    private isSubmitting: boolean = false;
+    private currentRequest: Promise<any> | null = null;
+
+    constructor(container: HTMLElement) {
+      this.container = container;
+      this.articleId = parseInt(container.dataset.articleId || '0');
+      this.init();
+    }
+
+    private async init() {
+      await this.checkAuthStatus();
+      this.setupEventListeners();
+      await this.loadComments();
+    }
+
+    private async checkAuthStatus() {
+      try {
+        const response = await fetch('/api/auth/status');
+        const result = await response.json();
+        
+        if (result.success && result.user) {
+          this.currentUser = result.user;
+          this.showCommentForm();
+        } else {
+          this.showLoginPrompt();
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        this.showLoginPrompt();
+      }
+    }
+
+    private showCommentForm() {
+      const form = this.container.querySelector('#commentForm') as HTMLElement;
+      const prompt = this.container.querySelector('#loginPrompt') as HTMLElement;
+      
+      if (form) form.style.display = 'flex';
+      if (prompt) prompt.style.display = 'none';
+
+      // 设置用户头像
+      const avatar = this.container.querySelector('#userAvatar') as HTMLElement;
+      if (avatar && this.currentUser) {
+        if (this.currentUser.avatar) {
+          avatar.textContent = this.currentUser.avatar;
+        } else {
+          avatar.textContent = this.currentUser.displayName?.charAt(0).toUpperCase() || 
+                               this.currentUser.username?.charAt(0).toUpperCase() || '👤';
+        }
+      }
+    }
+
+    private showLoginPrompt() {
+      const form = this.container.querySelector('#commentForm') as HTMLElement;
+      const prompt = this.container.querySelector('#loginPrompt') as HTMLElement;
+      
+      if (form) form.style.display = 'none';
+      if (prompt) prompt.style.display = 'block';
+    }
+
+    private setupEventListeners() {
+      // 登录链接
+      const loginLink = this.container.querySelector('#loginLink');
+      loginLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        // 触发登录模态框
+        window.dispatchEvent(new CustomEvent('openLoginModal'));
+      });
+
+      // 评论表单
+      const form = this.container.querySelector('#commentForm') as HTMLFormElement;
+      form?.addEventListener('submit', this.handleCommentSubmit.bind(this));
+
+      // 字符计数
+      const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
+      textarea?.addEventListener('input', this.handleTextareaChange.bind(this));
+
+      // 加载更多按钮
+      const loadMoreBtn = this.container.querySelector('#loadMoreBtn');
+      loadMoreBtn?.addEventListener('click', this.loadMoreComments.bind(this));
+
+      // 监听登录成功事件
+      window.addEventListener('userLoggedIn', () => {
+        this.checkAuthStatus();
+      });
+
+      // 移除引用按钮
+      const removeQuoteBtn = this.container.querySelector('#removeQuoteBtn');
+      removeQuoteBtn?.addEventListener('click', this.removeQuote.bind(this));
+
+      // 使用事件委托处理回复按钮和删除按钮
+      const commentList = this.container.querySelector('#commentList');
+      commentList?.addEventListener('click', this.handleCommentActions.bind(this));
+    }
+
+    private handleTextareaChange(event: Event) {
+      const textarea = event.target as HTMLTextAreaElement;
+      const charCount = this.container.querySelector('#charCount') as HTMLElement;
+      const submitBtn = this.container.querySelector('#submitComment') as HTMLButtonElement;
+      
+      const length = textarea.value.length;
+      if (charCount) charCount.textContent = length.toString();
+      
+      if (submitBtn) {
+        submitBtn.disabled = length === 0 || length > 2000;
+      }
+
+      // 显示/隐藏取消按钮
+      const cancelBtn = this.container.querySelector('#cancelComment') as HTMLElement;
+      if (cancelBtn) {
+        cancelBtn.style.display = length > 0 ? 'block' : 'none';
+      }
+    }
+
+    private async handleCommentSubmit(event: Event) {
+      event.preventDefault();
+      
+      if (this.isLoading || this.isSubmitting) return;
+
+      const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
+      const submitBtn = this.container.querySelector('#submitComment') as HTMLButtonElement;
+      
+      const body = textarea.value.trim();
+      if (!body) return;
+
+      // 检查是否有引用内容
+      const quotePreview = this.container.querySelector('#quotePreview') as HTMLElement;
+      const isQuoted = quotePreview && quotePreview.style.display !== 'none';
+      
+      let finalBody = body;
+      if (isQuoted) {
+        const quoteAuthor = this.container.querySelector('#quoteAuthor')?.textContent || '';
+        const quoteBody = this.container.querySelector('#quoteBody')?.textContent || '';
+        
+        // 添加引用格式到评论内容
+        finalBody = `${quoteAuthor}:\n> ${quoteBody}\n\n${body}`;
+      }
+
+      try {
+        this.isLoading = true;
+        this.isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="icon spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 11-6.219-8.56"></path>
+          </svg>
+          Posting...
+        `;
+
+        const response = await fetch('/api/interactions/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            articleId: this.articleId,
+            body: finalBody
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          // 清空表单
+          textarea.value = '';
+          this.handleTextareaChange({ target: textarea } as any);
+          this.removeQuote(); // 清除引用预览
+          
+          // 显示成功提示
+          this.showSuccessMessage('Comment posted successfully!');
+          
+          // 如果返回了新评论数据，立即显示
+          if (result.data && result.data.comment) {
+            this.prependNewComment(result.data.comment);
+            this.updateCommentCount(result.data.totalComments || 0);
+            
+            // 确保评论列表可见
+            const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
+            const listEl = this.container.querySelector('#commentList') as HTMLElement;
+            const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
+            
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            listEl.style.display = 'block';
+          } else {
+            // 如果没有返回评论数据，重新加载
+            this.scheduleCommentsReload();
+          }
+        } else {
+          this.showError(result.message || 'Failed to post comment');
+        }
+      } catch (error) {
+        console.error('Comment submission failed:', error);
+        this.showError('Failed to post comment');
+      } finally {
+        // 确保重置加载状态
+        this.isLoading = false;
+        this.isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22,2 15,22 11,13 2,9"></polygon>
+          </svg>
+          Post Comment
+        `;
+      }
+    }
+
+    private async loadComments(reset: boolean = false) {
+      if (reset) {
+        this.currentPage = 1;
+        this.hasMoreComments = true;
+      }
+
+      // 防止重复请求
+      if (this.isLoading) return;
+      if (this.currentRequest) return this.currentRequest;
+
+      const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
+      const listEl = this.container.querySelector('#commentList') as HTMLElement;
+      const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
+      
+      try {
+        this.isLoading = true;
+        
+        // 只在首次加载或明确需要重置时显示加载状态
+        if (this.currentPage === 1 && (!listEl.children.length || reset)) {
+          loadingEl.style.display = 'block';
+          listEl.style.display = 'none';
+          emptyEl.style.display = 'none';
+        }
+        
+        // 创建请求并存储
+        this.currentRequest = fetch(
+          `/api/interactions/comment?articleId=${this.articleId}&page=${this.currentPage}&limit=10`
+        );
+        
+        const response = await this.currentRequest;
+        const result = await response.json();
+        
+        if (result.success) {
+          const { comments, pagination } = result.data;
+          
+          // 使用批量更新避免中间状态
+          if (reset || this.currentPage === 1) {
+            // 先隐藏所有状态
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            
+            if (comments.length === 0) {
+              listEl.style.display = 'none';
+              emptyEl.style.display = 'block';
+            } else {
+              // 一次性渲染所有评论
+              this.renderComments(comments);
+              listEl.style.display = 'block';
+            }
+          } else {
+            this.appendComments(comments);
+          }
+          
+          // 批量更新UI状态
+          this.updateCommentCount(pagination.totalComments);
+          this.hasMoreComments = pagination.hasNextPage;
+          this.updatePaginationControls();
+          
+        } else {
+          this.showError(result.message || 'Failed to load comments');
+          loadingEl.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+        this.showError('Failed to load comments');
+        loadingEl.style.display = 'none';
+      } finally {
+        this.isLoading = false;
+        this.currentRequest = null;
+      }
+    }
+
+    private renderComments(comments: Comment[]) {
+      const listEl = this.container.querySelector('#commentList') as HTMLElement;
+      listEl.innerHTML = comments.map(comment => this.renderComment(comment)).join('');
+    }
+
+    private appendComments(comments: Comment[]) {
+      const listEl = this.container.querySelector('#commentList') as HTMLElement;
+      listEl.insertAdjacentHTML('beforeend', 
+        comments.map(comment => this.renderComment(comment)).join('')
+      );
+    }
+
+    private prependNewComment(comment: Comment) {
+      const listEl = this.container.querySelector('#commentList') as HTMLElement;
+      const emptyEl = this.container.querySelector('#emptyState') as HTMLElement;
+      const loadingEl = this.container.querySelector('#commentsLoading') as HTMLElement;
+      
+      // 确保评论列表可见，隐藏其他状态
+      loadingEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+      listEl.style.display = 'block';
+      
+      let newCommentEl: HTMLElement | null = null;
+      
+      // 如果是回复评论（有parentId），尝试添加到父评论下
+      if (comment.parentId) {
+        const parentComment = this.container.querySelector(`[data-comment-id="${comment.parentId}"]`);
+        if (parentComment) {
+          let repliesContainer = parentComment.querySelector('.comment-replies');
+          if (!repliesContainer) {
+            // 创建回复容器
+            const repliesHtml = `<div class="comment-replies">${this.renderReply(comment)}</div>`;
+            parentComment.querySelector('.comment-content')?.insertAdjacentHTML('beforeend', repliesHtml);
+          } else {
+            // 添加到现有回复容器
+            repliesContainer.insertAdjacentHTML('beforeend', this.renderReply(comment));
+          }
+          newCommentEl = parentComment.querySelector('.comment-replies .comment-reply:last-child') as HTMLElement;
+        }
+      }
+      
+      // 如果不是回复或找不到父评论，添加到顶部作为主评论
+      if (!newCommentEl) {
+        listEl.insertAdjacentHTML('afterbegin', this.renderComment(comment));
+        newCommentEl = listEl.firstElementChild as HTMLElement;
+      }
+      
+      // 添加高亮效果
+      if (newCommentEl) {
+        newCommentEl.style.backgroundColor = 'var(--color-primary-light, rgba(59, 130, 246, 0.1))';
+        newCommentEl.style.border = '1px solid var(--color-primary, #3b82f6)';
+        newCommentEl.style.borderRadius = 'var(--radius-md, 8px)';
+        newCommentEl.style.transition = 'all 0.3s ease';
+        
+        // 滚动到新评论
+        newCommentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // 2秒后移除高亮
+        setTimeout(() => {
+          newCommentEl!.style.backgroundColor = '';
+          newCommentEl!.style.border = '';
+        }, 2000);
+      }
+    }
+
+    private renderComment(comment: Comment): string {
+      const displayName = comment.user.displayName || comment.user.username;
+      const avatar = comment.user.avatar || displayName.charAt(0).toUpperCase();
+      const timeAgo = this.formatTimeAgo(comment.createdAt);
+      
+      // 检查是否可以删除：用户自己的评论或管理员
+      const canDelete = this.currentUser && (
+        this.currentUser.id === comment.user.id || 
+        this.currentUser.role === 'ADMIN'
+      );
+      
+      return `
+        <div class="comment-item" data-comment-id="${comment.id}">
+          <div class="comment-avatar">
+            <span class="avatar-emoji">${avatar}</span>
+          </div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="comment-author">${displayName}</span>
+              <span class="comment-time">${timeAgo}</span>
+              ${canDelete ? `
+                <button class="delete-comment-btn" data-comment-id="${comment.id}" title="${this.currentUser.id === comment.user.id ? 'Delete your comment' : 'Delete comment (Admin)'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+            <div class="comment-body">${this.escapeHtml(comment.body)}</div>
+            <div class="comment-actions">
+              ${this.currentUser ? `
+                <button class="reply-btn" data-comment-id="${comment.id}" data-author="${displayName}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9,10 4,15 9,20"></polyline>
+                    <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                  </svg>
+                  Reply
+                </button>
+              ` : ''}
+            </div>
+            ${comment.replies && comment.replies.length > 0 ? `
+              <div class="comment-replies">
+                ${comment.replies.map(reply => this.renderReply(reply)).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    private renderReply(reply: Comment): string {
+      const displayName = reply.user.displayName || reply.user.username;
+      const avatar = reply.user.avatar || displayName.charAt(0).toUpperCase();
+      const timeAgo = this.formatTimeAgo(reply.createdAt);
+      
+      // 检查是否可以删除：用户自己的回复或管理员
+      const canDelete = this.currentUser && (
+        this.currentUser.id === reply.user.id || 
+        this.currentUser.role === 'ADMIN'
+      );
+      
+      return `
+        <div class="comment-reply" data-comment-id="${reply.id}">
+          <div class="reply-avatar">
+            <span class="avatar-emoji small">${avatar}</span>
+          </div>
+          <div class="reply-content">
+            <div class="reply-header">
+              <span class="reply-author">${displayName}</span>
+              <span class="reply-time">${timeAgo}</span>
+              ${canDelete ? `
+                <button class="delete-comment-btn small" data-comment-id="${reply.id}" title="${this.currentUser.id === reply.user.id ? 'Delete your reply' : 'Delete reply (Admin)'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+            <div class="reply-body">${this.escapeHtml(reply.body)}</div>
+            <div class="reply-actions">
+              ${this.currentUser ? `
+                <button class="reply-btn small" data-comment-id="${reply.id}" data-author="${displayName}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9,10 4,15 9,20"></polyline>
+                    <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                  </svg>
+                  Reply
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    private updateCommentCount(count: number) {
+      const badge = this.container.querySelector('#commentCountBadge') as HTMLElement;
+      if (badge) {
+        badge.textContent = count.toString();
+      }
+    }
+
+    private calculateDeletedCommentCount(commentElement: HTMLElement): number {
+      if (!commentElement) return 1;
+      
+      // 计算主评论 + 所有回复的数量
+      let count = 1; // 主评论本身
+      
+      // 如果是主评论（comment-item），计算其回复数量
+      if (commentElement.classList.contains('comment-item')) {
+        const repliesContainer = commentElement.querySelector('.comment-replies');
+        if (repliesContainer) {
+          const replies = repliesContainer.querySelectorAll('.comment-reply');
+          count += replies.length;
+        }
+      }
+      // 如果是回复（comment-reply），只计算1个
+      
+      return count;
+    }
+
+    private updateCommentCountAfterDelete(deletedCount: number = 1) {
+      // 根据删除的评论数量递减评论计数，避免额外的API调用
+      const badge = this.container.querySelector('#commentCountBadge') as HTMLElement;
+      if (badge) {
+        const currentCount = parseInt(badge.textContent || '0');
+        const newCount = Math.max(0, currentCount - deletedCount);
+        badge.textContent = newCount.toString();
+      }
+    }
+
+    private updatePaginationControls() {
+      const controls = this.container.querySelector('#paginationControls') as HTMLElement;
+      const loadMoreBtn = this.container.querySelector('#loadMoreBtn') as HTMLButtonElement;
+      
+      if (this.hasMoreComments && this.currentPage === 1) {
+        controls.style.display = 'block';
+      } else {
+        controls.style.display = 'none';
+      }
+    }
+
+    private handleCommentActions(event: Event) {
+      const target = event.target as HTMLElement;
+      const button = target.closest('button');
+      
+      if (!button) return;
+
+      if (button.classList.contains('reply-btn')) {
+        const commentId = button.getAttribute('data-comment-id');
+        const author = button.getAttribute('data-author');
+        this.handleReply(commentId!, author!);
+      } else if (button.classList.contains('delete-comment-btn')) {
+        const commentId = button.getAttribute('data-comment-id');
+        this.handleDeleteComment(commentId!);
+      }
+    }
+
+    private handleReply(commentId: string, author: string) {
+      // 获取被回复的评论内容
+      const commentElement = this.container.querySelector(`[data-comment-id="${commentId}"]`);
+      const commentBody = commentElement?.querySelector('.comment-body, .reply-body')?.textContent || '';
+      
+      // 显示引用预览
+      this.showQuotePreview(author, commentBody);
+      
+      // 聚焦到评论输入框
+      const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
+      textarea.focus();
+      
+      // 滚动到评论表单
+      const form = this.container.querySelector('#commentForm');
+      form?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    private showQuotePreview(author: string, body: string) {
+      const quotePreview = this.container.querySelector('#quotePreview') as HTMLElement;
+      const quoteAuthor = this.container.querySelector('#quoteAuthor') as HTMLElement;
+      const quoteBody = this.container.querySelector('#quoteBody') as HTMLElement;
+      
+      quoteAuthor.textContent = `Replying to @${author}`;
+      quoteBody.textContent = body;
+      quotePreview.style.display = 'block';
+      
+      // 更新占位符文本
+      const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
+      textarea.placeholder = `Reply to @${author}...`;
+    }
+
+    private removeQuote() {
+      const quotePreview = this.container.querySelector('#quotePreview') as HTMLElement;
+      quotePreview.style.display = 'none';
+      
+      // 恢复原始占位符
+      const textarea = this.container.querySelector('#commentBody') as HTMLTextAreaElement;
+      textarea.placeholder = 'Write a comment...';
+    }
+
+    private async handleDeleteComment(commentId: string) {
+      // 检查是否是用户自己的评论
+      const commentElement = this.container.querySelector(`[data-comment-id="${commentId}"]`);
+      const deleteBtn = commentElement?.querySelector('.delete-comment-btn');
+      const isOwnComment = deleteBtn?.getAttribute('title')?.includes('your');
+      
+      const confirmMessage = isOwnComment 
+        ? 'Are you sure you want to delete your comment?' 
+        : 'Are you sure you want to delete this comment?';
+        
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      // 在删除前计算要删除的评论数量（包括回复）
+      const deletedCount = this.calculateDeletedCommentCount(commentElement as HTMLElement);
+
+      try {
+        const response = await fetch('/api/interactions/comment', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentId })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          this.showSuccessMessage('Comment deleted successfully');
+          
+          // 立即移除被删除的评论元素，避免重新加载整个列表
+          const commentElement = this.container.querySelector(`[data-comment-id="${commentId}"]`) as HTMLElement;
+          if (commentElement) {
+            commentElement.style.opacity = '0';
+            commentElement.style.transform = 'translateX(-20px)';
+            commentElement.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+              commentElement.remove();
+              
+              // 检查是否需要显示空状态
+              const commentList = this.container.querySelector('#commentList') as HTMLElement;
+              const emptyState = this.container.querySelector('#emptyState') as HTMLElement;
+              
+              if (commentList.children.length === 0) {
+                commentList.style.display = 'none';
+                emptyState.style.display = 'block';
+                this.updateCommentCount(0);
+              } else {
+                // 更新评论计数，减去删除的评论数量
+                this.updateCommentCountAfterDelete(deletedCount);
+              }
+            }, 300);
+          }
+        } else {
+          this.showError(result.message || 'Failed to delete comment');
+        }
+      } catch (error) {
+        console.error('Delete comment error:', error);
+        this.showError('Failed to delete comment');
+      }
+    }
+
+    private async loadMoreComments() {
+      this.currentPage++;
+      await this.loadComments();
+    }
+
+    private scheduleCommentsReload() {
+      // 如果正在提交，不执行重新加载
+      if (this.isSubmitting) {
+        return;
+      }
+      
+      // 清除之前的定时器
+      if (this.loadCommentsTimeout) {
+        clearTimeout(this.loadCommentsTimeout);
+      }
+      
+      // 设置新的定时器
+      this.loadCommentsTimeout = setTimeout(async () => {
+        // 再次检查是否正在提交
+        if (!this.isSubmitting) {
+          await this.loadComments(true);
+        }
+        this.loadCommentsTimeout = null;
+      }, 300) as any;
+    }
+
+    private formatTimeAgo(dateString: string): string {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString();
+    }
+
+    private escapeHtml(text: string): string {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    private showSuccessMessage(message: string) {
+      // 简单的成功提示实现
+      const toast = document.createElement('div');
+      toast.className = 'success-toast';
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+      `;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    private showError(message: string) {
+      const errorEl = this.container.querySelector('#errorMessage') as HTMLElement;
+      const errorText = this.container.querySelector('#errorText') as HTMLElement;
+      
+      if (errorEl && errorText) {
+        errorText.textContent = message;
+        errorEl.style.display = 'flex';
+        
+        setTimeout(() => {
+          errorEl.style.display = 'none';
+        }, 5000);
+      }
+    }
+  }
+
+  // 初始化评论区
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.comment-section');
+    sections.forEach(section => new CommentSection(section as HTMLElement));
+  });
+
+  // 添加样式动画
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* 评论项样式 */
+    .comment-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      transition: background-color 0.2s ease;
+    }
+
+    .comment-item:hover {
+      background: var(--color-surface-hover);
+    }
+
+    .comment-avatar .avatar-emoji {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: var(--color-primary);
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 40px;
+      font-size: 1rem;
+    }
+
+    .comment-content {
+      flex: 1;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-1);
+    }
+
+    .comment-author {
+      font-weight: 600;
+      color: var(--color-text);
+      font-size: 0.875rem;
+    }
+
+    .comment-time {
+      color: var(--color-text-light);
+      font-size: 0.75rem;
+    }
+
+    .delete-comment-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--color-text-light);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+
+    .comment-item:hover .delete-comment-btn {
+      opacity: 1;
+    }
+
+    .delete-comment-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .delete-comment-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .comment-body {
+      color: var(--color-text);
+      line-height: 1.5;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+    }
+
+    .comment-replies {
+      margin-top: var(--space-3);
+      padding-left: var(--space-4);
+      border-left: 2px solid var(--color-border);
+    }
+
+    .comment-reply {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-2) 0;
+    }
+
+    .reply-avatar .avatar-emoji.small {
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      font-size: 0.75rem;
+    }
+
+    .reply-content {
+      flex: 1;
+    }
+
+    .reply-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-bottom: 2px;
+    }
+
+    .reply-author {
+      font-weight: 500;
+      color: var(--color-text);
+      font-size: 0.75rem;
+    }
+
+    .reply-time {
+      color: var(--color-text-light);
+      font-size: 0.625rem;
+    }
+
+    .delete-comment-btn.small {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--color-text-light);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 3px;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+
+    .comment-reply:hover .delete-comment-btn.small {
+      opacity: 1;
+    }
+
+    .delete-comment-btn.small:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .delete-comment-btn.small svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .reply-body {
+      color: var(--color-text);
+      line-height: 1.4;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+    }
+
+    /* 评论和回复按钮样式 */
+    .comment-actions, .reply-actions {
+      margin-top: var(--space-2);
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .reply-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 4px 8px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-light);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .reply-btn:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+
+    .reply-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .reply-btn.small {
+      padding: 2px 6px;
+      font-size: 0.625rem;
+    }
+
+    .reply-btn.small svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    /* 引用预览样式 */
+    .quote-preview {
+      background: var(--color-surface-hover);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-2);
+      padding: var(--space-2);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .quote-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-1);
+    }
+
+    .quote-author {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    .remove-quote-btn {
+      background: none;
+      border: none;
+      padding: 2px;
+      color: var(--color-text-light);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .remove-quote-btn:hover {
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    .remove-quote-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .quote-body {
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+      line-height: 1.3;
+      font-style: italic;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+  `;
+  document.head.appendChild(style);
+</script>

@@ -1,3 +1,4 @@
+// @ts-ignore
 import jwt from 'jsonwebtoken';
 
 export function setAuthCookie(headers: Headers, token: string) {
@@ -13,8 +14,8 @@ export function setAuthCookie(headers: Headers, token: string) {
     cookieString += '; Secure';
   }
   
-  // Set longer expiration for development
-  const maxAge = isDev ? 7 * 24 * 60 * 60 : 24 * 60 * 60; // 7 days dev, 1 day prod
+  // Set longer expiration for better user experience
+  const maxAge = 7 * 24 * 60 * 60; // 7 days for both dev and prod
   cookieString += `; Max-Age=${maxAge}`;
   
   headers.append('Set-Cookie', cookieString);

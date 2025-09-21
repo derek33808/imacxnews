@@ -1,0 +1,273 @@
+---
+// 临时调试页面 - 生产环境中应该删除
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户认证调试工具</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .user-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 10px 0;
+      border-left: 4px solid #007bff;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .btn {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+      padding: 15px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 用户认证调试工具</h1>
+    
+    <div class="warning">
+      ⚠️ <strong>注意：</strong>这是一个临时调试工具，仅用于开发调试。生产环境中应删除此页面。
+    </div>
+
+    <div class="section">
+      <h2>📊 查看已注册用户</h2>
+      <button class="btn" onclick="loadUsers()">加载用户列表</button>
+      <div id="usersList"></div>
+    </div>
+
+    <div class="section">
+      <h2>🔑 重置用户密码</h2>
+      <div class="form-group">
+        <label>用户名或邮箱：</label>
+        <input type="text" id="resetIdentifier" placeholder="输入用户名或邮箱地址">
+      </div>
+      <div class="form-group">
+        <label>新密码：</label>
+        <input type="password" id="newPassword" placeholder="输入新密码（至少6位）">
+      </div>
+      <button class="btn btn-danger" onclick="resetPassword()">重置密码</button>
+      <div id="resetMessage"></div>
+    </div>
+
+    <div class="section">
+      <h2>🧪 测试登录</h2>
+      <div class="form-group">
+        <label>用户名或邮箱：</label>
+        <input type="text" id="testIdentifier" placeholder="输入用户名或邮箱地址">
+      </div>
+      <div class="form-group">
+        <label>密码：</label>
+        <input type="password" id="testPassword" placeholder="输入密码">
+      </div>
+      <button class="btn" onclick="testLogin()">测试登录</button>
+      <div id="testMessage"></div>
+    </div>
+
+    <div class="section">
+      <h2>🏠 返回网站</h2>
+      <p><a href="/" style="color: #007bff;">← 返回首页</a></p>
+    </div>
+  </div>
+
+  <script>
+    // 加载用户列表
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/debug/users');
+        const data = await response.json();
+        
+        const container = document.getElementById('usersList');
+        
+        if (data.success && data.users.length > 0) {
+          let html = `<div class="message success">找到 ${data.count} 个用户：</div>`;
+          
+          data.users.forEach(user => {
+            const lastLogin = user.lastLoginAt 
+              ? new Date(user.lastLoginAt).toLocaleString('zh-CN')
+              : '从未登录';
+              
+            html += `
+              <div class="user-info">
+                <strong>ID:</strong> ${user.id}<br>
+                <strong>用户名:</strong> ${user.username}<br>
+                <strong>邮箱:</strong> ${user.email}<br>
+                <strong>角色:</strong> ${user.role}<br>
+                <strong>显示名称:</strong> ${user.displayName || '未设置'}<br>
+                <strong>注册时间:</strong> ${new Date(user.createdAt).toLocaleString('zh-CN')}<br>
+                <strong>最后登录:</strong> ${lastLogin}
+              </div>
+            `;
+          });
+          
+          container.innerHTML = html;
+        } else {
+          container.innerHTML = '<div class="message error">没有找到用户或加载失败</div>';
+        }
+      } catch (error) {
+        document.getElementById('usersList').innerHTML = 
+          `<div class="message error">加载失败: ${error.message}</div>`;
+      }
+    }
+
+    // 重置密码
+    async function resetPassword() {
+      const identifier = document.getElementById('resetIdentifier').value.trim();
+      const newPassword = document.getElementById('newPassword').value.trim();
+      const messageDiv = document.getElementById('resetMessage');
+      
+      if (!identifier || !newPassword) {
+        messageDiv.innerHTML = '<div class="message error">请填写用户名/邮箱和新密码</div>';
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        messageDiv.innerHTML = '<div class="message error">密码至少需要6位字符</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, newPassword })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          messageDiv.innerHTML = `
+            <div class="message success">
+              ✅ 密码重置成功！<br>
+              用户: ${data.user.username} (${data.user.email})<br>
+              现在可以使用新密码登录了
+            </div>
+          `;
+          document.getElementById('resetIdentifier').value = '';
+          document.getElementById('newPassword').value = '';
+        } else {
+          messageDiv.innerHTML = `<div class="message error">❌ ${data.error}</div>`;
+        }
+      } catch (error) {
+        messageDiv.innerHTML = `<div class="message error">重置失败: ${error.message}</div>`;
+      }
+    }
+
+    // 测试登录
+    async function testLogin() {
+      const identifier = document.getElementById('testIdentifier').value.trim();
+      const password = document.getElementById('testPassword').value.trim();
+      const messageDiv = document.getElementById('testMessage');
+      
+      if (!identifier || !password) {
+        messageDiv.innerHTML = '<div class="message error">请填写用户名/邮箱和密码</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/user-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          messageDiv.innerHTML = `
+            <div class="message success">
+              ✅ 登录成功！<br>
+              用户: ${data.user.username} (${data.user.email})<br>
+              角色: ${data.user.role}
+            </div>
+          `;
+        } else {
+          messageDiv.innerHTML = `<div class="message error">❌ ${data.error}</div>`;
+        }
+      } catch (error) {
+        messageDiv.innerHTML = `<div class="message error">登录测试失败: ${error.message}</div>`;
+      }
+    }
+
+    // 页面加载时自动加载用户列表
+    window.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+    });
+  </script>
+</body>
+</html>
