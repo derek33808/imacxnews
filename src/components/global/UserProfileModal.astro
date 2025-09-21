@@ -201,16 +201,20 @@
       radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
       radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
       linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 5002;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     padding: 20px;
+    contain: layout style paint;
+    will-change: opacity, visibility;
   }
   
   .modal.active {
@@ -220,18 +224,21 @@
   
   .modal-content {
     background: var(--profile-bg);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(12px);
     border: none;
     border-radius: 24px;
     padding: 0;
     width: 100%;
     position: relative;
-    transform: translateY(40px) scale(0.9);
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.3s ease;
     box-shadow: 
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
+    contain: layout style;
+    will-change: transform;
   }
   
   .modal.active .modal-content {
@@ -751,22 +758,20 @@
     gap: var(--space-3);
     border: 1px solid;
     backdrop-filter: blur(10px);
-    animation: slideIn 0.3s ease-out;
     position: relative;
     z-index: 1000;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     margin-top: 0;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    contain: layout style;
+    will-change: opacity, transform;
   }
   
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .message[style*="opacity: 1"] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
   
   .message.success {
@@ -1031,7 +1036,7 @@
   let hasProfileChanges: boolean = false;
   
   // 显示消息
-  function showMessage(text: string, type: string = 'success') {
+  function showMessage(text: string, type: string = 'success', autoHide: boolean = true) {
     console.log(`📢 Showing message: "${text}" (type: ${type})`);
     
     profileMessage.textContent = text;
@@ -1040,12 +1045,12 @@
     profileMessage.style.visibility = 'visible';
     profileMessage.style.opacity = '1';
     
-    // 滚动到消息位置
-    profileMessage.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'nearest',
-      inline: 'nearest'
-    });
+    // 移除滚动行为以避免布局闪动
+    // profileMessage.scrollIntoView({ 
+    //   behavior: 'smooth', 
+    //   block: 'nearest',
+    //   inline: 'nearest'
+    // });
     
     console.log('📢 Message element updated:', {
       display: profileMessage.style.display,
@@ -1055,11 +1060,22 @@
       text: profileMessage.textContent
     });
     
-    // 5秒后自动隐藏
+    // 根据参数决定是否自动隐藏
+    if (autoHide) {
+      setTimeout(() => {
+        console.log('📢 Hiding message automatically');
+        hideMessage();
+      }, 4000); // 减少到4秒
+    }
+  }
+  
+  // 隐藏消息
+  function hideMessage() {
+    profileMessage.style.opacity = '0';
     setTimeout(() => {
-      console.log('📢 Hiding message automatically');
       profileMessage.style.display = 'none';
-    }, 5000);
+      profileMessage.style.visibility = 'hidden';
+    }, 300); // 等待淡出动画完成
   }
   
   // 加载用户数据
@@ -1425,13 +1441,21 @@
       cancelProfileChanges();
     }
     
-    profileModal.classList.remove('active');
-    profileModal.style.display = 'none';
-    document.body.style.overflow = '';
+    // 隐藏消息
+    hideMessage();
     
-    // 重置表单
-    passwordForm.reset();
-    profileMessage.style.display = 'none';
+    // 先移除 active 类触发动画
+    profileModal.classList.remove('active');
+    
+    // 等待动画完成后隐藏模态框
+    setTimeout(() => {
+      profileModal.style.display = 'none';
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = ''; // 移除滚动条补偿
+      
+      // 重置表单
+      passwordForm.reset();
+    }, 400); // 与CSS过渡时间匹配
   }
   
   closeProfileModalBtn.addEventListener('click', closeProfileModal);
@@ -1462,16 +1486,30 @@
   // 全局打开函数
   window.openUserProfileModal = function() {
     console.log('🚀 Opening user profile modal');
-    profileModal.style.display = 'flex';
-    profileModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    loadUserProfile();
-    setupDisplayNameListener();
     
-    // 显示欢迎消息
-    setTimeout(() => {
-      showMessage('Welcome to Profile Settings!', 'info');
-    }, 500);
+    // 防止页面滚动条变化导致的布局偏移
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    
+    // 使用 requestAnimationFrame 确保DOM准备好
+    requestAnimationFrame(() => {
+      profileModal.style.display = 'flex';
+      
+      // 在下一帧添加 active 类，确保过渡动画正常
+      requestAnimationFrame(() => {
+        profileModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // 立即加载用户数据和设置监听器
+        loadUserProfile();
+        setupDisplayNameListener();
+        
+        // 延迟显示欢迎消息，但时间更短，避免闪动
+        setTimeout(() => {
+          showMessage('Welcome to Profile Settings!', 'info', true);
+        }, 150); // 减少延迟时间
+      });
+    });
   };
   
   console.log('✅ User Profile Modal initialized');
