@@ -79,7 +79,9 @@
             <thead>
               <tr>
                 <th class="col-avatar">Avatar</th>
-                <th class="col-user">User Info</th>
+                <th class="col-username">Username</th>
+                <th class="col-display-name">Display Name</th>
+                <th class="col-email">Email</th>
                 <th class="col-role">Role</th>
                 <th class="col-status">Status</th>
                 <th class="col-activity">Last Activity</th>
@@ -209,8 +211,8 @@
   }
 
   .admin-users-modal {
-    max-width: 95vw;
-    width: 1200px;
+    max-width: 98vw;
+    width: 1400px;
     max-height: 90vh;
     overflow-y: auto;
   }
@@ -316,16 +318,17 @@
   
   .users-table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: var(--color-surface);
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    background-color: transparent;
     border-radius: var(--radius-lg);
     overflow: hidden;
   }
   
   .users-table thead th {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-5) var(--space-5);
     background: linear-gradient(135deg, var(--color-background-alt) 0%, rgba(79, 70, 229, 0.05) 100%);
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: 2px solid #ef4444;
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--color-text);
@@ -335,30 +338,51 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    margin-bottom: 4px;
+  }
+
+  .users-table thead th:first-child {
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+  }
+
+  .users-table thead th:last-child {
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
   }
   
   .users-table .col-avatar {
-    width: 70px;
+    width: 60px;
     text-align: center;
   }
   
-  .users-table .col-user {
-    width: auto;
-    min-width: 200px;
+  .users-table .col-username {
+    width: 120px;
+    min-width: 100px;
+  }
+  
+  .users-table .col-display-name {
+    width: 140px;
+    min-width: 120px;
+  }
+  
+  .users-table .col-email {
+    width: 180px;
+    min-width: 150px;
   }
   
   .users-table .col-role {
-    width: 120px;
+    width: 100px;
     text-align: center;
   }
   
   .users-table .col-status {
-    width: 120px;
+    width: 100px;
     text-align: center;
   }
   
   .users-table .col-activity {
-    width: 140px;
+    width: 120px;
     text-align: center;
   }
   
@@ -368,12 +392,13 @@
   }
   
   .users-container {
-    background-color: var(--color-surface);
+    background-color: var(--color-background-alt);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
     overflow: hidden;
     max-height: 500px;
     overflow-y: auto;
+    padding: var(--space-2);
   }
   
   .users-list {
@@ -401,27 +426,50 @@
   
   /* Table行样式 */
   .users-table tbody tr {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
+    position: relative;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-md);
+    border-bottom: 2px solid #ef4444; /* 明显的红色分割线 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-  
+
   .users-table tbody tr:hover {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.02) 0%, rgba(79, 70, 229, 0.05) 100%);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
   }
-  
+
   .users-table tbody tr:last-child {
-    border-bottom: none;
+    border-bottom: 2px solid #ef4444;
+  }
+
+  /* 给每行添加清晰的边框和圆角 */
+  .users-table tbody tr td:first-child {
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+  }
+
+  .users-table tbody tr td:last-child {
+    border-top-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
   }
   
   .users-table tbody td {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-6) var(--space-5);
     vertical-align: middle;
+    border: none;
   }
   
   .users-table .col-avatar {
     text-align: center;
+  }
+  
+  .users-table .col-username,
+  .users-table .col-display-name,
+  .users-table .col-email {
+    text-align: left;
   }
   
   .users-table .col-role,
@@ -432,8 +480,8 @@
   }
   
   .user-avatar {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
     display: flex;
@@ -443,9 +491,10 @@
     overflow: hidden;
     font-size: 0.875rem;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 3px 10px rgba(79, 70, 229, 0.3);
     border: 2px solid white;
     position: relative;
+    margin: var(--space-2) auto;
   }
   
   .user-avatar img {
@@ -469,19 +518,93 @@
   .user-info {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
   }
   
   .user-name {
     font-weight: 600;
     color: var(--color-text);
     font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
   }
-  
+
+  .display-name {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .username-hint {
+    font-weight: 400;
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+
+  .username-primary {
+    color: var(--color-text);
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    background-color: rgba(79, 70, 229, 0.1);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
+  }
+
   .user-email {
     color: var(--color-text-light);
     font-size: 0.75rem;
     font-family: monospace;
+    margin-top: var(--space-1);
+  }
+
+  /* 新的列样式 */
+  .username-cell, .display-name-cell, .email-cell {
+    padding: var(--space-2) 0;
+  }
+
+  .username-text {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    font-family: monospace;
+    background-color: rgba(79, 70, 229, 0.1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
+  }
+
+  .display-name-text {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.875rem;
+  }
+
+  .no-display-name {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  .email-text {
+    color: var(--color-text);
+    font-size: 0.75rem;
+    font-family: monospace;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+  }
+
+  .no-email {
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.7;
   }
   
   .role-badge {
@@ -554,7 +677,9 @@
   
   .user-actions {
     display: flex;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .action-btn {
@@ -612,6 +737,19 @@
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+  }
+
+  .delete-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: #ef4444;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  }
+
+  .delete-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
   }
   
   .empty-state {
@@ -690,35 +828,26 @@
   }
   
   /* 大屏幕适配 */
-  @media (max-width: 1200px) {
+  @media (max-width: 1400px) {
     .admin-users-modal {
       max-width: 95vw;
-    }
-    
-    .users-table .col-avatar {
-      width: 60px;
-    }
-    
-    .users-table .col-role,
-    .users-table .col-status {
-      width: 100px;
-    }
-    
-    .users-table .col-activity,
-    .users-table .col-actions {
-      width: 120px;
-    }
-  }
-
-  /* 中屏幕适配 */
-  @media (max-width: 900px) {
-    .users-table thead th,
-    .users-table tbody td {
-      padding: var(--space-3) var(--space-4);
+      width: 95vw;
     }
     
     .users-table .col-avatar {
       width: 50px;
+    }
+    
+    .users-table .col-username {
+      width: 100px;
+    }
+    
+    .users-table .col-display-name {
+      width: 120px;
+    }
+    
+    .users-table .col-email {
+      width: 150px;
     }
     
     .users-table .col-role,
@@ -726,7 +855,48 @@
       width: 80px;
     }
     
-    .users-table .col-activity,
+    .users-table .col-activity {
+      width: 100px;
+    }
+    
+    .users-table .col-actions {
+      width: 120px;
+    }
+  }
+
+  /* 中屏幕适配 */
+  @media (max-width: 1100px) {
+    .users-table thead th,
+    .users-table tbody td {
+      padding: var(--space-3) var(--space-3);
+      font-size: 0.75rem;
+    }
+    
+    .users-table .col-avatar {
+      width: 40px;
+    }
+    
+    .users-table .col-username {
+      width: 80px;
+    }
+    
+    .users-table .col-display-name {
+      width: 100px;
+    }
+    
+    .users-table .col-email {
+      width: 120px;
+    }
+    
+    .users-table .col-role,
+    .users-table .col-status {
+      width: 60px;
+    }
+    
+    .users-table .col-activity {
+      width: 80px;
+    }
+    
     .users-table .col-actions {
       width: 100px;
     }
@@ -738,6 +908,13 @@
     
     .filter-group {
       min-width: auto;
+    }
+    
+    .username-text,
+    .display-name-text,
+    .email-text {
+      font-size: 0.7rem;
+      padding: var(--space-1);
     }
   }
 
@@ -816,6 +993,13 @@
       font-weight: 600;
       color: var(--color-text-light);
     }
+
+    .username-text,
+    .display-name-text,
+    .email-text {
+      font-size: 0.75rem;
+      padding: var(--space-1);
+    }
   }
 </style>
 
@@ -826,6 +1010,7 @@
       openAdminUsersModal: () => void;
       viewUserDetails: (userId: number) => void;
       toggleUserRole: (userId: number, currentRole: string) => Promise<void>;
+      deleteUser: (userId: number) => Promise<void>;
     }
   }
 
@@ -1030,10 +1215,19 @@
             ${avatarContent}
           </div>
         </td>
-        <td class="col-user" data-label="User">
-          <div class="user-info">
-            <div class="user-name">${displayName}</div>
-            <div class="user-email">${user.email || 'No email'}</div>
+        <td class="col-username" data-label="Username">
+          <div class="username-cell">
+            <span class="username-text">${user.username}</span>
+          </div>
+        </td>
+        <td class="col-display-name" data-label="Display Name">
+          <div class="display-name-cell">
+            ${user.displayName ? `<span class="display-name-text">${user.displayName}</span>` : '<span class="no-display-name">Not set</span>'}
+          </div>
+        </td>
+        <td class="col-email" data-label="Email">
+          <div class="email-cell">
+            ${user.email ? `<span class="email-text">${user.email}</span>` : '<span class="no-email">No email</span>'}
           </div>
         </td>
         <td class="col-role" data-label="Role">
@@ -1072,6 +1266,15 @@
               </svg>
               Demote
             </button>`}
+            <button class="action-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete User">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Delete
+            </button>
           </div>
         </td>
       </tr>
@@ -1093,13 +1296,19 @@
     const user = allUsers.find(u => u.id === userId);
     if (user) {
       const details = [
-        `ID: ${user.id}`,
-        `Username: ${user.username}`,
-        `Email: ${user.email || 'Not set'}`,
-        `Display Name: ${user.displayName || 'Not set'}`,
-        `Role: ${user.role}`,
-        `Created: ${new Date(user.createdAt).toLocaleString()}`,
-        `Last Login: ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}`
+        `🆔 ID: ${user.id}`,
+        `👤 Username: ${user.username}`,
+        `📧 Email: ${user.email || 'Not set'}`,
+        `📝 Display Name: ${user.displayName || 'Same as username'}`,
+        `🔐 Role: ${user.role}`,
+        `📅 Created: ${new Date(user.createdAt).toLocaleString()}`,
+        `🕒 Last Login: ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}`,
+        ``,
+        `💡 Note: ${user.displayName ? 
+          (user.displayName !== user.username ? 
+            `User goes by "${user.displayName}" but username is "${user.username}"` : 
+            `Display name matches username`) 
+          : 'No display name set, using username'}`
       ].join('\n');
       
       alert(`User Details:\n\n${details}`);
@@ -1136,6 +1345,47 @@
     } catch (error) {
       console.error('Error updating user role:', error);
       showMessage('Failed to update user role', 'error');
+    }
+  };
+
+  // 删除用户
+  window.deleteUser = async function(userId: number) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+      showMessage('User not found', 'error');
+      return;
+    }
+
+    const userName = user.displayName ? `${user.displayName} (@${user.username})` : user.username;
+    const confirmMessage = `Are you sure you want to delete user "${userName}"?\n\nThis action cannot be undone and will also delete:\n- All their comments\n- All their likes and favorites\n- All related data\n\nType "DELETE" to confirm:`;
+    
+    const confirmation = prompt(confirmMessage);
+    if (confirmation !== 'DELETE') {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/users/delete', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const deletedUserName = user.displayName ? `${user.displayName} (@${user.username})` : user.username;
+        showMessage(`User ${deletedUserName} has been deleted successfully!`);
+        await loadUsers(); // 重新加载用户列表
+      } else {
+        showMessage(result.error || 'Failed to delete user', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      showMessage('Failed to delete user', 'error');
     }
   };
   

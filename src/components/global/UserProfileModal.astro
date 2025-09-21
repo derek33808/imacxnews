@@ -172,22 +172,45 @@
 </div>
 
 <style>
+  /* Modern Profile Modal Variables */
+  :root {
+    --profile-primary: #6366f1;
+    --profile-primary-light: #8b5cf6;
+    --profile-primary-dark: #4f46e5;
+    --profile-text: #1e293b;
+    --profile-text-light: #64748b;
+    --profile-bg: rgba(255, 255, 255, 0.95);
+    --profile-glass: rgba(255, 255, 255, 0.8);
+    --profile-border: rgba(99, 102, 241, 0.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --profile-text: #f1f5f9;
+      --profile-text-light: #94a3b8;
+      --profile-bg: rgba(15, 23, 42, 0.95);
+      --profile-glass: rgba(30, 41, 59, 0.8);
+      --profile-border: rgba(99, 102, 241, 0.2);
+    }
+  }
+
   .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    inset: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 5002;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: var(--space-4);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 20px;
   }
   
   .modal.active {
@@ -196,40 +219,63 @@
   }
   
   .modal-content {
-    background-color: var(--color-background);
-    border-radius: 16px;
+    background: var(--profile-bg);
+    backdrop-filter: blur(20px);
+    border: none;
+    border-radius: 24px;
     padding: 0;
     width: 100%;
     position: relative;
-    transform: scale(0.95) translateY(20px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--color-border);
+    transform: translateY(40px) scale(0.9);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
   }
   
   .modal.active .modal-content {
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
   }
   
   .modal-header {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-    color: white;
-    padding: var(--space-6) var(--space-6) var(--space-6) var(--space-6);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #4f46e5 100%);
+    color: white !important;
+    padding: 24px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
     border-bottom: none;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .modal-header * {
+    color: white !important;
+  }
+  
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
   }
   
   .modal-header h2 {
     margin: 0;
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    position: relative;
+    z-index: 1;
   }
   
   .modal-header h2 svg {
@@ -244,30 +290,36 @@
   
   .close-btn {
     background: rgba(255, 255, 255, 0.1);
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     cursor: pointer;
     padding: var(--space-2);
-    border-radius: 50%;
-    transition: all var(--transition);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     font-size: 18px;
     backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
   }
   
   .close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   .modal-body {
-    padding: var(--space-6);
+    padding: 32px;
     max-height: 65vh;
     overflow-y: auto;
+    background: rgba(248, 250, 252, 0.5);
+    backdrop-filter: blur(10px);
   }
 
   .profile-modal {
@@ -277,16 +329,25 @@
   
   .profile-section {
     margin-bottom: var(--space-8);
-    padding: var(--space-6);
-    background: var(--color-background-alt);
-    border-radius: 12px;
-    border: 1px solid var(--color-border);
-    transition: all var(--transition);
+    padding: 24px;
+    background: var(--profile-glass);
+    border: 1px solid var(--profile-border);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    box-shadow: 
+      0 4px 20px rgba(99, 102, 241, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
   
   .profile-section:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 
+      0 8px 32px rgba(99, 102, 241, 0.12),
+      0 2px 8px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
   }
   
   .profile-section:last-child {
@@ -295,18 +356,19 @@
   
   .profile-section h3 {
     margin: 0 0 var(--space-4) 0;
-    color: var(--color-text);
+    color: #6366f1;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
   
   .profile-section h3 svg {
     width: 18px;
     height: 18px;
-    stroke: currentColor;
+    stroke: #6366f1;
     fill: none;
     stroke-width: 2;
     stroke-linecap: round;
@@ -318,24 +380,26 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
-    padding: var(--space-5);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
-    border-radius: 16px;
-    border: 2px solid var(--color-border);
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
     transition: all var(--transition);
   }
   
   .profile-info-container:hover {
-    border-color: var(--color-primary);
-    background: linear-gradient(135deg, rgba(26, 115, 232, 0.02) 0%, rgba(26, 115, 232, 0.05) 100%);
+    /* No background change needed since container is transparent */
   }
   
   .avatar-section, .display-name-section {
     background: white;
-    padding: var(--space-4);
+    padding: var(--space-5);
     border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.08),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      0 1px 2px rgba(0, 0, 0, 0.04);
+    margin-bottom: var(--space-3);
+    border: 1px solid rgba(0, 0, 0, 0.03);
   }
   
   .avatar-section h4, 
@@ -380,7 +444,6 @@
     overflow: hidden;
     position: relative;
     box-shadow: 0 8px 32px rgba(26, 115, 232, 0.3);
-    border: 4px solid white;
     margin: 0 auto;
     font-size: 2.5rem;
   }
@@ -414,7 +477,6 @@
     max-height: 300px;
     overflow-y: auto;
     padding: var(--space-2);
-    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-background-alt);
   }
@@ -422,40 +484,44 @@
   .profile-actions {
     display: flex;
     gap: var(--space-3);
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: var(--space-3);
+    padding: var(--space-5);
     justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
   }
   
   .profile-status {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3);
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     transition: all var(--transition);
     margin-top: var(--space-3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
   }
   
   .profile-status.pending {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.2);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+    color: #92400e;
   }
   
   .profile-status.success {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+    color: #065f46;
   }
   
   .cancel-btn {
     padding: var(--space-3) var(--space-4);
-    border: 2px solid var(--color-border);
+    border: none;
     border-radius: var(--radius-md);
-    background: transparent;
+    background: rgba(239, 68, 68, 0.1);
     color: var(--color-text-light);
     font-weight: 600;
     cursor: pointer;
@@ -467,9 +533,8 @@
   }
   
   .cancel-btn:hover:not(:disabled) {
-    border-color: #ef4444;
     color: #ef4444;
-    background: rgba(239, 68, 68, 0.05);
+    background: rgba(239, 68, 68, 0.2);
   }
   
   .cancel-btn:disabled {
@@ -481,7 +546,6 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    border: 2px solid var(--color-border);
     background: white;
     display: flex;
     align-items: center;
@@ -490,16 +554,15 @@
     cursor: pointer;
     transition: all var(--transition);
     position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   .avatar-option:hover {
-    border-color: var(--color-primary);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
   }
   
   .avatar-option.selected {
-    border-color: var(--color-primary);
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
     transform: scale(1.1);
@@ -532,18 +595,18 @@
   .input-group input {
     flex: 1;
     padding: var(--space-4);
-    border: 2px solid var(--color-border);
+    border: none;
     border-radius: 8px;
     font-size: 0.95rem;
     background: white;
     transition: all var(--transition);
     font-family: var(--font-sans);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   .input-group input:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
   }
   
@@ -552,31 +615,39 @@
   }
   
   .save-btn {
-    padding: var(--space-4) var(--space-6);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 600;
-    transition: all var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+    box-shadow: 
+      0 4px 14px rgba(99, 102, 241, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   
   .save-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.3);
+    box-shadow: 
+      0 6px 20px rgba(99, 102, 241, 0.4),
+      0 4px 8px rgba(0, 0, 0, 0.15);
   }
   
   .save-btn:disabled {
-    background: var(--color-text-light);
+    background: #94a3b8;
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    opacity: 0.6;
   }
   
   .input-hint {
@@ -610,20 +681,14 @@
   #passwordForm .save-btn {
     align-self: flex-start;
     margin-top: var(--space-4);
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-  }
-  
-  #passwordForm .save-btn:hover {
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
   }
   
   .account-info {
-    background: linear-gradient(135deg, rgba(26, 115, 232, 0.05) 0%, rgba(66, 133, 244, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
     padding: var(--space-6);
     border-radius: 12px;
-    border: 1px solid rgba(26, 115, 232, 0.1);
     backdrop-filter: blur(10px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
   }
   
   .info-item {
@@ -636,11 +701,12 @@
   }
   
   .info-item:hover {
-    background: rgba(26, 115, 232, 0.02);
+    background: rgba(26, 115, 232, 0.03);
     border-radius: 6px;
     margin: 0 calc(-1 * var(--space-2));
     padding-left: var(--space-2);
     padding-right: var(--space-2);
+    box-shadow: 0 1px 3px rgba(26, 115, 232, 0.1);
   }
   
   .info-item:last-child {
@@ -734,6 +800,7 @@
   .message.info::before {
     content: "ℹ️";
     font-size: 1.1rem;
+    margin-right: var(--space-2);
   }
   
   /* 滚动条美化 */
@@ -1403,7 +1470,7 @@
     
     // 显示欢迎消息
     setTimeout(() => {
-      showMessage('Welcome to Profile Settings! 👋', 'info');
+      showMessage('Welcome to Profile Settings!', 'info');
     }, 500);
   };
   
