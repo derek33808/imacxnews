@@ -227,6 +227,7 @@ const isLoading = true;
     margin-bottom: var(--space-6);
     position: relative;
     padding-bottom: var(--space-3);
+    color: var(--color-text);
   }
   
   .section-title::after {
@@ -1325,6 +1326,17 @@ const isLoading = true;
     .pagination-info {
       text-shadow: 0 1px 2px rgba(66, 133, 244, 0.2);
     }
+
+    .section-title {
+      color: var(--color-text);
+    }
+  }
+
+  /* 🌗 强制深色主题适配 - 当body或html有dark-theme类时 */
+  html.dark-theme .section-title,
+  body.dark-theme .section-title,
+  .dark-theme .section-title {
+    color: var(--color-text) !important;
   }
 
   /* 🚀 高性能动画优化 */

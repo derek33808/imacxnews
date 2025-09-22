@@ -344,6 +344,10 @@ const {
     text-align: center;
     padding: var(--space-8) var(--space-4);
     color: var(--color-text-light);
+    background: var(--color-surface-hover);
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    margin: var(--space-4) 0;
   }
 
   .empty-icon {
@@ -533,6 +537,54 @@ const {
     border-color: var(--color-primary);
     color: var(--color-primary);
   }
+  
+  /* 深色主题下的空状态样式 */
+  html.dark-theme .empty-state,
+  body.dark-theme .empty-state,
+  .dark-theme .empty-state {
+    background: var(--color-surface-hover) !important;
+    border: 2px dashed var(--color-border) !important;
+    color: var(--color-text-light) !important;
+  }
+
+  /* 强制浅色主题保护 - 防止系统暗色模式覆盖 */
+  html.light-theme .comment-section,
+  body.light-theme .comment-section,
+  .light-theme .comment-section,
+  [data-theme="light"] .comment-section,
+  .force-light .comment-section {
+    background: var(--color-surface, #ffffff) !important;
+    border-color: var(--color-border, #e5e7eb) !important;
+    color: var(--color-text, #374151) !important;
+  }
+
+  html.light-theme .empty-state,
+  body.light-theme .empty-state,
+  .light-theme .empty-state,
+  [data-theme="light"] .empty-state,
+  .force-light .empty-state {
+    background: var(--color-surface-hover, #f9fafb) !important;
+    border: 2px dashed var(--color-border, #e5e7eb) !important;
+    color: var(--color-text-light, #6b7280) !important;
+  }
+
+  html.light-theme .comment-form,
+  body.light-theme .comment-form,
+  .light-theme .comment-form,
+  [data-theme="light"] .comment-form,
+  .force-light .comment-form {
+    background: var(--color-surface-hover, #f9fafb) !important;
+    border-color: var(--color-border, #e5e7eb) !important;
+  }
+
+  html.light-theme .login-prompt,
+  body.light-theme .login-prompt,
+  .light-theme .login-prompt,
+  [data-theme="light"] .login-prompt,
+  .force-light .login-prompt {
+    background: var(--color-surface-hover, #f9fafb) !important;
+    color: var(--color-text-light, #6b7280) !important;
+  }
 
   /* 响应式设计 */
   @media (max-width: 768px) {
@@ -597,12 +649,25 @@ const {
     }
   }
 
-  /* 系统偏好的暗色模式适配 - 仅在没有手动设置主题时生效 */
+  /* 系统偏好的暗色模式适配 - 更严格的条件控制 */
   @media (prefers-color-scheme: dark) {
-    :root:not(.dark-theme):not([data-theme]) .comment-section {
+    /* 只有当明确设置为深色主题或者没有任何主题设置且body没有明确的浅色主题指示器时才应用 */
+    html.dark-theme .comment-section,
+    body.dark-theme .comment-section,
+    .dark-theme .comment-section,
+    :root:not(.light-theme):not([data-theme="light"]):not(.force-light) .comment-section {
       background: var(--color-surface, #1f2937);
       border-color: var(--color-border, #374151);
       color: var(--color-text, #e8eaed);
+    }
+    
+    html.dark-theme .empty-state,
+    body.dark-theme .empty-state,
+    .dark-theme .empty-state,
+    :root:not(.light-theme):not([data-theme="light"]):not(.force-light) .empty-state {
+      background: var(--color-surface-hover, #374151);
+      border: 2px dashed var(--color-border, #4b5563);
+      color: var(--color-text-light, #9ca3af);
     }
   }
 
@@ -1358,10 +1423,50 @@ const {
     }
   }
 
+  // 主题保护函数 - 确保用户明确选择的浅色主题不被系统暗色模式覆盖
+  function protectLightTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.add('force-light');
+      document.body.classList.add('force-light');
+      // 移除可能的暗色主题类
+      document.documentElement.classList.remove('dark-theme');
+      document.body.classList.remove('dark-theme');
+    } else if (savedTheme === 'dark') {
+      document.documentElement.classList.remove('force-light');
+      document.body.classList.remove('force-light');
+    }
+  }
+
+  // 监听主题变化
+  function setupThemeProtection() {
+    // 初始化时应用主题保护
+    protectLightTheme();
+    
+    // 监听localStorage变化
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'theme') {
+        protectLightTheme();
+      }
+    });
+    
+    // 监听主题切换按钮点击
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        // 延迟执行，确保localStorage已更新
+        setTimeout(protectLightTheme, 10);
+      });
+    }
+  }
+
   // 初始化评论区
   document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.comment-section');
     sections.forEach(section => new CommentSection(section as HTMLElement));
+    
+    // 设置主题保护
+    setupThemeProtection();
   });
 
   // 添加样式动画
