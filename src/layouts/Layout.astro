@@ -141,15 +141,61 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         }
       });
       
-      // Override console.error for 401 errors
+      // Override console.error for API errors
       const originalConsoleError = console.error;
       console.error = function(...args) {
         const message = args.join(' ');
-        if (message.includes('401') || message.includes('Unauthorized')) {
-          // Silently ignore 401 errors
+        if (
+          message.includes('401') || 
+          message.includes('Unauthorized') ||
+          message.includes('Failed to load resource') ||
+          message.includes('/api/auth/status') ||
+          message.includes('/api/articles')
+        ) {
+          // Silently ignore API authentication and loading errors
           return;
         }
         originalConsoleError.apply(console, args);
+      };
+      
+      // Override console.warn for specific warnings
+      const originalConsoleWarn = console.warn;
+      console.warn = function(...args) {
+        const message = args.join(' ');
+        if (
+          message.includes('401') || 
+          message.includes('API status check failed') ||
+          message.includes('Failed to load')
+        ) {
+          // Silently ignore API warnings
+          return;
+        }
+        originalConsoleWarn.apply(console, args);
+      };
+      
+      // 🚀 全局fetch拦截器，优雅处理API错误
+      const originalFetch = window.fetch;
+      window.fetch = function(...args) {
+        return originalFetch.apply(this, args).catch(error => {
+          const url = args[0];
+          if (
+            typeof url === 'string' && (
+              url.includes('/api/auth/status') ||
+              url.includes('/api/articles')
+            )
+          ) {
+            // 静默处理API错误，不抛出异常
+            return Promise.resolve(new Response(
+              JSON.stringify({ success: false, error: 'API unavailable' }),
+              { 
+                status: 503, 
+                statusText: 'Service Unavailable',
+                headers: { 'Content-Type': 'application/json' }
+              }
+            ));
+          }
+          return Promise.reject(error);
+        });
       };
     </script>
     

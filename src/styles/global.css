@@ -215,10 +215,99 @@ a:hover {
   color: var(--color-primary-light);
 }
 
+/* 🚀 修复平板设备图片显示问题 - 基础图片样式 */
 img {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+/* 🎯 确保容器内的图片正确适配 */
+.card-image-link img,
+.thumb-image-wrap img,
+.image-container img,
+.featured-image-container img,
+.media-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* 🔧 平板设备特殊修复 - 强制图片容器尺寸 */
+.card-image-link,
+.thumb-image-wrap,
+.image-container {
+  position: relative !important;
+  overflow: hidden !important;
+  display: block !important;
+}
+
+/* 🚀 响应式图片容器 - 确保aspect-ratio生效 */
+.card-image-link {
+  aspect-ratio: 16 / 9 !important;
+}
+
+.thumb-image-wrap {
+  aspect-ratio: 16 / 9 !important;
+}
+
+/* 📱 移动端和平板设备兼容性增强 */
+@supports not (aspect-ratio: 16 / 9) {
+  /* 降级处理：使用padding-bottom技术 */
+  .card-image-link::before,
+  .thumb-image-wrap::before {
+    content: '';
+    display: block;
+    padding-bottom: 56.25%; /* 16:9 = 9/16 * 100% = 56.25% */
+  }
+  
+  .card-image-link img,
+  .thumb-image-wrap img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* 🔧 平板设备特定修复 (768px - 1024px) */
+@media only screen and (min-width: 768px) and (max-width: 1024px) {
+  /* 强制图片容器样式 - 针对iPad等设备 */
+  .card-image-link,
+  .thumb-image-wrap {
+    position: relative !important;
+    display: block !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+  }
+  
+  .card-image-link img,
+  .thumb-image-wrap img,
+  .thumb-img,
+  .card-image {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+}
+
+/* 🍎 iOS Safari 特殊修复 */
+@supports (-webkit-touch-callout: none) {
+  .card-image-link img,
+  .thumb-image-wrap img {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+  }
 }
 
 .container {

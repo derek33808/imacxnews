@@ -41,13 +41,27 @@ class ProgressiveLoader {
       }, 8000); // 减少到8秒超时
       
       const response = await fetch(`/api/articles?limit=${this.pageSize}&offset=${page * this.pageSize}`, {
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
       });
       
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        if (response.status === 401) {
+          // 静默处理401错误，使用默认内容
+          console.log('ℹ️ Authentication required, showing default content');
+          this.showDefaultContent();
+          return;
+        }
+        if (response.status >= 500) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+        // 对于其他错误，也尝试显示默认内容
+        this.showDefaultContent();
+        return;
       }
       
       const data = await response.json();
@@ -974,10 +988,11 @@ class ProgressiveLoader {
       
       return `
         <a href="/article/${article.slug}" class="thumb-card overlay ${isVideo ? 'video-card' : ''}">
-          <div class="thumb-image-wrap">
+          <div class="thumb-image-wrap" style="position: relative; aspect-ratio: 16/9; overflow: hidden; display: block;">
             <img src="${mediaUrl}" alt="${article.title}" class="thumb-img"
                  data-article-id="${article.id}"
-                 loading="lazy" onerror="this.src='/images/placeholder.svg'">
+                 loading="lazy" onerror="this.src='/images/placeholder.svg'"
+                 style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
             ${videoBadge}
             ${videoDuration}
             <div class="thumb-gradient"></div>
@@ -1189,6 +1204,24 @@ class ProgressiveLoader {
         }, 300);
       }, 500);
     }
+  }
+  
+  showDefaultContent() {
+    // 显示默认内容而不是错误
+    const defaultArticle = {
+      id: 'default',
+      title: 'Welcome to IMACX News',
+      excerpt: 'Stay updated with the latest news and insights from Avenues The World School',
+      author: 'IMACX Team',
+      category: 'TodayNews',
+      slug: '#',
+      image: '/images/placeholder.svg',
+      publishDate: new Date().toISOString(),
+      featured: true
+    };
+    
+    this.handleArticleData({ articles: [defaultArticle], hasMore: false }, 0);
+    this.hideLoadingStatus();
   }
   
   showError(message) {

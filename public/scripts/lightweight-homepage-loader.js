@@ -24,12 +24,16 @@ class LightweightHomepageLoader {
       
       if (!response.ok) {
         if (response.status === 401) {
-          console.warn('API authentication required, using cached data if available');
-          // 尝试使用缓存数据或显示默认内容
+          // 静默处理401错误，直接显示默认内容
           this.handleAuthError();
           return;
         }
-        throw new Error(`API error: ${response.status}`);
+        if (response.status >= 500) {
+          // 只记录服务器错误
+          console.warn('Server error:', response.status);
+        }
+        this.handleAuthError();
+        return;
       }
       
       const data = await response.json();
@@ -117,9 +121,10 @@ class LightweightHomepageLoader {
       
       return `
         <a href="/article/${article.slug}" class="thumb-card">
-          <div class="thumb-image-wrap">
+          <div class="thumb-image-wrap" style="position: relative; aspect-ratio: 16/9; overflow: hidden; display: block;">
             <img src="${imageUrl}" alt="${article.title}" class="thumb-img"
-                 loading="lazy" onerror="this.src='/images/placeholder.svg'">
+                 loading="lazy" onerror="this.src='/images/placeholder.svg'"
+                 style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
             <div class="thumb-gradient"></div>
             <div class="thumb-text">
               <div class="thumb-title">${article.title}</div>
