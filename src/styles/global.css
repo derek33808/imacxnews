@@ -310,6 +310,43 @@ img {
   }
 }
 
+/* 🔧 导航间距兼容性修复 - 针对平板设备 */
+.nav-list {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 强制导航项间距 - 为不支持gap的设备提供保障 */
+.nav-item + .nav-item {
+  margin-left: var(--space-6) !important;
+}
+
+/* 平板设备特定修复 (768px - 1024px) */
+@media only screen and (min-width: 768px) and (max-width: 1024px) {
+  .nav-list {
+    gap: var(--space-6) !important;
+  }
+  
+  /* 如果gap不被支持，使用margin */
+  .nav-item {
+    margin: 0 calc(var(--space-6) / 2) !important;
+  }
+  
+  .nav-item:first-child {
+    margin-left: 0 !important;
+  }
+  
+  .nav-item:last-child {
+    margin-right: 0 !important;
+  }
+  
+  .nav-link {
+    padding: var(--space-2) var(--space-3) !important;
+    min-width: auto !important;
+    text-align: center !important;
+  }
+}
+
 .container {
   width: 100%;
   max-width: 1200px;

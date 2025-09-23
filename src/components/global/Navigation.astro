@@ -34,13 +34,35 @@ import { categories } from '../../data/categories';
     gap: var(--space-6);
   }
   
+  /* 🔧 平板设备兼容性修复 - 使用margin作为gap的降级处理 */
+  .nav-item {
+    margin-right: var(--space-6);
+  }
+  
+  .nav-item:last-child {
+    margin-right: 0;
+  }
+  
+  /* 🚀 确保gap优先级更高，支持gap的设备使用gap */
+  @supports (gap: 1rem) {
+    .nav-list {
+      gap: var(--space-6);
+    }
+    
+    .nav-item {
+      margin-right: 0;
+    }
+  }
+  
   .nav-link {
     color: var(--color-text);
     text-decoration: none;
     font-weight: 500;
-    padding: var(--space-2) 0;
+    padding: var(--space-2) var(--space-3);
     position: relative;
     transition: color var(--transition);
+    display: block;
+    white-space: nowrap;
   }
   
   .nav-link:hover {
@@ -124,35 +146,38 @@ import { categories } from '../../data/categories';
 </style>
 
 <script>
-  // Mobile menu toggle
+  // Mobile menu toggle with null checks
   const menuToggle = document.querySelector('.mobile-menu-toggle');
   const navList = document.querySelector('.nav-list');
   
-  menuToggle.addEventListener('click', () => {
-    menuToggle.classList.toggle('active');
-    navList.classList.toggle('active');
-    document.body.classList.toggle('menu-open');
-  });
-  
-  // Close menu when clicking outside
-  document.addEventListener('click', (e) => {
-    if (
-      navList.classList.contains('active') && 
-      !navList.contains(e.target) && 
-      !menuToggle.contains(e.target)
-    ) {
-      menuToggle.classList.remove('active');
-      navList.classList.remove('active');
-      document.body.classList.remove('menu-open');
-    }
-  });
-  
-  // Close menu when ESC key is pressed
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && navList.classList.contains('active')) {
-      menuToggle.classList.remove('active');
-      navList.classList.remove('active');
-      document.body.classList.remove('menu-open');
-    }
-  });
+  if (menuToggle && navList) {
+    menuToggle.addEventListener('click', () => {
+      menuToggle.classList.toggle('active');
+      navList.classList.toggle('active');
+      document.body.classList.toggle('menu-open');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const target = e.target as Node;
+      if (
+        navList.classList.contains('active') && 
+        !navList.contains(target) && 
+        !menuToggle.contains(target)
+      ) {
+        menuToggle.classList.remove('active');
+        navList.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      }
+    });
+    
+    // Close menu when ESC key is pressed
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navList.classList.contains('active')) {
+        menuToggle.classList.remove('active');
+        navList.classList.remove('active');
+        document.body.classList.remove('menu-open');
+      }
+    });
+  }
 </script>
