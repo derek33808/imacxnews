@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { PrismaClient } from '@prisma/client';
 import { generateDailyNewsletterHTML, generateEmailSubject, generatePlainTextVersion } from '../../../lib/email-utils';
+import { emailScheduler } from '../../../lib/email-scheduler';
+import { sendEmail } from '../../../lib/email';
 
 const prisma = new PrismaClient();
 
@@ -26,8 +28,54 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    console.log('🚀 Starting daily newsletter send process...');
+    console.log('🚀 Starting newsletter send process...');
     console.log('📅 Current time:', new Date().toISOString());
+    
+    // 检查调度配置
+    const config = emailScheduler.getConfig();
+    console.log('⚙️ Email scheduler config:', {
+      frequency: config.schedule.frequency,
+      sendTime: config.schedule.sendTime,
+      timezone: config.schedule.timezone,
+      shouldSendToday: config.shouldSendToday,
+      isScheduledTime: config.isScheduledTime,
+      nextScheduledTime: config.nextScheduledTime
+    });
+
+    // 验证配置
+    const configValidation = emailScheduler.validateConfig();
+    if (!configValidation.valid) {
+      console.error('❌ Invalid email scheduler configuration:', configValidation.errors);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'INVALID_CONFIG',
+        message: 'Email scheduler configuration is invalid',
+        errors: configValidation.errors
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 检查是否应该今天发送（但允许强制发送）
+    const forceImmediate = request.headers.get('x-force-immediate') === 'true' || 
+                          request.url.includes('force=true');
+    
+    if (!config.shouldSendToday && !forceImmediate) {
+      console.log(`📧 Newsletter not scheduled for today (${config.schedule.frequency} frequency)`);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        skipped: true,
+        message: `Newsletter not scheduled for today. Next send: ${config.nextScheduledTime.toISOString()}`,
+        nextScheduledTime: config.nextScheduledTime.toISOString()
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (forceImmediate) {
+      console.log('🚀 Force immediate send enabled - bypassing schedule check');
+    }
 
     // 获取今天发布的文章
     const today = new Date();
@@ -36,29 +84,98 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('🔍 Newsletter daily send called');
 
-    // 🔧 临时简化版本 - 只记录日志，不进行数据库操作
-    console.log('📧 Daily newsletter send requested, but database operations are disabled');
+    // 获取今天发布的文章（如果强制发送，则获取最新的文章）
+    let todayArticles;
     
-    // 模拟找到文章和订阅者
-    const mockArticlesCount = 0;
-    const mockSubscribersCount = 0;
+    if (forceImmediate) {
+      // 强制发送时，获取最近发布的文章
+      console.log('🔄 Force mode: Getting latest articles instead of today only');
+      todayArticles = await prisma.article.findMany({
+        orderBy: { publishDate: 'desc' },
+        take: 5, // 获取最新5篇文章
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          author: true,
+          publishDate: true,
+          category: true
+        }
+      });
+    } else {
+      // 正常模式：只获取今天发布的文章
+      todayArticles = await prisma.article.findMany({
+        where: {
+          publishDate: {
+            gte: startOfDay,
+            lt: endOfDay
+          }
+        },
+        orderBy: { publishDate: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          author: true,
+          publishDate: true,
+          category: true
+        }
+      });
+    }
 
-    console.log('📧 Mock daily newsletter send completed');
-    return new Response(JSON.stringify({ 
-      success: true, 
-      skipped: true,
-      message: 'Newsletter feature is being set up. No emails sent today.',
-      stats: {
-        articlesFound: mockArticlesCount,
-        emailsSent: 0,
-        subscribersFound: mockSubscribersCount
+    console.log(`📰 Found ${todayArticles.length} articles to send`);
+
+    if (todayArticles.length === 0) {
+      console.log('📧 No articles found for newsletter');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        skipped: true,
+        message: 'No articles found to send in newsletter.',
+        stats: {
+          articlesFound: 0,
+          emailsSent: 0,
+          subscribersFound: 0
+        }
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 获取活跃的订阅者
+    const subscribers = await prisma.newsSubscription.findMany({
+      where: { isActive: true },
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true
+          }
+        }
       }
-    }), {
-      headers: { 'Content-Type': 'application/json' }
     });
 
-    /* 🔧 以下代码已临时禁用，等待数据库表创建完成后启用
-    
+    console.log(`👥 Found ${subscribers.length} active subscribers`);
+
+    if (subscribers.length === 0) {
+      console.log('📧 No active subscribers found');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        skipped: true,
+        message: 'No active subscribers found.',
+        stats: {
+          articlesFound: todayArticles.length,
+          emailsSent: 0,
+          subscribersFound: 0
+        }
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // 生成邮件内容
     const emailSubject = generateEmailSubject(todayArticles);
     console.log('📧 Email subject:', emailSubject);
@@ -196,19 +313,5 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } finally {
     await prisma.$disconnect();
-  }
-  */
-
-  } catch (error: any) {
-    console.error('❌ Daily newsletter send failed:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: 'SEND_FAILED',
-      message: error.message || 'Unknown error occurred',
-      timestamp: new Date().toISOString()
-    }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
   }
 };

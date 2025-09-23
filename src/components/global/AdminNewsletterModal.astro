@@ -1,0 +1,1095 @@
+---
+// 管理员Newsletter订阅管理模态框
+---
+
+<div id="adminNewsletterModal" class="modal">
+  <div class="modal-content admin-newsletter-modal">
+    <div class="modal-header">
+      <h2>Newsletter Subscription Management</h2>
+      <button class="close-btn" id="closeAdminNewsletterModal">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div id="adminNewsletterMessage" class="message" style="display: none;"></div>
+      
+      <!-- 订阅统计 -->
+      <div class="newsletter-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="totalSubscriptions">-</div>
+          <div class="stat-label">Total Subscriptions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="activeSubscriptions">-</div>
+          <div class="stat-label">Active Subscriptions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="inactiveSubscriptions">-</div>
+          <div class="stat-label">Inactive Subscriptions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="subscriptionRate">-</div>
+          <div class="stat-label">Subscription Rate</div>
+        </div>
+      </div>
+      
+      <!-- 筛选和搜索 -->
+      <div class="newsletter-filters">
+        <div class="filter-group">
+          <input 
+            type="text" 
+            id="newsletterSearchInput" 
+            placeholder="Search by email, username..."
+            class="search-input"
+          >
+        </div>
+        <div class="filter-group">
+          <select id="statusFilter" class="filter-select">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="sortByFilter" class="filter-select">
+            <option value="createdAt">Subscribe Date</option>
+            <option value="email">Email</option>
+            <option value="username">Username</option>
+            <option value="updatedAt">Last Updated</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="sortOrderFilter" class="filter-select">
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
+          </select>
+        </div>
+        <button id="newsletterRefreshBtn" class="btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+      
+      <!-- 订阅列表 -->
+      <div class="newsletter-list-container">
+        <div id="newsletterLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading newsletter subscriptions...</p>
+        </div>
+        
+        <div id="newsletterTable" class="newsletter-table" style="display: none;">
+          <div class="table-header">
+            <div class="header-cell">User</div>
+            <div class="header-cell">Email</div>
+            <div class="header-cell">Status</div>
+            <div class="header-cell">Source</div>
+            <div class="header-cell">Subscribed</div>
+            <div class="header-cell">Actions</div>
+          </div>
+          <div id="newsletterTableBody" class="table-body">
+            <!-- 动态内容 -->
+          </div>
+        </div>
+        
+        <div id="noNewsletterResults" class="no-results" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <path d="M14 9a2 2 0 0 1-2 2H9l-3 3V7a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2z"></path>
+          </svg>
+          <h3>No newsletter subscriptions found</h3>
+          <p>Try adjusting your search criteria</p>
+        </div>
+      </div>
+      
+      <!-- 分页 -->
+      <div id="newsletterPagination" class="pagination" style="display: none;">
+        <button id="prevPageBtn" class="btn-secondary" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+          Previous
+        </button>
+        
+        <div class="page-info">
+          <span id="pageInfo">Page 1 of 1</span>
+          <span id="totalInfo">Total: 0 subscriptions</span>
+        </div>
+        
+        <button id="nextPageBtn" class="btn-secondary" disabled>
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5004;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: var(--space-4);
+    pointer-events: none;
+  }
+
+  .modal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .modal-content {
+    background: var(--color-background);
+    border-radius: var(--radius-lg);
+    box-shadow: 
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    transform: scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .modal.active .modal-content {
+    transform: scale(1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-light);
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+  }
+
+  .close-btn:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .modal-body {
+    padding: var(--space-6);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .admin-newsletter-modal {
+    width: 95%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .newsletter-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .stat-card {
+    background: var(--color-surface);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid var(--color-border);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+
+  .newsletter-filters {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .search-input {
+    min-width: 250px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--color-background);
+    color: var(--color-text);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+  }
+
+  .filter-select {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--color-background);
+    color: var(--color-text);
+    min-width: 140px;
+  }
+
+  .newsletter-list-container {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    margin-bottom: var(--space-4);
+  }
+
+  .newsletter-table {
+    width: 100%;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 200px 250px 100px 100px 150px 120px;
+    background: var(--color-background-alt);
+    padding: var(--space-3);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table-body {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .newsletter-row {
+    display: grid;
+    grid-template-columns: 200px 250px 100px 100px 150px 120px;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color var(--transition);
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .newsletter-row > div {
+    min-height: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  .user-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .email-cell {
+    font-family: monospace;
+    font-size: 0.875rem;
+    word-break: break-all;
+  }
+
+  .status-cell, .source-cell, .date-cell, .actions-cell {
+    font-size: 0.875rem;
+  }
+
+  .newsletter-row:hover {
+    background-color: var(--color-background-alt);
+  }
+
+  .newsletter-row:last-child {
+    border-bottom: none;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .user-details {
+    overflow: hidden;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .subscription-email {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .status-badge.active {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.inactive {
+    background-color: #fef2f2;
+    color: #dc2626;
+  }
+
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: var(--color-background-alt);
+    color: var(--color-text-light);
+    white-space: nowrap;
+  }
+
+  .subscription-date {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    white-space: nowrap;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .action-btn {
+    padding: var(--space-1);
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-light);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-btn:hover {
+    background-color: var(--color-background-alt);
+    color: var(--color-text);
+  }
+
+  .action-btn.danger:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #dc2626;
+  }
+
+  .cancelled-text {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    font-style: italic;
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-3);
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+    text-align: center;
+  }
+
+  .no-results svg {
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+  }
+
+  .no-results h3 {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .page-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-background-alt);
+    border-color: var(--color-primary);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    .table-header,
+    .newsletter-row {
+      grid-template-columns: 150px 200px 80px 80px 120px 100px;
+      font-size: 0.8rem;
+    }
+
+    .search-input {
+      min-width: 200px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .admin-newsletter-modal {
+      width: 98%;
+      height: 95vh;
+    }
+
+    .newsletter-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .newsletter-filters {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-group {
+      width: 100%;
+    }
+
+    .search-input,
+    .filter-select {
+      width: 100%;
+      min-width: unset;
+    }
+
+    .table-header,
+    .newsletter-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .table-header {
+      display: none;
+    }
+
+    .newsletter-row {
+      display: block;
+      padding: var(--space-4);
+    }
+  }
+</style>
+
+<script>
+  // 类型声明
+  declare global {
+    interface Window {
+      openAdminNewsletterModal: () => void;
+      closeAdminNewsletterModal: () => void;
+      cancelSubscription: (subscriptionId: string, username: string) => void;
+      viewSubscriptionDetails: (subscriptionId: string) => void;
+    }
+  }
+
+  // DOM 元素
+  const modal = document.getElementById('adminNewsletterModal') as HTMLElement;
+  const closeBtn = document.getElementById('closeAdminNewsletterModal') as HTMLElement;
+  const messageDiv = document.getElementById('adminNewsletterMessage') as HTMLElement;
+  
+  // 统计元素
+  const totalSubscriptionsEl = document.getElementById('totalSubscriptions') as HTMLElement;
+  const activeSubscriptionsEl = document.getElementById('activeSubscriptions') as HTMLElement;
+  const inactiveSubscriptionsEl = document.getElementById('inactiveSubscriptions') as HTMLElement;
+  const subscriptionRateEl = document.getElementById('subscriptionRate') as HTMLElement;
+  
+  // 筛选元素
+  const searchInput = document.getElementById('newsletterSearchInput') as HTMLInputElement;
+  const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
+  const sortByFilter = document.getElementById('sortByFilter') as HTMLSelectElement;
+  const sortOrderFilter = document.getElementById('sortOrderFilter') as HTMLSelectElement;
+  const refreshBtn = document.getElementById('newsletterRefreshBtn') as HTMLElement;
+  
+  // 列表元素
+  const loadingDiv = document.getElementById('newsletterLoading') as HTMLElement;
+  const tableDiv = document.getElementById('newsletterTable') as HTMLElement;
+  const tableBody = document.getElementById('newsletterTableBody') as HTMLElement;
+  const noResultsDiv = document.getElementById('noNewsletterResults') as HTMLElement;
+  
+  // 分页元素
+  const paginationDiv = document.getElementById('newsletterPagination') as HTMLElement;
+  const prevPageBtn = document.getElementById('prevPageBtn') as HTMLButtonElement;
+  const nextPageBtn = document.getElementById('nextPageBtn') as HTMLButtonElement;
+  const pageInfo = document.getElementById('pageInfo') as HTMLElement;
+  const totalInfo = document.getElementById('totalInfo') as HTMLElement;
+
+  // 状态变量
+  let currentPage = 1;
+  let currentFilters = {
+    search: '',
+    status: 'all',
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  };
+
+  // 打开模态框
+  function openAdminNewsletterModal() {
+    console.log('📧 Opening Admin Newsletter Modal');
+    
+    // 检查认证状态 - 支持多种认证方式
+    const cookies = document.cookie;
+    console.log('🍪 Current cookies:', cookies);
+    
+    // 检查多种可能的认证 cookie
+    const tokenMatch = cookies.match(/(?:^|;\s*)token=([^;]+)/) ||
+                      cookies.match(/(?:^|;\s*)auth=([^;]+)/) ||
+                      cookies.match(/(?:^|;\s*)user=([^;]+)/);
+    
+    // 也检查 localStorage 中的用户状态
+    const currentUser = localStorage.getItem('currentUser');
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    
+    if (!tokenMatch && !currentUser && !isLoggedIn) {
+      console.error('❌ No authentication found');
+      showMessage('Please login as an administrator first.', 'error');
+      return;
+    }
+    
+    console.log('✅ Authentication found:', { 
+      hasCookie: !!tokenMatch, 
+      hasLocalStorage: !!currentUser, 
+      isLoggedIn 
+    });
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // 初始化数据
+    loadNewsletterSubscriptions();
+  }
+
+  // 关闭模态框
+  function closeAdminNewsletterModal() {
+    console.log('📧 Closing Admin Newsletter Modal');
+    hideMessage();
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // 显示消息
+  function showMessage(text: string, type: 'success' | 'error' | 'info' = 'info') {
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.display = 'block';
+    
+    if (type === 'success') {
+      setTimeout(hideMessage, 3000);
+    }
+  }
+
+  // 隐藏消息
+  function hideMessage() {
+    messageDiv.style.display = 'none';
+  }
+
+  // 加载Newsletter订阅列表
+  async function loadNewsletterSubscriptions() {
+    try {
+      showLoading();
+      hideMessage();
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20',
+        search: currentFilters.search,
+        status: currentFilters.status,
+        sortBy: currentFilters.sortBy,
+        sortOrder: currentFilters.sortOrder
+      });
+
+      console.log('📧 Loading newsletter subscriptions with params:', params.toString());
+
+      const response = await fetch(`/api/admin/newsletter-subscriptions?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response ok:', response.ok);
+
+      if (!response.ok) {
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          errorText = 'Network connection error';
+        }
+        console.error('❌ HTTP Error Response:', errorText);
+        
+        if (response.status === 401) {
+          showMessage('Authentication required. Please refresh the page and login again.', 'error');
+          return;
+        } else if (response.status === 403) {
+          showMessage('Administrator access required.', 'error');
+          return;
+        } else if (response.status >= 500) {
+          showMessage('Server error. Please try again later.', 'error');
+          return;
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${response.statusText || 'Network Error'}`);
+      }
+
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      if (!result.success) {
+        console.error('❌ API Error:', result);
+        if (result.error === 'LOGIN_REQUIRED') {
+          showMessage('Please login as an administrator to view newsletter subscriptions.', 'error');
+        } else if (result.error === 'INSUFFICIENT_PERMISSIONS') {
+          showMessage('Administrator access required to view newsletter subscriptions.', 'error');
+        } else {
+          showMessage(result.message || 'Failed to load subscriptions', 'error');
+        }
+        showNoResults();
+        return;
+      }
+
+      console.log('✅ Newsletter subscriptions loaded:', result.data);
+
+      // 检查数据完整性
+      if (!result.data || !result.data.subscriptions || !result.data.stats || !result.data.pagination) {
+        console.error('❌ Incomplete API response:', result);
+        showMessage('Incomplete data received from server', 'error');
+        showNoResults();
+        return;
+      }
+
+      // 更新统计信息
+      updateStats(result.data.stats);
+      
+      // 更新列表
+      updateSubscriptionsList(result.data.subscriptions);
+      
+      // 更新分页
+      updatePagination(result.data.pagination);
+
+      showTable();
+
+    } catch (error) {
+      console.error('❌ Error loading newsletter subscriptions:', error);
+      
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // 提供更友好的错误消息
+        if (error.message.includes('Failed to fetch') || error.message.includes('Network Error')) {
+          errorMessage = 'Network connection error. Please check your internet connection and try again.';
+        } else if (error.message.includes('401')) {
+          errorMessage = 'Authentication expired. Please refresh the page and login again.';
+        } else if (error.message.includes('500')) {
+          errorMessage = 'Server error. Please try again in a few moments.';
+        }
+      }
+      
+      showMessage(`Failed to load subscriptions: ${errorMessage}`, 'error');
+      showNoResults();
+    }
+  }
+
+  // 更新统计信息
+  function updateStats(stats: any) {
+    totalSubscriptionsEl.textContent = stats.totalSubscriptions.toString();
+    activeSubscriptionsEl.textContent = stats.activeSubscriptions.toString(); 
+    inactiveSubscriptionsEl.textContent = stats.inactiveSubscriptions.toString();
+    subscriptionRateEl.textContent = stats.subscriptionRate + '%';
+  }
+
+  // 显示加载状态
+  function showLoading() {
+    loadingDiv.style.display = 'flex';
+    tableDiv.style.display = 'none';
+    noResultsDiv.style.display = 'none';
+    paginationDiv.style.display = 'none';
+  }
+
+  // 显示表格
+  function showTable() {
+    loadingDiv.style.display = 'none';
+    tableDiv.style.display = 'block';
+    noResultsDiv.style.display = 'none';
+    paginationDiv.style.display = 'flex';
+  }
+
+  // 显示无结果
+  function showNoResults() {
+    loadingDiv.style.display = 'none';
+    tableDiv.style.display = 'none';
+    noResultsDiv.style.display = 'flex';
+    paginationDiv.style.display = 'none';
+  }
+
+  // 更新订阅列表
+  function updateSubscriptionsList(subscriptions: any[]) {
+    if (subscriptions.length === 0) {
+      showNoResults();
+      return;
+    }
+
+    tableBody.innerHTML = subscriptions.map(sub => `
+      <div class="newsletter-row" data-subscription-id="${sub.id}">
+        <div class="user-info">
+          <div class="user-avatar">${sub.user.username.charAt(0).toUpperCase()}</div>
+          <div class="user-details">
+            <div class="user-name">${sub.user.displayName || sub.user.username}</div>
+            <div class="user-role">${sub.user.role}</div>
+          </div>
+        </div>
+        <div class="subscription-email">
+          ${sub.email}
+        </div>
+        <div>
+          <span class="status-badge ${sub.isActive ? 'active' : 'inactive'}">
+            ${sub.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        <div>
+          <span class="source-badge">${sub.source}</span>
+        </div>
+        <div class="subscription-date">
+          ${new Date(sub.subscribedAt).toLocaleDateString()}
+        </div>
+        <div class="action-buttons">
+          ${sub.isActive ? `
+            <button class="action-btn danger" 
+                    onclick="window.cancelSubscription('${sub.id}', '${sub.user.username}')"
+                    title="Cancel subscription">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+            </button>
+          ` : `
+            <span class="cancelled-text">Cancelled</span>
+          `}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // 更新分页
+  function updatePagination(pagination: any) {
+    pageInfo.textContent = `Page ${pagination.page} of ${pagination.totalPages}`;
+    totalInfo.textContent = `Total: ${pagination.total} subscriptions`;
+    
+    prevPageBtn.disabled = !pagination.hasPreviousPage;
+    nextPageBtn.disabled = !pagination.hasNextPage;
+  }
+
+  // 取消订阅
+  async function cancelSubscription(subscriptionId: string, username: string) {
+    if (!confirm(`Are you sure you want to cancel the newsletter subscription for ${username}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/newsletter-subscriptions', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to cancel subscription');
+      }
+
+      showMessage(result.message, 'success');
+      loadNewsletterSubscriptions(); // 重新加载列表
+
+    } catch (error) {
+      console.error('❌ Error canceling subscription:', error);
+      showMessage(error instanceof Error ? error.message : 'Failed to cancel subscription', 'error');
+    }
+  }
+
+  // 查看订阅详情
+  function viewSubscriptionDetails(subscriptionId: string) {
+    // TODO: 实现订阅详情查看功能
+    console.log('View subscription details:', subscriptionId);
+    showMessage('Subscription details feature coming soon!', 'info');
+  }
+
+  // 事件监听器
+  closeBtn.addEventListener('click', closeAdminNewsletterModal);
+
+  // 筛选事件
+  searchInput.addEventListener('input', debounce(() => {
+    currentFilters.search = searchInput.value;
+    currentPage = 1;
+    loadNewsletterSubscriptions();
+  }, 500));
+
+  statusFilter.addEventListener('change', () => {
+    currentFilters.status = statusFilter.value;
+    currentPage = 1;
+    loadNewsletterSubscriptions();
+  });
+
+  sortByFilter.addEventListener('change', () => {
+    currentFilters.sortBy = sortByFilter.value;
+    currentPage = 1;
+    loadNewsletterSubscriptions();
+  });
+
+  sortOrderFilter.addEventListener('change', () => {
+    currentFilters.sortOrder = sortOrderFilter.value;
+    currentPage = 1;
+    loadNewsletterSubscriptions();
+  });
+
+  refreshBtn.addEventListener('click', () => {
+    loadNewsletterSubscriptions();
+  });
+
+  // 分页事件
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadNewsletterSubscriptions();
+    }
+  });
+
+  nextPageBtn.addEventListener('click', () => {
+    currentPage++;
+    loadNewsletterSubscriptions();
+  });
+
+  // 点击模态框外部关闭
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeAdminNewsletterModal();
+    }
+  });
+
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+      closeAdminNewsletterModal();
+    }
+  });
+
+  // 防抖函数
+  function debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // 初始化函数
+  function initializeAdminNewsletterModal() {
+    if (typeof window !== 'undefined') {
+      window.openAdminNewsletterModal = openAdminNewsletterModal;
+      window.closeAdminNewsletterModal = closeAdminNewsletterModal;
+      window.cancelSubscription = cancelSubscription;
+      window.viewSubscriptionDetails = viewSubscriptionDetails;
+      
+      console.log('✅ AdminNewsletterModal functions exported to window');
+      console.log('📧 AdminNewsletterModal ready - openAdminNewsletterModal:', typeof window.openAdminNewsletterModal);
+    } else {
+      console.error('❌ Window object not available in AdminNewsletterModal');
+    }
+  }
+  
+  // 确保在DOM就绪后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAdminNewsletterModal);
+  } else {
+    // 使用 setTimeout 确保在其他脚本执行后初始化
+    setTimeout(initializeAdminNewsletterModal, 50);
+  }
+  
+  // 额外的初始化检查，确保函数总是被导出
+  setTimeout(() => {
+    if (typeof window !== 'undefined' && !window.openAdminNewsletterModal) {
+      console.warn('⚠️ AdminNewsletterModal not initialized, retrying...');
+      initializeAdminNewsletterModal();
+    }
+  }, 500);
+</script>

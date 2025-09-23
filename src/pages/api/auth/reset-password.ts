@@ -2,6 +2,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { randomBytes, createHash } from 'crypto';
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
+import { sendPasswordResetConfirmation } from '../../../lib/email';
 
 // 邮箱格式验证
 function isValidEmail(email: string): boolean {
@@ -84,6 +85,12 @@ export const POST: APIRoute = async ({ request }) => {
     }, 'Update user password');
 
     console.log(`🔄 Password reset successful for user: ${user.username} (${user.email})`);
+
+    // 异步发送密码重置确认邮件（不阻塞响应）
+    sendPasswordResetConfirmation(user.email, user.username).catch(error => {
+      console.error('Failed to send password reset confirmation email:', error);
+      // 邮件发送失败不影响密码重置流程，只记录错误
+    });
 
     return new Response(JSON.stringify({
       success: true,

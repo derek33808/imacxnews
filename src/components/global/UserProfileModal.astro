@@ -1303,7 +1303,7 @@
       if (response.ok) {
         const result = await response.json();
         subscriptionData = result;
-        updateNewsletterDisplay();
+        updateNewsletterDisplay(result);
       } else {
         console.log('Could not load newsletter status');
         updateNewsletterDisplay(null);
@@ -1313,6 +1313,12 @@
       updateNewsletterDisplay(null);
     }
   }
+  
+  // 监听其他组件的订阅状态变化
+  window.addEventListener('newsletterStatusChanged', (e) => {
+    console.log('📧 Profile Modal: Received newsletter status change:', e.detail);
+    loadNewsletterSubscriptionStatus();
+  });
   
   // 🆕 更新邮件订阅显示
   function updateNewsletterDisplay(data = subscriptionData) {
@@ -1369,7 +1375,7 @@
     }
   }
   
-  // 🆕 切换邮件订阅状态
+  // 🆕 切换邮件订阅状态 - 使用全局订阅管理器
   async function toggleNewsletterSubscription() {
     const toggleBtn = document.getElementById('toggleSubscriptionBtn') as HTMLButtonElement;
     const toggleBtnText = document.getElementById('toggleSubscriptionText');
@@ -1400,12 +1406,11 @@
         
         if (result.success) {
           showMessage('Successfully unsubscribed from newsletter! 😢', 'info');
-          // 重新加载订阅状态
           await loadNewsletterSubscriptionStatus();
-          // 更新Header中的订阅状态
-          if (window.updateHeaderForUser && currentUser) {
-            window.updateHeaderForUser(currentUser);
-          }
+          // 通知其他组件状态已更改
+          window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
+            detail: { subscribed: false } 
+          }));
         } else {
           showMessage(result.message || 'Failed to unsubscribe', 'error');
         }
@@ -1421,12 +1426,11 @@
         
         if (result.success) {
           showMessage('Successfully subscribed to newsletter! 🎉', 'success');
-          // 重新加载订阅状态
           await loadNewsletterSubscriptionStatus();
-          // 更新Header中的订阅状态
-          if (window.updateHeaderForUser && currentUser) {
-            window.updateHeaderForUser(currentUser);
-          }
+          // 通知其他组件状态已更改
+          window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
+            detail: { subscribed: true } 
+          }));
         } else {
           showMessage(result.message || 'Failed to subscribe', 'error');
         }
@@ -1790,6 +1794,8 @@
     
     // 隐藏消息
     hideMessage();
+    
+    // 清理已完成，不需要额外操作
     
     // 先移除 active 类触发动画
     profileModal.classList.remove('active');

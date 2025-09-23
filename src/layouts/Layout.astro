@@ -7,6 +7,7 @@ import UserRegisterModal from '../components/global/UserRegisterModal.astro';
 import UserLoginModal from '../components/global/UserLoginModal.astro';
 import UserProfileModal from '../components/global/UserProfileModal.astro';
 import AdminUsersModal from '../components/global/AdminUsersModal.astro';
+import AdminNewsletterModal from '../components/global/AdminNewsletterModal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -64,6 +65,7 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <UserLoginModal />
     <UserProfileModal />
     <AdminUsersModal />
+    <AdminNewsletterModal />
     
     <!-- 🚀 性能优化: 延迟加载非关键脚本 -->
     <script is:inline>
@@ -89,10 +91,34 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         });
       }
       
-      // 检查是否需要管理功能
-      if (localStorage.getItem('user_token') || window.location.pathname.includes('/admin')) {
+      // 检查是否需要管理功能 - 支持多种认证方式
+      function shouldLoadAdminScripts() {
+        // 检查各种可能的认证标识
+        const hasToken = localStorage.getItem('user_token') || 
+                        localStorage.getItem('token') || 
+                        localStorage.getItem('currentUser') ||
+                        localStorage.getItem('isLoggedIn') === 'true';
+        
+        const isAdminPath = window.location.pathname.includes('/admin');
+        
+        // 检查 cookie 中的认证信息
+        const hasCookieAuth = document.cookie.includes('token=') || 
+                             document.cookie.includes('auth=') ||
+                             document.cookie.includes('user=');
+        
+        return hasToken || isAdminPath || hasCookieAuth;
+      }
+      
+      if (shouldLoadAdminScripts()) {
+        console.log('🔧 Loading admin scripts...');
         loadAdminScripts();
       }
+      
+      // 也在用户登录时加载管理脚本
+      window.addEventListener('userLoggedIn', () => {
+        console.log('🔧 User logged in, loading admin scripts...');
+        loadAdminScripts();
+      });
       
       // 延迟加载平滑滚动（非关键）
       setTimeout(() => {

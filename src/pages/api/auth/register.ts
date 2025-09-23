@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { createHash, randomBytes } from 'crypto';
 import { setAuthCookie } from '../../../lib/auth';
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
+import { sendWelcomeEmail } from '../../../lib/email';
 
 // 邮箱格式验证函数
 function isValidEmail(email: string): boolean {
@@ -136,6 +137,14 @@ export const POST: APIRoute = async ({ request }) => {
     const headers = new Headers();
     setAuthCookie(headers, token);
     headers.set('Content-Type', 'application/json');
+
+    // 异步发送欢迎邮件（不阻塞响应）
+    sendWelcomeEmail(newUser.email, newUser.username, newUser.displayName).catch(error => {
+      console.error('Failed to send welcome email:', error);
+      // 邮件发送失败不影响注册流程，只记录错误
+    });
+
+    console.log(`🎉 User registered successfully: ${newUser.username} (${newUser.email})`);
 
     return new Response(JSON.stringify({
       success: true,

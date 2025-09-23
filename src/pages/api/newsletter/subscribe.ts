@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromRequest } from '../../../lib/auth';
+import { sendNewsletterSubscriptionConfirmation } from '../../../lib/email';
+import { randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -22,15 +24,73 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.json().catch(() => ({}));
     const source = body.source || 'manual';
 
-    // 🔧 临时简化版本 - 只进行基本验证，不进行数据库操作
     console.log(`📧 Newsletter subscription request from user: ${user.username}, source: ${source}`);
 
-    // TODO: 将来需要添加数据库操作来存储订阅信息
-    // 目前只返回成功信息，避免500错误
+    // 检查是否已经订阅
+    const existingSubscription = await prisma.newsSubscription.findUnique({
+      where: { userId: user.id }
+    });
+
+    let subscription;
+    
+    if (existingSubscription) {
+      if (existingSubscription.isActive) {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'You are already subscribed to our newsletter! 📬',
+          alreadySubscribed: true
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } else {
+        // 重新激活已存在的订阅
+        subscription = await prisma.newsSubscription.update({
+          where: { userId: user.id },
+          data: {
+            isActive: true,
+            source: source,
+            updatedAt: new Date()
+          }
+        });
+      }
+    } else {
+      // 创建新的订阅
+      const unsubscribeToken = randomBytes(32).toString('hex');
+      
+      subscription = await prisma.newsSubscription.create({
+        data: {
+          userId: user.id,
+          email: user.email,
+          isActive: true,
+          unsubscribeToken: unsubscribeToken,
+          source: source
+        }
+      });
+    }
+
+    // 生成取消订阅链接
+    const unsubscribeUrl = `https://imacxnews.com/api/newsletter/unsubscribe?token=${subscription.unsubscribeToken}`;
+
+    // 发送订阅确认邮件（异步，不阻塞响应）
+    sendNewsletterSubscriptionConfirmation(
+      user.email, 
+      user.username, 
+      unsubscribeUrl,
+      user.displayName
+    ).catch(error => {
+      console.error('Failed to send newsletter subscription confirmation:', error);
+    });
+
+    console.log(`✅ Newsletter subscription successful for user: ${user.username} (${user.email})`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Successfully subscribed! Newsletter feature is being set up. 📬' 
+      message: 'Successfully subscribed to IMACX News Newsletter! Check your email for confirmation. 📬',
+      subscription: {
+        id: subscription.id,
+        source: subscription.source,
+        subscribedAt: subscription.createdAt
+      }
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -61,12 +121,24 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    // 🔧 临时简化版本 - 始终返回未订阅状态
     console.log(`📧 Newsletter status check for user: ${user.username}`);
 
+    // 检查用户的订阅状态
+    const subscription = await prisma.newsSubscription.findUnique({
+      where: { userId: user.id }
+    });
+
+    const isSubscribed = subscription ? subscription.isActive : false;
+
     return new Response(JSON.stringify({ 
-      subscribed: false,
-      email: user.email || 'unknown@example.com'
+      subscribed: isSubscribed,
+      email: user.email,
+      subscription: subscription ? {
+        id: subscription.id,
+        source: subscription.source,
+        subscribedAt: subscription.createdAt,
+        updatedAt: subscription.updatedAt
+      } : null
     }), {
       headers: { 'Content-Type': 'application/json' }
     });

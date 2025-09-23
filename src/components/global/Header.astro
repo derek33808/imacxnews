@@ -25,6 +25,16 @@ import ThemeToggle from './ThemeToggle.astro';
       
       <div class="header-actions">
         <SearchBar />
+        
+        <!-- Newsletter Subscribe Button -->
+        <button class="newsletter-subscribe-btn" id="headerNewsletterBtn" title="Subscribe to our newsletter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <span class="newsletter-btn-text">Newsletter</span>
+        </button>
+        
         <div class="user-menu" id="userMenu">
           <!-- 未登录状态按钮组 -->
           <div class="auth-buttons" id="authButtons">
@@ -68,13 +78,6 @@ import ThemeToggle from './ThemeToggle.astro';
                 </svg>
                 My Favorites
               </a>
-              <button class="dropdown-item newsletter-btn" id="newsletterBtn" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                <span id="newsletterBtnText">Subscribe to Newsletter</span>
-              </button>
               <button class="dropdown-item admin-users-btn" id="adminUsersBtn" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -83,6 +86,13 @@ import ThemeToggle from './ThemeToggle.astro';
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
                 User Management
+              </button>
+              <button class="dropdown-item admin-newsletter-btn" id="adminNewsletterBtn" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Newsletter Management
               </button>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item logout-btn" id="logoutBtn">
@@ -341,22 +351,42 @@ import ThemeToggle from './ThemeToggle.astro';
     background-color: rgba(220, 38, 38, 0.1);
   }
   
-  /* Newsletter button styles */
-  .newsletter-btn {
-    color: var(--color-primary);
+  
+  /* Header Newsletter Subscribe Button Styles */
+  .newsletter-subscribe-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
   }
   
-  .newsletter-btn:hover {
-    background-color: rgba(26, 115, 232, 0.1);
-    color: var(--color-primary);
+  .newsletter-subscribe-btn:hover {
+    background-color: var(--color-primary-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
   
-  .newsletter-btn.subscribed {
-    color: #10b981;
+  .newsletter-subscribe-btn.subscribed {
+    background-color: #10b981;
+    color: white;
   }
   
-  .newsletter-btn.subscribed:hover {
-    background-color: rgba(16, 185, 129, 0.1);
+  .newsletter-subscribe-btn.subscribed:hover {
+    background-color: #059669;
+  }
+  
+  .newsletter-btn-text {
+    display: inline;
   }
   
   /* Admin Bar Styles */
@@ -372,6 +402,23 @@ import ThemeToggle from './ThemeToggle.astro';
     .admin-manage-btn {
       padding: var(--space-2) var(--space-3);
       font-size: 0.875rem;
+    }
+    
+    /* Newsletter button mobile styles */
+    .newsletter-subscribe-btn {
+      padding: var(--space-2);
+      font-size: 0.8rem;
+    }
+    
+    .newsletter-btn-text {
+      display: none; /* Hide text on mobile, show only icon */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .newsletter-subscribe-btn {
+      min-width: 40px;
+      justify-content: center;
     }
   }
 </style>
@@ -527,6 +574,7 @@ import ThemeToggle from './ThemeToggle.astro';
   function updateHeaderForUser(userData: any) {
     const adminManageBtn = document.getElementById('adminManageBtn');
     const adminUsersBtn = document.getElementById('adminUsersBtn');
+    const adminNewsletterBtn = document.getElementById('adminNewsletterBtn');
     const headerUserAvatar = document.getElementById('headerUserAvatar');
     const displayName = userData.displayName || userData.username;
     const roleText = userData.role === 'ADMIN' ? 'Administrator' : 'Member';
@@ -571,6 +619,15 @@ import ThemeToggle from './ThemeToggle.astro';
         adminUsersBtn.style.display = 'flex';
       } else {
         adminUsersBtn.style.display = 'none';
+      }
+    }
+    
+    // 控制管理员Newsletter管理按钮显示
+    if (adminNewsletterBtn) {
+      if (userData.role === 'ADMIN') {
+        adminNewsletterBtn.style.display = 'flex';
+      } else {
+        adminNewsletterBtn.style.display = 'none';
       }
     }
     
@@ -647,6 +704,10 @@ import ThemeToggle from './ThemeToggle.astro';
         }
       };
     }
+    
+    // 确保header newsletter按钮显示未订阅状态并加载状态
+    updateHeaderNewsletterButton(false);
+    loadNewsletterStatus();
   }
   
   // 🆕 用户下拉菜单点击处理
@@ -712,9 +773,39 @@ import ThemeToggle from './ThemeToggle.astro';
   const adminManageBtn = document.getElementById('adminManageBtn');
   if (adminManageBtn) {
     adminManageBtn.addEventListener('click', () => {
-      if (window.openAdminManagerModal) {
-        window.openAdminManagerModal();
-      }
+      console.log('🔧 Admin Manage button clicked');
+      
+      // 尝试多次检查，确保管理脚本已加载
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const tryOpenAdminModal = () => {
+        console.log(`🔍 Attempt ${retryCount + 1}: Checking AdminManagerModal availability...`);
+        console.log('window.openAdminManagerModal type:', typeof window.openAdminManagerModal);
+        
+        if (typeof window.openAdminManagerModal === 'function') {
+          console.log('✅ Opening AdminManagerModal');
+          try {
+            window.openAdminManagerModal();
+            console.log('🔧 AdminManagerModal opened successfully');
+          } catch (error) {
+            console.error('❌ Error calling openAdminManagerModal:', error);
+            alert('Failed to open Admin Management. Error: ' + (error instanceof Error ? error.message : String(error)));
+          }
+        } else {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            console.log(`⏳ AdminManagerModal not ready, retrying in ${retryCount * 100}ms...`);
+            setTimeout(tryOpenAdminModal, retryCount * 100);
+          } else {
+            console.error('❌ openAdminManagerModal function not found after max retries');
+            console.log('Available window properties:', Object.keys(window).filter(key => key.includes('Admin')));
+            alert('Admin Management panel failed to load. Please refresh the page and try again.');
+          }
+        }
+      };
+      
+      tryOpenAdminModal();
     });
   }
   
@@ -746,6 +837,49 @@ import ThemeToggle from './ThemeToggle.astro';
     });
   }
   
+  // Admin newsletter management button functionality
+  const adminNewsletterBtn = document.getElementById('adminNewsletterBtn');
+  if (adminNewsletterBtn) {
+    adminNewsletterBtn.addEventListener('click', () => {
+      console.log('📧 Newsletter Management button clicked');
+      if (userDropdown) {
+        userDropdown.classList.remove('active');
+      }
+      
+      // 尝试多次检查，确保模态框已加载
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const tryOpenModal = () => {
+        console.log(`🔍 Attempt ${retryCount + 1}: Checking AdminNewsletterModal availability...`);
+        console.log('window.openAdminNewsletterModal type:', typeof window.openAdminNewsletterModal);
+        
+        if (typeof window.openAdminNewsletterModal === 'function') {
+          console.log('✅ Opening AdminNewsletterModal');
+          try {
+            window.openAdminNewsletterModal();
+            console.log('📧 AdminNewsletterModal opened successfully');
+          } catch (error) {
+            console.error('❌ Error calling openAdminNewsletterModal:', error);
+            alert('Failed to open Newsletter Management. Error: ' + (error instanceof Error ? error.message : String(error)));
+          }
+        } else {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            console.log(`⏳ AdminNewsletterModal not ready, retrying in ${retryCount * 100}ms...`);
+            setTimeout(tryOpenModal, retryCount * 100);
+          } else {
+            console.error('❌ openAdminNewsletterModal function not found after max retries');
+            console.log('Available window properties:', Object.keys(window).filter(key => key.includes('Admin')));
+            alert('Newsletter Management panel failed to load. Please refresh the page and try again.');
+          }
+        }
+      };
+      
+      tryOpenModal();
+    });
+  }
+  
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     if (userMenu && e.target instanceof Node && !userMenu.contains(e.target)) {
@@ -764,6 +898,20 @@ import ThemeToggle from './ThemeToggle.astro';
   document.addEventListener('DOMContentLoaded', async () => {
     // 从API检查用户状态
     await checkUserStatus();
+    
+    // 检查newsletter状态（无论是否登录都显示按钮）
+    setTimeout(() => {
+      loadNewsletterStatus();
+    }, 500);
+    
+    // 检查AdminNewsletterModal是否可用（调试用）
+    setTimeout(() => {
+      if (typeof window.openAdminNewsletterModal === 'function') {
+        console.log('✅ AdminNewsletterModal is available');
+      } else {
+        console.log('⚠️ AdminNewsletterModal not yet available');
+      }
+    }, 1000);
   });
   
   // 🆕 页面可见性变化时检查状态（防止后台运行时状态过期）
@@ -787,82 +935,127 @@ import ThemeToggle from './ThemeToggle.astro';
   window.updateHeaderForAdmin = updateHeaderForAdmin;
   window.updateHeaderForLoggedOut = updateHeaderForLoggedOut;
   
-  // 🆕 邮件订阅功能
+  // 🆕 邮件订阅功能 - 使用全局订阅管理器
+  let headerUnsubscribeFromManager: (() => void) | null = null;
+  
+  // 等待订阅管理器加载
+  function waitForHeaderSubscriptionManager(callback: () => void) {
+    if (window.subscriptionManager) {
+      callback();
+    } else {
+      setTimeout(() => waitForHeaderSubscriptionManager(callback), 100);
+    }
+  }
+  
+  // 初始化Header订阅管理器集成
+  function initializeHeaderSubscriptionManager() {
+    waitForHeaderSubscriptionManager(() => {
+      // 订阅状态变化通知
+      headerUnsubscribeFromManager = window.subscriptionManager.onStatusChange((data) => {
+        updateHeaderNewsletterButton(data.subscribed);
+      });
+      
+      // 立即检查状态
+      window.subscriptionManager.checkStatus();
+    });
+  }
+  
+  // 加载邮件订阅状态
   async function loadNewsletterStatus() {
     try {
+      console.log('📧 Header: Checking newsletter status...');
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'GET',
         credentials: 'include'
       });
       
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.log('📧 Header: Newsletter status check failed, status:', response.status);
+        updateHeaderNewsletterButton(false);
+        return;
+      }
       
       const result = await response.json();
-      const newsletterBtn = document.getElementById('newsletterBtn');
-      const newsletterBtnText = document.getElementById('newsletterBtnText');
-      
-      if (newsletterBtn && newsletterBtnText) {
-        newsletterBtn.style.display = 'flex';
-        
-        if (result.subscribed) {
-          newsletterBtnText.textContent = '✅ Subscribed';
-          newsletterBtn.classList.add('subscribed');
-          newsletterBtn.title = 'You are subscribed to our newsletter';
-        } else {
-          newsletterBtnText.textContent = 'Subscribe to Newsletter';
-          newsletterBtn.classList.remove('subscribed');
-          newsletterBtn.title = 'Subscribe to get daily updates';
-        }
-      }
+      console.log('📧 Header: Newsletter status result:', result);
+      updateHeaderNewsletterButton(result.subscribed);
     } catch (error) {
-      console.log('Newsletter status check failed:', error);
+      console.log('📧 Header: Newsletter status check failed:', error);
+      updateHeaderNewsletterButton(false);
     }
   }
   
-  // 邮件订阅按钮点击事件
-  const newsletterBtn = document.getElementById('newsletterBtn');
-  if (newsletterBtn) {
-    newsletterBtn.addEventListener('click', async () => {
-      const newsletterBtnText = document.getElementById('newsletterBtnText');
-      const isSubscribed = newsletterBtn.classList.contains('subscribed');
+  // Update header newsletter button status
+  function updateHeaderNewsletterButton(isSubscribed: boolean) {
+    const headerNewsletterBtn = document.getElementById('headerNewsletterBtn');
+    const headerNewsletterText = headerNewsletterBtn?.querySelector('.newsletter-btn-text');
+    
+    if (headerNewsletterBtn && headerNewsletterText) {
+      if (isSubscribed) {
+        headerNewsletterBtn.classList.add('subscribed');
+        headerNewsletterText.textContent = '✓ Subscribed';
+        headerNewsletterBtn.title = 'You are subscribed to our newsletter';
+      } else {
+        headerNewsletterBtn.classList.remove('subscribed');
+        headerNewsletterText.textContent = 'Newsletter';
+        headerNewsletterBtn.title = 'Subscribe to our newsletter';
+      }
+    }
+  }
+  
+  // Header newsletter button click event
+  const headerNewsletterBtn = document.getElementById('headerNewsletterBtn');
+  if (headerNewsletterBtn) {
+    headerNewsletterBtn.addEventListener('click', async () => {
+      const isSubscribed = headerNewsletterBtn.classList.contains('subscribed');
       
       try {
         if (isSubscribed) {
-          // 取消订阅
+          // Unsubscribe
           const confirmed = confirm('Are you sure you want to unsubscribe from our newsletter?');
           if (!confirmed) return;
           
+          console.log('📧 Header: Attempting to unsubscribe...');
           const response = await fetch('/api/newsletter/unsubscribe', {
             method: 'POST',
             credentials: 'include'
           });
+          
           const result = await response.json();
+          console.log('📧 Header: Unsubscribe result:', result);
           
           if (result.success) {
             alert('✅ ' + result.message);
-            loadNewsletterStatus(); // 刷新状态
+            loadNewsletterStatus();
+            // 通知其他组件状态已更改
+            window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
+              detail: { subscribed: false } 
+            }));
           } else {
-            alert('ℹ️ ' + result.message);
+            alert('ℹ️ ' + (result.message || 'Failed to unsubscribe. Please try again.'));
           }
         } else {
-          // 订阅
+          // Subscribe
+          console.log('📧 Header: Attempting to subscribe...');
           const response = await fetch('/api/newsletter/subscribe', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ source: 'header' })
           });
+          
           const result = await response.json();
+          console.log('📧 Header: Subscribe result:', result);
           
           if (result.success) {
             alert('🎉 ' + result.message);
-            loadNewsletterStatus(); // 刷新状态
+            loadNewsletterStatus();
+            // 通知其他组件状态已更改
+            window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
+              detail: { subscribed: true } 
+            }));
           } else {
             if (result.error === 'LOGIN_REQUIRED') {
               if (confirm('📧 ' + result.message + '\n\nWould you like to login or register now?')) {
-                if (userDropdown) {
-                  userDropdown.classList.remove('active');
-                }
                 if (window.openUserLoginModal) {
                   window.openUserLoginModal();
                 }
@@ -873,7 +1066,7 @@ import ThemeToggle from './ThemeToggle.astro';
           }
         }
       } catch (error) {
-        console.error('Newsletter operation failed:', error);
+        console.error('Header newsletter operation failed:', error);
         alert('❌ Failed to update subscription. Please try again later.');
       }
     });
