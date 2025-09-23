@@ -1,17 +1,17 @@
-// 🚀 Enhanced Progressive Loading Manager
+// 🚀 Enhanced Progressive Loading Manager - 性能优化版本
 class ProgressiveLoader {
   constructor() {
     this.isLoading = false;
     this.cache = new Map();
-    this.cacheExpiry = 60000; // 增加到1分钟缓存
+    this.cacheExpiry = 60000; // 1分钟缓存
     this.currentPage = 0;
-    this.pageSize = 10; // 10 articles per page
+    this.pageSize = 10;
     this.allArticles = [];
     this.hasMore = true;
-    // 分页相关属性
     this.totalArticles = 0;
     this.totalPages = 0;
-    this.allArticlesCache = null; // 缓存所有文章
+    this.allArticlesCache = null;
+    this.performanceMode = true; // 🚀 启用性能模式，减少复杂处理
   }
   
   async loadArticles(page = 0, useCache = true) {
@@ -942,8 +942,8 @@ class ProgressiveLoader {
         mediaUrl = article.image;
       }
       
-      // 🎬 异步生成视频缩略图（如果需要）
-      if (needsVideoThumbnail && hasVideoUrl) {
+      // 🎬 异步生成视频缩略图（性能模式下跳过）
+      if (!this.performanceMode && needsVideoThumbnail && hasVideoUrl) {
         setTimeout(async () => {
           try {
             const generatedThumbnail = await this.generateVideoThumbnail(article.videoUrl);
@@ -957,7 +957,7 @@ class ProgressiveLoader {
           } catch (error) {
             console.warn(`Failed to generate thumbnail for ${article.title}:`, error);
           }
-        }, index * 200); // 延迟生成，避免同时处理太多视频
+        }, index * 200);
       }
       
       // 🎯 改进视频标识：纯白色样式
@@ -1022,8 +1022,8 @@ class ProgressiveLoader {
         mediaUrl = article.image;
       }
       
-      // 🎬 异步生成视频缩略图（如果需要）
-      if (needsVideoThumbnail && hasVideoUrl) {
+      // 🎬 异步生成视频缩略图（性能模式下跳过）
+      if (!this.performanceMode && needsVideoThumbnail && hasVideoUrl) {
         setTimeout(async () => {
           try {
             const generatedThumbnail = await this.generateVideoThumbnail(article.videoUrl);
@@ -1037,7 +1037,7 @@ class ProgressiveLoader {
           } catch (error) {
             console.warn(`Failed to generate list thumbnail for ${article.title}:`, error);
           }
-        }, index * 100); // 更短的延迟，因为列表项较小
+        }, index * 100);
       }
       
       // 🎯 改进视频标识：更明显的内联视频图标
@@ -1099,11 +1099,11 @@ class ProgressiveLoader {
         mediaUrl = article.image;
       }
       
-      // 🎬 异步生成视频缩略图（如果需要）
-      if (needsVideoThumbnail && hasVideoUrl) {
+      // 🎬 异步生成视频缩略图（性能模式下跳过）
+      if (!this.performanceMode && needsVideoThumbnail && hasVideoUrl) {
         setTimeout(async () => {
           try {
-            const generatedThumbnail = await this.generateVideoThumbnail(article.videoUrl, 56, 56); // 小尺寸用于列表
+            const generatedThumbnail = await this.generateVideoThumbnail(article.videoUrl, 56, 56);
             if (generatedThumbnail) {
               const imgElement = container.querySelector(`img[data-article-id="${article.id}"]`);
               if (imgElement) {
@@ -1114,7 +1114,7 @@ class ProgressiveLoader {
           } catch (error) {
             console.warn(`Failed to generate paginated thumbnail for ${article.title}:`, error);
           }
-        }, index * 50); // 很短的延迟，因为是小图标
+        }, index * 50);
       }
       
       // 🎯 改进视频标识：更明显的内联视频图标

@@ -27,9 +27,9 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <meta name="description" content={description} />
     <!-- Content Security Policy for better security -->
     {import.meta.env.DEV ? (
-      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' chrome-extension: moz-extension: safari-extension:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss: ws: localhost:*; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' chrome-extension: moz-extension: safari-extension:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss: ws: localhost:*; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
     ) : (
-      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss:; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; media-src 'self' https: blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https: wss:; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
     )}
     <title>{title}</title>
     <style>
@@ -65,37 +65,42 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
     <UserProfileModal />
     <AdminUsersModal />
     
-    <!-- External scripts for CSP compliance -->
-    <script src="/scripts/smooth-scroll.js" is:inline></script>
-    
-    <!-- 🛡️ Admin Manager Lite Stability Patch - Temporarily disabled -->
-    <!-- <script src="/scripts/admin-manager-stability-patch-lite.js" is:inline></script> -->
-    
-    <!-- 🚀 Cache Sync Manager - Temporarily disabled to prevent cache loops -->
-    <!-- <script src="/scripts/cache-sync-manager.js" is:inline></script> -->
-    
-    <script src="/scripts/admin-manager.js" is:inline></script>
-    
-    <!-- 🔧 Enhanced Admin Operations - Temporarily disabled to fix infinite loop -->
-    <!-- <script src="/scripts/admin-manager-enhanced-operations.js" is:inline></script> -->
-    
-    <!-- 🚀 Debug utilities -->
-    <script src="/scripts/debug-utils.js" is:inline></script>
-    
-    <!-- 🚀 Cache cleaner - fix API format compatibility issues -->
-    <script src="/scripts/cache-cleaner.js" is:inline></script>
-    
-    <!-- 🚀 Load enhanced lazy loader -->
+    <!-- 🚀 性能优化: 延迟加载非关键脚本 -->
     <script is:inline>
+      // 延迟加载管理脚本，仅在需要时加载
+      function loadAdminScripts() {
+        if (window.adminScriptsLoaded) return;
+        window.adminScriptsLoaded = true;
+        
+        const scripts = [
+          '/scripts/admin-manager.js',
+          '/scripts/debug-utils.js',
+          '/scripts/cache-cleaner.js'
+        ];
+        
+        scripts.forEach((src, index) => {
+          setTimeout(() => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onerror = () => console.warn(`Failed to load: ${src}`);
+            document.head.appendChild(script);
+          }, index * 100); // 错开加载时间
+        });
+      }
       
-      // Load enhanced lazy loader for better performance
-      const lazyScript = document.createElement('script');
-      lazyScript.src = '/scripts/lazy-loader.js';
-      lazyScript.async = true;
-      lazyScript.onerror = function() {
-        console.warn('⚠️ Lazy loader script failed to load, using fallback');
-      };
-      document.head.appendChild(lazyScript);
+      // 检查是否需要管理功能
+      if (localStorage.getItem('user_token') || window.location.pathname.includes('/admin')) {
+        loadAdminScripts();
+      }
+      
+      // 延迟加载平滑滚动（非关键）
+      setTimeout(() => {
+        const smoothScrollScript = document.createElement('script');
+        smoothScrollScript.src = '/scripts/smooth-scroll.js';
+        smoothScrollScript.async = true;
+        document.head.appendChild(smoothScrollScript);
+      }, 1000);
     </script>
     
     <!-- Global error handling for better UX -->
@@ -112,7 +117,9 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
           source.includes('moz-extension://') ||
           source.includes('safari-extension://') ||
           message.includes('Non-Error promise rejection') ||
-          message.includes('ResizeObserver loop limit exceeded')
+          message.includes('ResizeObserver loop limit exceeded') ||
+          message.includes('401') ||
+          message.includes('Unauthorized')
         ) {
           e.preventDefault();
           return false;
@@ -125,235 +132,102 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         if (
           reason.toString().includes('chrome-extension') ||
           reason.toString().includes('moz-extension') ||
-          reason.toString().includes('safari-extension')
+          reason.toString().includes('safari-extension') ||
+          reason.toString().includes('401') ||
+          reason.toString().includes('Unauthorized')
         ) {
           e.preventDefault();
           return false;
         }
       });
+      
+      // Override console.error for 401 errors
+      const originalConsoleError = console.error;
+      console.error = function(...args) {
+        const message = args.join(' ');
+        if (message.includes('401') || message.includes('Unauthorized')) {
+          // Silently ignore 401 errors
+          return;
+        }
+        originalConsoleError.apply(console, args);
+      };
     </script>
     
-    <!-- Image optimization script -->
+    <!-- 🚀 优化后的图片处理脚本 -->
     <script is:inline>
-      // Image optimization and error handling script
+      // 轻量级图片优化和错误处理
       (function() {
-        // Clear invalid image cache and data
-        function clearInvalidImageCache() {
-          try {
-            // 清理localStorage中的缓存数据
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.includes('homepage_articles_cache') || key.includes('imacx_articles')) {
-                const data = localStorage.getItem(key);
-                if (data && (data.includes('placeholder.com') || data.includes('example.com') || data.includes('via.placeholder.com'))) {
-                  localStorage.removeItem(key);
-                  console.log('🗑️ Clearing invalid cache data:', key);
-                }
-              }
-            });
-
-            // 清理Service Worker缓存
-            if ('caches' in window) {
-              caches.keys().then(cacheNames => {
-                cacheNames.forEach(cacheName => {
-                  caches.open(cacheName).then(cache => {
-                    cache.keys().then(requests => {
-                      requests.forEach(request => {
-                        if (request.url.includes('placeholder.com') || 
-                            request.url.includes('example.com') ||
-                            request.url.includes('via.placeholder.com')) {
-                          cache.delete(request);
-                        }
-                      });
-                    });
-                  });
-                });
-              });
-            }
-          } catch (e) {
-            console.warn('清理缓存时出错:', e);
-          }
-        }
-        
-        function optimizeImages() {
-          const images = document.querySelectorAll('img[src]:not(.lazy):not([data-src])');
+        function handleImageErrors() {
+          const images = document.querySelectorAll('img:not([data-optimized])');
           images.forEach(img => {
-            if (img.dataset.optimized) return;
             img.dataset.optimized = 'true';
             
-            const src = img.src;
-            // 检测并替换无效的外部图片URL
-            if (src.includes('example.com') || src.includes('placeholder.com') || src.includes('via.placeholder.com')) {
-              img.src = '/images/placeholder.svg';
-              return;
-            }
-            
-            // 只为没有onerror处理的图片添加超时和错误处理
-            if (!img.onerror || img.onerror.toString().includes('this.onerror=null')) {
-              const timeout = setTimeout(() => {
-                if (!img.complete) {
-                  img.src = '/images/placeholder.svg';
-                }
-              }, 5000); // 减少到5秒超时
-              
-              const originalOnLoad = img.onload;
-              img.onload = (e) => {
-                clearTimeout(timeout);
-                img.style.opacity = '1';
-                if (originalOnLoad) originalOnLoad.call(img, e);
-              };
-
-              const originalOnError = img.onerror;
-              img.onerror = (e) => {
-                clearTimeout(timeout);
+            // 简化的错误处理
+            if (!img.onerror) {
+              img.onerror = () => {
                 img.src = '/images/placeholder.svg';
                 img.classList.add('error');
-                console.warn('❌ 图片加载失败，使用占位图:', src);
-                if (originalOnError) originalOnError.call(img, e);
               };
             }
           });
         }
         
-        // 初始化时清理缓存
-        clearInvalidImageCache();
-        
+        // 延迟执行图片优化，避免阻塞关键渲染
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', optimizeImages);
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(handleImageErrors, 100);
+          });
         } else {
-          optimizeImages();
-        }
-        
-        // 监听动态内容
-        if (window.MutationObserver) {
-          const observer = new MutationObserver(optimizeImages);
-          observer.observe(document.body, { childList: true, subtree: true });
+          setTimeout(handleImageErrors, 100);
         }
       })();
     </script>
-    <!-- 图片懒加载脚本 - 内联版本（修复Netlify导入问题） -->
+    <!-- 🚀 优化后的懒加载脚本 -->
     <script is:inline>
-      // 图片懒加载工具 - 内联版本，解决Netlify环境下的模块导入问题
-      function initLazyImageLoader() {
-        
+      // 轻量级懒加载实现
+      function initLazyLoading() {
         if ('IntersectionObserver' in window) {
-          const imageObserver = new IntersectionObserver((entries) => {
+          const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
               if (entry.isIntersecting) {
                 const img = entry.target;
-                const src = img.dataset.src;
-                
-                if (src) {
-                  // 直接设置图片src，避免预加载导致的控制台错误
-                  img.src = src;
+                if (img.dataset.src) {
+                  img.src = img.dataset.src;
                   img.classList.remove('lazy');
-                  img.classList.add('loaded');
-                  
-                  // 设置错误处理（仅在图片自身的onerror未处理时）
-                  if (!img.onerror) {
-                    img.onerror = () => {
-                      img.src = '/images/placeholder.svg';
-                      img.classList.add('error');
-                      console.warn('❌ 图片加载失败，使用占位图:', src);
-                    };
-                  }
-                  
-                  imageObserver.unobserve(img);
+                  observer.unobserve(img);
                 }
               }
             });
-          }, {
-            rootMargin: '50px' // 提前50px开始加载
+          }, { rootMargin: '50px' });
+          
+          // 观察现有图片
+          document.querySelectorAll('img[data-src]').forEach(img => {
+            observer.observe(img);
           });
-
-          // 观察所有懒加载图片
-          const observeImages = () => {
-            const lazyImages = document.querySelectorAll('img[data-src]:not(.observed)');
-            // 只在确实有新图片时才进行处理，避免重复调用
-            if (lazyImages.length > 0) {
-              lazyImages.forEach(img => {
-                img.classList.add('observed');
-                imageObserver.observe(img);
-              });
+          
+          // 延迟注册Service Worker
+          setTimeout(() => {
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/service-worker.js').catch(() => {});
             }
-          };
-          
-          observeImages();
-          
-          // 监听DOM变化，观察新添加的图片（添加防抖机制）
-          let observeTimeout;
-          const mutationObserver = new MutationObserver(() => {
-            clearTimeout(observeTimeout);
-            observeTimeout = setTimeout(() => {
-              observeImages();
-            }, 100); // 100ms防抖
-          });
-          
-          mutationObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-          
+          }, 2000);
         } else {
           // 降级处理
           document.querySelectorAll('img[data-src]').forEach(img => {
             img.src = img.dataset.src;
             img.classList.remove('lazy');
-            img.classList.add('loaded');
           });
         }
       }
       
-      // 图片缓存清理
-      function clearImageCache() {
-        if ('caches' in window) {
-          caches.delete('imacx-images-cache-v1').then(() => {
-          });
-        }
+      // 延迟初始化懒加载
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(initLazyLoading, 200);
+        });
+      } else {
+        setTimeout(initLazyLoading, 200);
       }
-      
-      document.addEventListener('DOMContentLoaded', () => {
-        // 初始化懒加载
-        initLazyImageLoader();
-        
-        // 注册Service Worker
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then((registration) => {
-              // console.log('🚀 Service Worker注册成功:', registration.scope);
-            })
-            .catch((error) => {
-              // console.error('❌ Service Worker注册失败:', error);
-            });
-        }
-      });
-      
-      // 文章更新后清理图片缓存
-      window.addEventListener('articlePublished', () => {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          const messageChannel = new MessageChannel();
-          messageChannel.port1.onmessage = (event) => {
-          };
-          
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'CLEAR_IMAGE_CACHE' },
-            [messageChannel.port2]
-          );
-        }
-      });
-      
-      window.addEventListener('articleUpdated', () => {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          const messageChannel = new MessageChannel();
-          messageChannel.port1.onmessage = (event) => {
-          };
-          
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'CLEAR_IMAGE_CACHE' },
-            [messageChannel.port2]
-          );
-        }
-      });
     </script>
   </body>
 </html>

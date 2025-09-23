@@ -912,7 +912,7 @@ import Layout from '../layouts/Layout.astro';
       }
       
       return `
-        <article class="thumb-card">
+        <a href="/article/${article.slug}" class="thumb-card">
           <div class="thumb-image-wrap">
             <img 
               src="${displayImage}" 
@@ -940,7 +940,7 @@ import Layout from '../layouts/Layout.astro';
             
             <div class="thumb-text">
               <h3 class="thumb-title">
-                <a href="/article/${article.slug}">${article.title}</a>
+                ${article.title}
               </h3>
               <div class="thumb-meta">
                 <span class="thumb-date">${publishDate}</span>
@@ -948,7 +948,7 @@ import Layout from '../layouts/Layout.astro';
               </div>
             </div>
           </div>
-        </article>
+        </a>
       `;
     }
 
@@ -1189,7 +1189,7 @@ import Layout from '../layouts/Layout.astro';
     margin: 0;
   }
 
-  :global(.thumb-title a) {
+  :global(.thumb-card) {
     color: inherit;
     text-decoration: none;
   }
