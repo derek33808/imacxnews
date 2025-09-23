@@ -138,6 +138,55 @@
         </form>
       </div>
       
+      <!-- Newsletter Subscription Section -->
+      <div class="profile-section">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          Newsletter Subscription
+        </h3>
+        <div class="newsletter-settings">
+          <div class="newsletter-status" id="newsletterStatusSection">
+            <div class="status-indicator" id="subscriptionStatus">
+              <span class="status-icon">📧</span>
+              <span class="status-text" id="subscriptionStatusText">Checking subscription status...</span>
+            </div>
+            <p class="subscription-description" id="subscriptionDescription">
+              Stay updated with our daily newsletter featuring the latest articles and updates.
+            </p>
+          </div>
+          
+          <div class="newsletter-actions" id="newsletterActions">
+            <button class="newsletter-action-btn" id="toggleSubscriptionBtn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <span id="toggleSubscriptionText">Loading...</span>
+            </button>
+          </div>
+          
+          <div class="newsletter-info">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Email Address:</span>
+                <span class="info-value" id="subscriptionEmail">-</span>
+              </div>
+              <div class="info-item" id="subscriptionDateInfo" style="display: none;">
+                <span class="info-label">Subscribed Since:</span>
+                <span class="info-value" id="subscriptionDate">-</span>
+              </div>
+              <div class="info-item" id="subscriptionSourceInfo" style="display: none;">
+                <span class="info-label">Source:</span>
+                <span class="info-value" id="subscriptionSource">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- Account Info Section -->
       <div class="profile-section">
         <h3>
@@ -808,6 +857,135 @@
     margin-right: var(--space-2);
   }
   
+  /* Newsletter Subscription Styles */
+  .newsletter-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .newsletter-status {
+    padding: var(--space-4);
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.05) 0%, rgba(26, 115, 232, 0.02) 100%);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(26, 115, 232, 0.1);
+  }
+  
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  
+  .status-icon {
+    font-size: 1.5rem;
+  }
+  
+  .status-text {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+  
+  .subscription-description {
+    color: var(--color-text-light);
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .newsletter-actions {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-4);
+  }
+  
+  .newsletter-action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+  }
+  
+  .newsletter-action-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  }
+  
+  .newsletter-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .newsletter-action-btn.unsubscribe {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  }
+  
+  .newsletter-action-btn.unsubscribe:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  }
+  
+  .newsletter-info {
+    background: rgba(248, 250, 252, 0.8);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+  }
+  
+  .info-grid {
+    display: grid;
+    gap: var(--space-3);
+  }
+  
+  .newsletter-info .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid rgba(26, 115, 232, 0.1);
+  }
+  
+  .newsletter-info .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .newsletter-info .info-label {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.875rem;
+  }
+  
+  .newsletter-info .info-value {
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.8);
+    padding: var(--space-1) var(--space-2);
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  
+  .subscription-status.subscribed .status-indicator {
+    color: #10b981;
+  }
+  
+  .subscription-status.not-subscribed .status-indicator {
+    color: #6b7280;
+  }
+  
   /* 滚动条美化 */
   .modal-body::-webkit-scrollbar {
     width: 6px;
@@ -1004,6 +1182,7 @@
   
   // 当前用户数据
   let currentUser: any = null;
+  let subscriptionData: any = null;
   
   // 预设头像选项
   const avatarOptions = [
@@ -1102,12 +1281,165 @@
       if (result.success && result.user) {
         currentUser = result.user;
         updateProfileDisplay();
+        // 加载邮件订阅状态
+        loadNewsletterSubscriptionStatus();
       } else {
         showMessage('Failed to load profile data', 'error');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
       showMessage('Failed to load profile data', 'error');
+    }
+  }
+  
+  // 🆕 加载邮件订阅状态
+  async function loadNewsletterSubscriptionStatus() {
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        subscriptionData = result;
+        updateNewsletterDisplay();
+      } else {
+        console.log('Could not load newsletter status');
+        updateNewsletterDisplay(null);
+      }
+    } catch (error) {
+      console.error('Error loading newsletter status:', error);
+      updateNewsletterDisplay(null);
+    }
+  }
+  
+  // 🆕 更新邮件订阅显示
+  function updateNewsletterDisplay(data = subscriptionData) {
+    const statusText = document.getElementById('subscriptionStatusText');
+    const statusSection = document.getElementById('subscriptionStatus');
+    const subscriptionEmail = document.getElementById('subscriptionEmail');
+    const subscriptionDate = document.getElementById('subscriptionDate');
+    const subscriptionSource = document.getElementById('subscriptionSource');
+    const subscriptionDateInfo = document.getElementById('subscriptionDateInfo');
+    const subscriptionSourceInfo = document.getElementById('subscriptionSourceInfo');
+    const toggleBtn = document.getElementById('toggleSubscriptionBtn');
+    const toggleBtnText = document.getElementById('toggleSubscriptionText');
+    
+    if (!statusText || !toggleBtn || !toggleBtnText) return;
+    
+    if (data && data.subscribed) {
+      // 已订阅状态
+      statusText.textContent = 'You are subscribed to our newsletter!';
+      statusSection?.classList.add('subscribed');
+      statusSection?.classList.remove('not-subscribed');
+      
+      toggleBtn.classList.add('unsubscribe');
+      toggleBtn.disabled = false;
+      toggleBtnText.textContent = 'Unsubscribe';
+      
+      if (subscriptionEmail) subscriptionEmail.textContent = data.email || currentUser?.email || '-';
+      if (subscriptionDate && data.createdAt) {
+        subscriptionDate.textContent = new Date(data.createdAt).toLocaleDateString();
+        subscriptionDateInfo?.style.setProperty('display', 'block');
+      }
+      if (subscriptionSource && data.source) {
+        const sourceNames: { [key: string]: string } = {
+          'header': 'Header Menu',
+          'footer': 'Footer Form',
+          'homepage': 'Homepage Form',
+          'manual': 'Manual'
+        };
+        subscriptionSource.textContent = sourceNames[data.source] || data.source;
+        subscriptionSourceInfo?.style.setProperty('display', 'block');
+      }
+    } else {
+      // 未订阅状态
+      statusText.textContent = 'You are not subscribed to our newsletter';
+      statusSection?.classList.add('not-subscribed');
+      statusSection?.classList.remove('subscribed');
+      
+      toggleBtn.classList.remove('unsubscribe');
+      toggleBtn.disabled = false;
+      toggleBtnText.textContent = 'Subscribe Now';
+      
+      if (subscriptionEmail) subscriptionEmail.textContent = currentUser?.email || '-';
+      subscriptionDateInfo?.style.setProperty('display', 'none');
+      subscriptionSourceInfo?.style.setProperty('display', 'none');
+    }
+  }
+  
+  // 🆕 切换邮件订阅状态
+  async function toggleNewsletterSubscription() {
+    const toggleBtn = document.getElementById('toggleSubscriptionBtn') as HTMLButtonElement;
+    const toggleBtnText = document.getElementById('toggleSubscriptionText');
+    const isSubscribed = subscriptionData?.subscribed;
+    
+    if (!toggleBtn || !toggleBtnText) return;
+    
+    // 禁用按钮防止重复点击
+    toggleBtn.disabled = true;
+    const originalText = toggleBtnText.textContent;
+    toggleBtnText.textContent = isSubscribed ? 'Unsubscribing...' : 'Subscribing...';
+    
+    try {
+      if (isSubscribed) {
+        // 取消订阅
+        const confirmed = confirm('Are you sure you want to unsubscribe from our newsletter?\n\nYou will no longer receive daily updates about new articles.');
+        if (!confirmed) {
+          toggleBtn.disabled = false;
+          toggleBtnText.textContent = originalText;
+          return;
+        }
+        
+        const response = await fetch('/api/newsletter/unsubscribe', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          showMessage('Successfully unsubscribed from newsletter! 😢', 'info');
+          // 重新加载订阅状态
+          await loadNewsletterSubscriptionStatus();
+          // 更新Header中的订阅状态
+          if (window.updateHeaderForUser && currentUser) {
+            window.updateHeaderForUser(currentUser);
+          }
+        } else {
+          showMessage(result.message || 'Failed to unsubscribe', 'error');
+        }
+      } else {
+        // 订阅
+        const response = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: 'profile' })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          showMessage('Successfully subscribed to newsletter! 🎉', 'success');
+          // 重新加载订阅状态
+          await loadNewsletterSubscriptionStatus();
+          // 更新Header中的订阅状态
+          if (window.updateHeaderForUser && currentUser) {
+            window.updateHeaderForUser(currentUser);
+          }
+        } else {
+          showMessage(result.message || 'Failed to subscribe', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Newsletter subscription toggle failed:', error);
+      showMessage('Failed to update subscription. Please try again.', 'error');
+    } finally {
+      // 恢复按钮状态
+      if (toggleBtn.textContent?.includes('...')) {
+        toggleBtn.disabled = false;
+        toggleBtnText.textContent = originalText;
+      }
     }
   }
   
@@ -1483,6 +1815,12 @@
   });
   
   cancelProfileBtn.addEventListener('click', cancelProfileChanges);
+  
+  // 🆕 邮件订阅按钮事件
+  const toggleSubscriptionBtn = document.getElementById('toggleSubscriptionBtn');
+  if (toggleSubscriptionBtn) {
+    toggleSubscriptionBtn.addEventListener('click', toggleNewsletterSubscription);
+  }
   
   // 点击外部关闭
   profileModal.addEventListener('click', (e) => {

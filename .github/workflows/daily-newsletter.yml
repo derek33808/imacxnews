@@ -1,0 +1,46 @@
+name: Daily Newsletter Sender
+
+on:
+  schedule:
+    # 每天 UTC 01:00 执行 (北京时间 09:00)
+    - cron: '0 1 * * *'
+  
+  # 允许手动触发（用于测试）
+  workflow_dispatch:
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send Daily Newsletter
+        run: |
+          echo "🚀 Starting daily newsletter send..."
+          echo "📅 Current time: $(date)"
+          
+          # 调用你的 API 发送邮件
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            https://imacxnews.com/api/newsletter/daily-send)
+          
+          # 提取响应体和状态码
+          body=$(echo "$response" | head -n -1)
+          status_code=$(echo "$response" | tail -n 1)
+          
+          echo "📧 API Response: $body"
+          echo "📊 Status Code: $status_code"
+          
+          # 检查是否成功
+          if [ "$status_code" -eq 200 ]; then
+            echo "✅ Newsletter sent successfully!"
+          else
+            echo "❌ Newsletter send failed with status $status_code"
+            exit 1
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "🚨 Newsletter sending failed! Check the logs above."
+          # 可以在这里添加更多的失败通知逻辑

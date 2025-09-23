@@ -68,6 +68,13 @@ import ThemeToggle from './ThemeToggle.astro';
                 </svg>
                 My Favorites
               </a>
+              <button class="dropdown-item newsletter-btn" id="newsletterBtn" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span id="newsletterBtnText">Subscribe to Newsletter</span>
+              </button>
               <button class="dropdown-item admin-users-btn" id="adminUsersBtn" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -334,6 +341,24 @@ import ThemeToggle from './ThemeToggle.astro';
     background-color: rgba(220, 38, 38, 0.1);
   }
   
+  /* Newsletter button styles */
+  .newsletter-btn {
+    color: var(--color-primary);
+  }
+  
+  .newsletter-btn:hover {
+    background-color: rgba(26, 115, 232, 0.1);
+    color: var(--color-primary);
+  }
+  
+  .newsletter-btn.subscribed {
+    color: #10b981;
+  }
+  
+  .newsletter-btn.subscribed:hover {
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+  
   /* Admin Bar Styles */
   @media (max-width: 768px) {
     .header-content {
@@ -551,6 +576,9 @@ import ThemeToggle from './ThemeToggle.astro';
     
     // 设置下拉菜单点击处理
     setupUserDropdownClick();
+    
+    // 加载邮件订阅状态
+    loadNewsletterStatus();
   }
   
   // 🆕 更新Header显示管理员状态（旧系统兼容）
@@ -576,6 +604,9 @@ import ThemeToggle from './ThemeToggle.astro';
     
     // 设置下拉菜单点击处理
     setupUserDropdownClick();
+    
+    // 加载邮件订阅状态
+    loadNewsletterStatus();
   }
   
   // 🆕 更新Header为未登录状态
@@ -755,6 +786,98 @@ import ThemeToggle from './ThemeToggle.astro';
   window.updateHeaderForUser = updateHeaderForUser;
   window.updateHeaderForAdmin = updateHeaderForAdmin;
   window.updateHeaderForLoggedOut = updateHeaderForLoggedOut;
+  
+  // 🆕 邮件订阅功能
+  async function loadNewsletterStatus() {
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) return;
+      
+      const result = await response.json();
+      const newsletterBtn = document.getElementById('newsletterBtn');
+      const newsletterBtnText = document.getElementById('newsletterBtnText');
+      
+      if (newsletterBtn && newsletterBtnText) {
+        newsletterBtn.style.display = 'flex';
+        
+        if (result.subscribed) {
+          newsletterBtnText.textContent = '✅ Subscribed';
+          newsletterBtn.classList.add('subscribed');
+          newsletterBtn.title = 'You are subscribed to our newsletter';
+        } else {
+          newsletterBtnText.textContent = 'Subscribe to Newsletter';
+          newsletterBtn.classList.remove('subscribed');
+          newsletterBtn.title = 'Subscribe to get daily updates';
+        }
+      }
+    } catch (error) {
+      console.log('Newsletter status check failed:', error);
+    }
+  }
+  
+  // 邮件订阅按钮点击事件
+  const newsletterBtn = document.getElementById('newsletterBtn');
+  if (newsletterBtn) {
+    newsletterBtn.addEventListener('click', async () => {
+      const newsletterBtnText = document.getElementById('newsletterBtnText');
+      const isSubscribed = newsletterBtn.classList.contains('subscribed');
+      
+      try {
+        if (isSubscribed) {
+          // 取消订阅
+          const confirmed = confirm('Are you sure you want to unsubscribe from our newsletter?');
+          if (!confirmed) return;
+          
+          const response = await fetch('/api/newsletter/unsubscribe', {
+            method: 'POST',
+            credentials: 'include'
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('✅ ' + result.message);
+            loadNewsletterStatus(); // 刷新状态
+          } else {
+            alert('ℹ️ ' + result.message);
+          }
+        } else {
+          // 订阅
+          const response = await fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: 'header' })
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('🎉 ' + result.message);
+            loadNewsletterStatus(); // 刷新状态
+          } else {
+            if (result.error === 'LOGIN_REQUIRED') {
+              if (confirm('📧 ' + result.message + '\n\nWould you like to login or register now?')) {
+                if (userDropdown) {
+                  userDropdown.classList.remove('active');
+                }
+                if (window.openUserLoginModal) {
+                  window.openUserLoginModal();
+                }
+              }
+            } else {
+              alert('ℹ️ ' + result.message);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Newsletter operation failed:', error);
+        alert('❌ Failed to update subscription. Please try again later.');
+      }
+    });
+  }
   
   // 🆕 导出调试函数
 </script>

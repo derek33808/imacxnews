@@ -160,17 +160,48 @@ model MediaFile {
 
 // 🆕 新闻订阅模型
 model NewsSubscription {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  email     String   // 冗余存储邮箱，方便批量发送
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            Int
+  email             String   // 冗余存储邮箱，方便批量发送
+  isActive          Boolean  @default(true)
+  unsubscribeToken  String   @unique // 取消订阅令牌
+  source            String   @default("manual") // 订阅来源: "header", "footer", "homepage", "manual"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
   @@unique([userId]) // 每个用户只能有一个订阅记录
   @@index([isActive])
   @@index([email])
+  @@index([unsubscribeToken])
+}
+
+// 🆕 邮件发送设置模型
+model EmailSettings {
+  id          Int      @id @default(autoincrement())
+  sendingMode String   @default("daily") // "immediate" | "daily"
+  dailyTime   String   @default("09:00") // 24小时制时间
+  isEnabled   Boolean  @default(true)
+  lastSentAt  DateTime?
+  updatedAt   DateTime @updatedAt
+  updatedBy   Int      // 更新者ID
+  
+  @@map("email_settings")
+}
+
+// 🆕 邮件发送记录模型
+model EmailSendLog {
+  id             Int      @id @default(autoincrement())
+  sentAt         DateTime @default(now())
+  recipientCount Int
+  articleIds     Int[]    // PostgreSQL 数组类型
+  subject        String
+  status         String   @default("sent") // "sent", "failed", "partial"
+  errorMessage   String?
+  
+  @@index([sentAt])
+  @@index([status])
+  @@map("email_send_log")
 }
 
 // 🆕 通知模型（站内通知）
