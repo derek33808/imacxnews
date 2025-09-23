@@ -9,6 +9,7 @@
         :root {
             --space-2: 0.5rem;
             --space-3: 0.75rem;
+            --space-4: 1rem;
             --space-6: 1.5rem;
             --color-text: #202124;
             --color-primary: #1a73e8;
@@ -68,30 +69,32 @@
             margin-right: 0;
         }
         
-        /* 测试版本3: 修复后的版本 */
+        /* 测试版本3: 修复后的版本 - 更小间距并居中 */
         .nav-test-fixed {
             display: flex;
             list-style: none;
             margin: 0;
             padding: 0;
-            gap: var(--space-6);
+            gap: var(--space-4);
             background: #fffacd;
             padding: 10px;
             border-radius: 4px;
+            justify-content: center;
+            align-items: center;
         }
         
         .nav-test-fixed .nav-item {
-            margin-right: var(--space-6);
+            margin-right: var(--space-4);
         }
         
         .nav-test-fixed .nav-item:last-child {
             margin-right: 0;
         }
         
-        /* 支持gap的设备使用gap */
+        /* 支持gap的设备使用更小的gap */
         @supports (gap: 1rem) {
             .nav-test-fixed {
-                gap: var(--space-6);
+                gap: var(--space-4);
             }
             
             .nav-test-fixed .nav-item {
@@ -99,10 +102,10 @@
             }
         }
         
-        /* 平板设备特定修复 */
+        /* 平板设备特定修复 - 使用更小间距 */
         @media only screen and (min-width: 768px) and (max-width: 1024px) {
             .nav-test-fixed .nav-item + .nav-item {
-                margin-left: var(--space-6);
+                margin-left: var(--space-4);
             }
         }
         

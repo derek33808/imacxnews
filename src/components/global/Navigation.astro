@@ -31,12 +31,14 @@ import { categories } from '../../data/categories';
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: var(--space-6);
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
   }
   
-  /* 🔧 平板设备兼容性修复 - 使用margin作为gap的降级处理 */
+  /* 🔧 平板设备兼容性修复 - 使用更小的间距 */
   .nav-item {
-    margin-right: var(--space-6);
+    margin-right: var(--space-4);
   }
   
   .nav-item:last-child {
@@ -46,7 +48,7 @@ import { categories } from '../../data/categories';
   /* 🚀 确保gap优先级更高，支持gap的设备使用gap */
   @supports (gap: 1rem) {
     .nav-list {
-      gap: var(--space-6);
+      gap: var(--space-4);
     }
     
     .nav-item {
