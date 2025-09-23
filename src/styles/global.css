@@ -314,23 +314,27 @@ img {
 .nav-list {
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  width: fit-content !important;
 }
 
-/* 强制导航项间距 - 使用更小的间距并居中聚集 */
+/* 强制导航项间距 - 使用最小间距并紧密聚集 */
 .nav-item + .nav-item {
-  margin-left: var(--space-4) !important;
+  margin-left: var(--space-3) !important;
 }
 
 /* 平板设备特定修复 (768px - 1024px) */
 @media only screen and (min-width: 768px) and (max-width: 1024px) {
   .nav-list {
-    gap: var(--space-4) !important;
+    gap: var(--space-3) !important;
     justify-content: center !important;
+    margin: 0 auto !important;
   }
   
   /* 如果gap不被支持，使用更小的margin */
   .nav-item {
-    margin: 0 calc(var(--space-4) / 2) !important;
+    margin: 0 calc(var(--space-3) / 2) !important;
   }
   
   .nav-item:first-child {

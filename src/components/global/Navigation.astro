@@ -29,16 +29,17 @@ import { categories } from '../../data/categories';
   .nav-list {
     display: flex;
     list-style: none;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
-    gap: var(--space-4);
+    gap: var(--space-3);
     justify-content: center;
     align-items: center;
+    width: fit-content;
   }
   
   /* 🔧 平板设备兼容性修复 - 使用更小的间距 */
   .nav-item {
-    margin-right: var(--space-4);
+    margin-right: var(--space-3);
   }
   
   .nav-item:last-child {
@@ -48,7 +49,7 @@ import { categories } from '../../data/categories';
   /* 🚀 确保gap优先级更高，支持gap的设备使用gap */
   @supports (gap: 1rem) {
     .nav-list {
-      gap: var(--space-4);
+      gap: var(--space-3);
     }
     
     .nav-item {

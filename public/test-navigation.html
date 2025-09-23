@@ -69,32 +69,33 @@
             margin-right: 0;
         }
         
-        /* 测试版本3: 修复后的版本 - 更小间距并居中 */
+        /* 测试版本3: 修复后的版本 - 最小间距并紧密居中 */
         .nav-test-fixed {
             display: flex;
             list-style: none;
-            margin: 0;
+            margin: 0 auto;
             padding: 0;
-            gap: var(--space-4);
+            gap: var(--space-3);
             background: #fffacd;
             padding: 10px;
             border-radius: 4px;
             justify-content: center;
             align-items: center;
+            width: fit-content;
         }
         
         .nav-test-fixed .nav-item {
-            margin-right: var(--space-4);
+            margin-right: var(--space-3);
         }
         
         .nav-test-fixed .nav-item:last-child {
             margin-right: 0;
         }
         
-        /* 支持gap的设备使用更小的gap */
+        /* 支持gap的设备使用最小gap */
         @supports (gap: 1rem) {
             .nav-test-fixed {
-                gap: var(--space-4);
+                gap: var(--space-3);
             }
             
             .nav-test-fixed .nav-item {
@@ -102,10 +103,10 @@
             }
         }
         
-        /* 平板设备特定修复 - 使用更小间距 */
+        /* 平板设备特定修复 - 使用最小间距 */
         @media only screen and (min-width: 768px) and (max-width: 1024px) {
             .nav-test-fixed .nav-item + .nav-item {
-                margin-left: var(--space-4);
+                margin-left: var(--space-3);
             }
         }
         
@@ -209,8 +210,8 @@
     </div>
     
     <div class="test-container">
-        <h2>✅ 测试3: 修复后的版本（推荐）</h2>
-        <p>结合了gap和margin，提供最佳兼容性</p>
+        <h2>✅ 测试3: 最终优化版本（推荐）</h2>
+        <p>最小间距 + 紧密居中，提供最佳视觉效果和兼容性</p>
         <ul class="nav-test-fixed">
             <li class="nav-item"><a href="#" class="nav-link">Home</a></li>
             <li class="nav-item"><a href="#" class="nav-link">Today News</a></li>
