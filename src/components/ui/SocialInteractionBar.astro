@@ -404,20 +404,78 @@ const {
     outline: none;
   }
 
-  /* 暗色模式适配 */
+  /* 强制浅色主题保护 - 防止系统暗色模式覆盖 */
+  html.light-theme .social-interaction-bar .interaction-group,
+  body.light-theme .social-interaction-bar .interaction-group,
+  .light-theme .social-interaction-bar .interaction-group,
+  [data-theme="light"] .social-interaction-bar .interaction-group,
+  .force-light .social-interaction-bar .interaction-group {
+    background: var(--color-surface, #ffffff) !important;
+    border-color: var(--color-border, #e5e7eb) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  html.light-theme .social-interaction-bar .interaction-btn,
+  body.light-theme .social-interaction-bar .interaction-btn,
+  .light-theme .social-interaction-bar .interaction-btn,
+  [data-theme="light"] .social-interaction-bar .interaction-btn,
+  .force-light .social-interaction-bar .interaction-btn {
+    color: var(--color-text-light, #6b7280) !important;
+  }
+
+  html.light-theme .social-interaction-bar .interaction-btn:hover,
+  body.light-theme .social-interaction-bar .interaction-btn:hover,
+  .light-theme .social-interaction-bar .interaction-btn:hover,
+  [data-theme="light"] .social-interaction-bar .interaction-btn:hover,
+  .force-light .social-interaction-bar .interaction-btn:hover {
+    background: var(--color-surface-hover, #f9fafb) !important;
+  }
+
+  /* 深色主题适配 - 使用系统级别的主题切换 */
+  html.dark-theme .social-interaction-bar .interaction-group,
+  body.dark-theme .social-interaction-bar .interaction-group,
+  .dark-theme .social-interaction-bar .interaction-group {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  html.dark-theme .social-interaction-bar .interaction-btn,
+  body.dark-theme .social-interaction-bar .interaction-btn,
+  .dark-theme .social-interaction-bar .interaction-btn {
+    color: var(--color-text-light) !important;
+  }
+
+  html.dark-theme .social-interaction-bar .interaction-btn:hover,
+  body.dark-theme .social-interaction-bar .interaction-btn:hover,
+  .dark-theme .social-interaction-bar .interaction-btn:hover {
+    background: var(--color-surface-hover) !important;
+  }
+
+  /* 系统偏好的暗色模式适配 - 更严格的条件控制 */
   @media (prefers-color-scheme: dark) {
-    .social-interaction-bar.light .interaction-group {
-      background: var(--color-surface-dark, #1f2937);
-      border-color: var(--color-border-dark, #374151);
+    /* 只有当明确设置为深色主题或者没有任何主题设置且body没有明确的浅色主题指示器时才应用 */
+    html.dark-theme .social-interaction-bar .interaction-group,
+    body.dark-theme .social-interaction-bar .interaction-group,
+    .dark-theme .social-interaction-bar .interaction-group,
+    :root:not(.light-theme):not([data-theme="light"]):not(.force-light) .social-interaction-bar .interaction-group {
+      background: var(--color-surface, #1f2937);
+      border-color: var(--color-border, #374151);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
-    .social-interaction-bar.light .interaction-btn {
-      color: var(--color-text-dark-light, #d1d5db);
+    html.dark-theme .social-interaction-bar .interaction-btn,
+    body.dark-theme .social-interaction-bar .interaction-btn,
+    .dark-theme .social-interaction-bar .interaction-btn,
+    :root:not(.light-theme):not([data-theme="light"]):not(.force-light) .social-interaction-bar .interaction-btn {
+      color: var(--color-text-light, #d1d5db);
     }
 
-    .social-interaction-bar.light .interaction-btn:hover {
-      background: var(--color-surface-dark-hover, #374151);
+    html.dark-theme .social-interaction-bar .interaction-btn:hover,
+    body.dark-theme .social-interaction-bar .interaction-btn:hover,
+    .dark-theme .social-interaction-bar .interaction-btn:hover,
+    :root:not(.light-theme):not([data-theme="light"]):not(.force-light) .social-interaction-bar .interaction-btn:hover {
+      background: var(--color-surface-hover, #374151);
     }
   }
 </style>
@@ -669,10 +727,50 @@ const {
     }
   }
 
+  // 主题保护函数 - 确保用户明确选择的浅色主题不被系统暗色模式覆盖
+  function protectLightTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.add('force-light');
+      document.body.classList.add('force-light');
+      // 移除可能的暗色主题类
+      document.documentElement.classList.remove('dark-theme');
+      document.body.classList.remove('dark-theme');
+    } else if (savedTheme === 'dark') {
+      document.documentElement.classList.remove('force-light');
+      document.body.classList.remove('force-light');
+    }
+  }
+
+  // 监听主题变化
+  function setupThemeProtection() {
+    // 初始化时应用主题保护
+    protectLightTheme();
+    
+    // 监听localStorage变化
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'theme') {
+        protectLightTheme();
+      }
+    });
+    
+    // 监听主题切换按钮点击
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        // 延迟执行，确保localStorage已更新
+        setTimeout(protectLightTheme, 10);
+      });
+    }
+  }
+
   // 初始化所有社交互动栏
   document.addEventListener('DOMContentLoaded', () => {
     const bars = document.querySelectorAll('.social-interaction-bar');
     bars.forEach(bar => new SocialInteractionBar(bar as HTMLElement));
+    
+    // 设置主题保护
+    setupThemeProtection();
   });
 
   // 添加CSS动画

@@ -31,9 +31,11 @@
   
   --color-text: #202124;
   --color-text-light: #5f6368;
+  --color-text-lighter: #9aa0a6;
   --color-background: #ffffff;
   --color-background-alt: #f8f9fa;
   --color-surface: #ffffff;
+  --color-surface-hover: #f9fafb;
   --color-border: #dadce0;
   
   --color-politics: #d32f2f;
@@ -104,6 +106,41 @@ html.dark-theme {
 body.dark-theme {
   background-color: var(--color-background);
   color: var(--color-text);
+}
+
+/* 强制浅色主题保护 - 防止系统暗色模式覆盖用户明确选择的浅色主题 */
+html.light-theme,
+body.light-theme,
+.light-theme,
+[data-theme="light"],
+.force-light {
+  --color-primary: #1a73e8 !important;
+  --color-primary-light: #4285f4 !important;
+  --color-primary-dark: #0d47a1 !important;
+  
+  --color-text: #202124 !important;
+  --color-text-light: #5f6368 !important;
+  --color-text-lighter: #9aa0a6 !important;
+  --color-background: #ffffff !important;
+  --color-background-alt: #f8f9fa !important;
+  --color-surface: #ffffff !important;
+  --color-surface-hover: #f9fafb !important;
+  --color-border: #dadce0 !important;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1) !important;
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.force-light {
+  background-color: var(--color-background) !important;
+  color: var(--color-text) !important;
+}
+
+body.force-light {
+  background-color: var(--color-background) !important;
+  color: var(--color-text) !important;
 }
 
 * {
