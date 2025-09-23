@@ -437,6 +437,7 @@ import ThemeToggle from './ThemeToggle.astro';
       updateHeaderForLoggedOut: () => void;
       checkUserStatus: () => Promise<void>;
       closeUserLoginModal: () => void;
+      ensureAdminScriptsLoaded: () => Promise<boolean>;
     }
   }
 
@@ -772,40 +773,60 @@ import ThemeToggle from './ThemeToggle.astro';
   // Manage articles button functionality
   const adminManageBtn = document.getElementById('adminManageBtn');
   if (adminManageBtn) {
-    adminManageBtn.addEventListener('click', () => {
+    adminManageBtn.addEventListener('click', async () => {
       console.log('🔧 Admin Manage button clicked');
       
-      // 尝试多次检查，确保管理脚本已加载
-      let retryCount = 0;
-      const maxRetries = 10;
-      
-      const tryOpenAdminModal = () => {
-        console.log(`🔍 Attempt ${retryCount + 1}: Checking AdminManagerModal availability...`);
-        console.log('window.openAdminManagerModal type:', typeof window.openAdminManagerModal);
+      try {
+        // 首先确保脚本已加载
+        if (window.ensureAdminScriptsLoaded) {
+          console.log('🔧 Ensuring admin scripts are loaded...');
+          await window.ensureAdminScriptsLoaded();
+        }
         
+        // 现在尝试打开模态框
         if (typeof window.openAdminManagerModal === 'function') {
           console.log('✅ Opening AdminManagerModal');
-          try {
-            window.openAdminManagerModal();
-            console.log('🔧 AdminManagerModal opened successfully');
-          } catch (error) {
-            console.error('❌ Error calling openAdminManagerModal:', error);
-            alert('Failed to open Admin Management. Error: ' + (error instanceof Error ? error.message : String(error)));
-          }
+          window.openAdminManagerModal();
+          console.log('🔧 AdminManagerModal opened successfully');
         } else {
-          retryCount++;
-          if (retryCount < maxRetries) {
-            console.log(`⏳ AdminManagerModal not ready, retrying in ${retryCount * 100}ms...`);
-            setTimeout(tryOpenAdminModal, retryCount * 100);
-          } else {
-            console.error('❌ openAdminManagerModal function not found after max retries');
-            console.log('Available window properties:', Object.keys(window).filter(key => key.includes('Admin')));
-            alert('Admin Management panel failed to load. Please refresh the page and try again.');
-          }
+          // 如果还是没有，尝试重试机制
+          console.log('⚠️ openAdminManagerModal still not available, trying fallback...');
+          
+          let retryCount = 0;
+          const maxRetries = 10;
+          
+          const tryOpenAdminModal = () => {
+            console.log(`🔍 Attempt ${retryCount + 1}: Checking AdminManagerModal availability...`);
+            console.log('window.openAdminManagerModal type:', typeof window.openAdminManagerModal);
+            
+            if (typeof window.openAdminManagerModal === 'function') {
+              console.log('✅ Opening AdminManagerModal (retry success)');
+              try {
+                window.openAdminManagerModal();
+                console.log('🔧 AdminManagerModal opened successfully');
+              } catch (error) {
+                console.error('❌ Error calling openAdminManagerModal:', error);
+                alert('Failed to open Admin Management. Error: ' + (error instanceof Error ? error.message : String(error)));
+              }
+            } else {
+              retryCount++;
+              if (retryCount < maxRetries) {
+                console.log(`⏳ AdminManagerModal not ready, retrying in ${retryCount * 100}ms...`);
+                setTimeout(tryOpenAdminModal, retryCount * 100);
+              } else {
+                console.error('❌ openAdminManagerModal function not found after max retries');
+                console.log('Available window properties:', Object.keys(window).filter(key => key.includes('Admin')));
+                alert('Admin Management panel failed to load. Please refresh the page and try again.');
+              }
+            }
+          };
+          
+          tryOpenAdminModal();
         }
-      };
-      
-      tryOpenAdminModal();
+      } catch (error) {
+        console.error('❌ Error in admin manage button click handler:', error);
+        alert('Failed to open Admin Management. Please refresh the page and try again.');
+      }
     });
   }
   

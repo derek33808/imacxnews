@@ -104,14 +104,31 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         // 检查 cookie 中的认证信息
         const hasCookieAuth = document.cookie.includes('token=') || 
                              document.cookie.includes('auth=') ||
-                             document.cookie.includes('user=');
+                             document.cookie.includes('user=') ||
+                             document.cookie.includes('jwt=');
         
         return hasToken || isAdminPath || hasCookieAuth;
       }
       
-      if (shouldLoadAdminScripts()) {
-        console.log('🔧 Loading admin scripts...');
-        loadAdminScripts();
+      // 延迟检查和加载脚本，给认证系统时间加载
+      function checkAndLoadAdminScripts() {
+        if (shouldLoadAdminScripts()) {
+          console.log('🔧 Loading admin scripts...');
+          loadAdminScripts();
+          return true;
+        }
+        return false;
+      }
+      
+      // 立即检查
+      if (!checkAndLoadAdminScripts()) {
+        // 如果立即检查没有加载，延迟再检查（用于异步认证）
+        setTimeout(() => {
+          if (!window.adminScriptsLoaded && shouldLoadAdminScripts()) {
+            console.log('🔧 Delayed loading admin scripts...');
+            loadAdminScripts();
+          }
+        }, 1000);
       }
       
       // 也在用户登录时加载管理脚本
@@ -119,6 +136,26 @@ const { title = 'IMACXNews', description = 'Your trusted source for breaking new
         console.log('🔧 User logged in, loading admin scripts...');
         loadAdminScripts();
       });
+      
+      // 添加全局函数供Header按钮调用
+      window.ensureAdminScriptsLoaded = function() {
+        if (!window.adminScriptsLoaded) {
+          console.log('🔧 Ensuring admin scripts are loaded...');
+          loadAdminScripts();
+          return new Promise((resolve) => {
+            // 检查脚本是否加载完成
+            const checkLoaded = () => {
+              if (typeof window.openAdminManagerModal === 'function') {
+                resolve(true);
+              } else {
+                setTimeout(checkLoaded, 100);
+              }
+            };
+            setTimeout(checkLoaded, 100);
+          });
+        }
+        return Promise.resolve(true);
+      };
       
       // 延迟加载平滑滚动（非关键）
       setTimeout(() => {
