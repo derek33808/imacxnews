@@ -6,11 +6,9 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# 确保函数正确处理 - Pro plan configuration
+# 函数配置 - 简化配置避免部署问题
 [functions]
   node_bundler = "esbuild"
-  # Pro plan supports larger payloads
-  included_files = ["**"]
 
 # 🚀 优化缓存头以提升性能
 [[headers]]
