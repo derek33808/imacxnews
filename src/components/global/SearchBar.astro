@@ -9,7 +9,7 @@
   <div class="search-overlay">
     <div class="search-content">
       <form class="search-form">
-        <input type="text" placeholder="Search news..." class="search-input" aria-label="Search">
+        <input type="text" placeholder="Search news... (Press Enter or click search)" class="search-input" aria-label="Search">
         <button type="submit" class="search-button">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </button>
@@ -82,6 +82,7 @@
   .search-form {
     display: flex;
     gap: var(--space-2);
+    margin-right: var(--space-12); /* 给关闭按钮留出空间 */
   }
   
   .search-input {
@@ -105,29 +106,52 @@
     color: white;
     border: none;
     border-radius: var(--radius-md);
-    padding: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     cursor: pointer;
-    transition: background-color var(--transition);
+    transition: all var(--transition);
+    min-width: 56px; /* 确保按钮有足够宽度 */
+    flex-shrink: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
   }
   
   .search-button:hover {
     background-color: var(--color-primary-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .search-button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
   }
   
   .close-search {
     position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    background: none;
-    border: none;
-    color: var(--color-text-light);
+    top: var(--space-3);
+    right: var(--space-3);
+    background: var(--color-background-alt);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
     cursor: pointer;
     padding: var(--space-2);
-    transition: color var(--transition);
+    border-radius: var(--radius-md);
+    transition: all var(--transition);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
   }
   
   .close-search:hover {
-    color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
   }
   
   .search-results {
@@ -135,58 +159,381 @@
     max-height: 60vh;
     overflow-y: auto;
   }
+  
+  /* Search Loading State */
+  .search-loading {
+    text-align: center;
+    padding: var(--space-6);
+    color: var(--color-text-light);
+  }
+  
+  .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--space-3);
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Search Error State */
+  .search-error {
+    text-align: center;
+    padding: var(--space-6);
+    color: var(--color-danger);
+    background-color: rgba(220, 38, 38, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+  }
+  
+  /* No Results State */
+  .no-results {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-text-light);
+  }
+  
+  .no-results h3 {
+    margin-bottom: var(--space-4);
+    color: var(--color-text);
+  }
+  
+  /* Search Results Header */
+  .search-results-header {
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .search-results-header h3 {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 1.25rem;
+    color: var(--color-text);
+  }
+  
+  .results-count {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+  }
+  
+  /* Search Results List - 使用首页相同的all-index样式 */
+  .search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  /* Search Highlight */
+  .search-highlight {
+    background-color: rgba(255, 235, 59, 0.3);
+    color: var(--color-text);
+    padding: 1px 2px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  
+  /* Search More Link */
+  .search-more {
+    text-align: center;
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .search-more a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .search-more a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Mobile Responsive */
+  @media (max-width: 640px) {
+    .search-overlay {
+      padding: var(--space-6) var(--space-2);
+    }
+    
+    .search-content {
+      padding: var(--space-4);
+      padding-top: var(--space-12); /* 为关闭按钮留出更多空间 */
+    }
+    
+    .search-form {
+      margin-right: var(--space-8); /* 移动端减少右边距 */
+    }
+    
+    .search-input {
+      font-size: 0.9rem;
+    }
+    
+    .search-input::placeholder {
+      font-size: 0.85rem;
+    }
+    
+    .search-button {
+      min-width: 48px;
+      padding: var(--space-3);
+    }
+    
+    .close-search {
+      top: var(--space-2);
+      right: var(--space-2);
+      width: 32px;
+      height: 32px;
+      padding: var(--space-1);
+    }
+    
+    .search-results {
+      max-height: 50vh;
+    }
+  }
 </style>
 
 <script>
   // Search toggle functionality
-  const searchToggle = document.querySelector('.search-toggle');
-  const searchOverlay = document.querySelector('.search-overlay');
-  const closeSearch = document.querySelector('.close-search');
-  const searchForm = document.querySelector('.search-form');
-  const searchInput = document.querySelector('.search-input');
-  const searchResults = document.querySelector('.search-results');
+  const searchToggle = document.querySelector('.search-toggle') as HTMLButtonElement | null;
+  const searchOverlay = document.querySelector('.search-overlay') as HTMLDivElement | null;
+  const closeSearch = document.querySelector('.close-search') as HTMLButtonElement | null;
+  const searchForm = document.querySelector('.search-form') as HTMLFormElement | null;
+  const searchInput = document.querySelector('.search-input') as HTMLInputElement | null;
+  const searchResults = document.querySelector('.search-results') as HTMLDivElement | null;
   
-  searchToggle.addEventListener('click', () => {
-    searchOverlay.classList.add('active');
-    setTimeout(() => {
-      searchInput.focus();
-    }, 300);
-    document.body.style.overflow = 'hidden';
-  });
+  if (searchToggle && searchOverlay && searchInput) {
+    searchToggle.addEventListener('click', () => {
+      searchOverlay.classList.add('active');
+      setTimeout(() => {
+        searchInput.focus();
+      }, 300);
+      document.body.style.overflow = 'hidden';
+    });
+  }
   
-  closeSearch.addEventListener('click', () => {
-    searchOverlay.classList.remove('active');
-    document.body.style.overflow = '';
-  });
-  
-  // Close search when clicking outside of search content
-  searchOverlay.addEventListener('click', (e) => {
-    if (e.target === searchOverlay) {
+  if (closeSearch && searchOverlay) {
+    closeSearch.addEventListener('click', () => {
       searchOverlay.classList.remove('active');
       document.body.style.overflow = '';
-    }
-  });
+    });
+  }
+  
+  // Close search when clicking outside of search content
+  if (searchOverlay) {
+    searchOverlay.addEventListener('click', (e) => {
+      if (e.target === searchOverlay) {
+        searchOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+  }
   
   // Close search when ESC key is pressed
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
+    if (e.key === 'Escape' && searchOverlay && searchOverlay.classList.contains('active')) {
       searchOverlay.classList.remove('active');
       document.body.style.overflow = '';
     }
   });
   
-  // Form submission
-  searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const query = searchInput.value.trim();
+  // Search state
+  let currentQuery = '';
+  let isSearching = false;
+
+  // Form submission - 只有提交表单（回车或点击搜索按钮）才搜索
+  if (searchForm) {
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      performSearch();
+    });
+  }
+
+  // 清空搜索结果当用户清空输入框时
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (!target) return;
+      
+      const query = target.value.trim();
+      
+      // 只有当输入框完全清空时才清空搜索结果
+      if (query.length === 0) {
+        clearSearchResults();
+        currentQuery = '';
+      }
+    });
+  }
+
+  // Perform search function - 只从表单提交触发
+  async function performSearch(): Promise<void> {
+    if (isSearching || !searchInput || !searchResults) return;
     
-    if (query) {
-      // In a real application, you would fetch results from your backend
-      // For demo purposes, we'll just display a message
+    const searchQuery = searchInput.value.trim();
+    
+    if (!searchQuery || searchQuery.length < 1) {
+      // 显示提示信息而不是直接清空
       searchResults.innerHTML = `
-        <p>Searching for: "${query}"</p>
-        <p style="margin-top: var(--space-4);">No results found. Try a different search term.</p>
+        <div class="search-error">
+          <p>Please enter at least 1 character to search.</p>
+        </div>
       `;
+      return;
     }
-  });
+
+    // 允许相同查询的重新搜索，因为用户可能想刷新结果
+    currentQuery = searchQuery;
+    isSearching = true;
+    
+    try {
+      // Show loading state
+      searchResults.innerHTML = `
+        <div class="search-loading">
+          <div class="loading-spinner"></div>
+          <p>Searching for "${searchQuery}"...</p>
+        </div>
+      `;
+
+      const response = await fetch(`/api/search/articles?q=${encodeURIComponent(searchQuery)}&limit=10`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Search failed');
+      }
+
+      displaySearchResults(data);
+      
+    } catch (error: unknown) {
+      console.error('Search error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      searchResults.innerHTML = `
+        <div class="search-error">
+          <p>❌ Search failed: ${errorMessage}</p>
+          <p>Please try again later.</p>
+        </div>
+      `;
+    } finally {
+      isSearching = false;
+    }
+  }
+
+  // Display search results
+  function displaySearchResults(data: any): void {
+    if (!searchResults) return;
+    
+    const { articles, total, query, resultsCount } = data;
+    
+    if (!articles || articles.length === 0) {
+      searchResults.innerHTML = `
+        <div class="no-results">
+          <h3>No results found for "${query}"</h3>
+          <p>Try using different keywords or check your spelling.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const resultsHtml = `
+      <div class="search-results-header">
+        <h3>Search Results for "${query}"</h3>
+        <p class="results-count">Found ${total} article${total !== 1 ? 's' : ''} (showing ${resultsCount})</p>
+      </div>
+      <div class="search-results-list">
+        ${articles.map((article: any) => createArticleResult(article)).join('')}
+      </div>
+      ${total > 10 ? `
+        <div class="search-more">
+          <p>Showing first 10 results. <a href="/search?q=${encodeURIComponent(query)}">View all ${total} results</a></p>
+        </div>
+      ` : ''}
+    `;
+    
+    searchResults.innerHTML = resultsHtml;
+    
+    // Add click handlers for results
+    addResultClickHandlers();
+  }
+
+  // Create individual article result HTML - 完全按照首页All Articles的结构
+  function createArticleResult(article: any): string {
+    const publishDate = new Date(article.publishDate).toLocaleDateString('en-US', {
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric'
+    });
+    
+    // 安全处理数据
+    const safeTitle = article.title || 'Untitled';
+    const safeSlug = article.slug || '';
+    
+    // 获取缩略图 - 优先显示videoPoster或image，fallback到placeholder
+    const mediaUrl = article.videoPoster || article.image || '/images/placeholder.svg';
+    
+    // 视频标识 - 完全按照首页样式
+    const isVideo = article.mediaType === 'VIDEO';
+    const videoBadge = isVideo ? `
+      <span class="video-indicator enhanced">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="23 7 16 12 23 17 23 7"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+      </span>` : '';
+    
+    // 视频时长显示
+    const videoDuration = isVideo && article.videoDuration ? 
+      `<span class="duration-text">${formatDuration(article.videoDuration)}</span>` : '';
+    
+    return `
+      <a href="/article/${safeSlug}" class="index-row ${isVideo ? 'video-row' : ''}">
+        <img src="${mediaUrl}" alt="${safeTitle}" class="index-thumb" 
+             loading="lazy" onerror="this.src='/images/placeholder.svg'">
+        <div class="index-meta">
+          <div class="index-title">${highlightText(safeTitle, currentQuery)} ${videoBadge}</div>
+          <div class="index-sub">${publishDate} ${videoDuration}</div>
+        </div>
+      </a>
+    `;
+  }
+  
+  // 格式化时长的辅助函数
+  function formatDuration(seconds: number): string {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `0:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Highlight search terms in text
+  function highlightText(text: any, query: any): string {
+    if (!text || !query) return text || '';
+    
+    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+    return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+  }
+
+  // Escape regex special characters
+  function escapeRegExp(string: any): string {
+    return String(string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // 现在使用<a>标签，不需要手动添加点击处理器
+  function addResultClickHandlers(): void {
+    // 使用<a>标签后，点击功能是原生支持的，不需要额外的JavaScript
+    // 保留此函数以防需要添加其他交互功能
+  }
+
+  // Clear search results
+  function clearSearchResults(): void {
+    if (searchResults) {
+      searchResults.innerHTML = '';
+    }
+    currentQuery = '';
+  }
 </script>
