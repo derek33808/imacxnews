@@ -109,6 +109,17 @@ window.forceRefreshAdminList = async function() {
   };
 })();
 
+// 🔧 Fallback: if this script is loaded after DOMContentLoaded, trigger initialization once
+setTimeout(() => {
+  if (document.readyState !== 'loading') {
+    try {
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+    } catch (e) {
+      // No-op: ensure we never break page if dispatch fails
+    }
+  }
+}, 0);
+
 document.addEventListener('DOMContentLoaded', function() {
   // 🎨 Initialize enhanced upload animations
   addUploadAnimations();

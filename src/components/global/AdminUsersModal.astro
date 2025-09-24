@@ -353,11 +353,9 @@
   }
 
   /* 让表头左边距与单元格内内容对齐：与单元格保持一致的水平内边距 */
-  .users-table thead th.col-username {
-    padding-left: var(--space-5);
-  }
+  .users-table thead th.col-username,
   .users-table thead th.col-email {
-    padding-left: var(--space-5);
+    padding-left: calc(var(--space-5) + var(--space-2));
   }
 
   /* 明确将这些列表头居中，避免被通用规则覆盖 */

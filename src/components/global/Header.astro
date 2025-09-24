@@ -32,6 +32,7 @@ import ThemeToggle from './ThemeToggle.astro';
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
             <polyline points="22,6 12,13 2,6"></polyline>
           </svg>
+          <span class="newsletter-spinner" aria-hidden="true"></span>
           <span class="newsletter-btn-text">Newsletter</span>
         </button>
         
@@ -208,6 +209,45 @@ import ThemeToggle from './ThemeToggle.astro';
     cursor: pointer;
     transition: all var(--transition);
     margin-right: var(--space-2);
+  }
+
+  .newsletter-subscribe-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .newsletter-subscribe-btn .newsletter-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: currentColor;
+    animation: headerSpinner 0.8s linear infinite;
+    display: none;
+  }
+
+  .newsletter-subscribe-btn.loading .newsletter-spinner {
+    display: inline-block;
+  }
+
+  .newsletter-subscribe-btn.loading .newsletter-btn-text {
+    opacity: 0.85;
+  }
+
+  .newsletter-subscribe-btn[disabled] {
+    cursor: not-allowed;
+    opacity: 0.85;
+  }
+
+  @keyframes headerSpinner {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
   
   .register-btn:hover {
@@ -919,11 +959,18 @@ import ThemeToggle from './ThemeToggle.astro';
   document.addEventListener('DOMContentLoaded', async () => {
     // 从API检查用户状态
     await checkUserStatus();
-    
-    // 检查newsletter状态（无论是否登录都显示按钮）
-    setTimeout(() => {
-      loadNewsletterStatus();
-    }, 500);
+
+    initializeHeaderSubscriptionManager();
+
+    const cachedStatus = getCachedNewsletterStatus();
+    if (cachedStatus) {
+      updateHeaderNewsletterButton(cachedStatus.subscribed);
+    } else {
+      // 检查newsletter状态（无论是否登录都显示按钮）
+      setTimeout(() => {
+        loadNewsletterStatus();
+      }, 300);
+    }
     
     // 检查AdminNewsletterModal是否可用（调试用）
     setTimeout(() => {
@@ -958,6 +1005,54 @@ import ThemeToggle from './ThemeToggle.astro';
   
   // 🆕 邮件订阅功能 - 使用全局订阅管理器
   let headerUnsubscribeFromManager: (() => void) | null = null;
+
+  const NEWSLETTER_STATUS_STORAGE_KEY = 'imacx_newsletter_status';
+  const NEWSLETTER_STATUS_CACHE_DURATION = 5 * 60 * 1000; // 5分钟
+
+  function canUseNewsletterCache() {
+    try {
+      return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function getCachedNewsletterStatus(): { subscribed: boolean } | null {
+    if (!canUseNewsletterCache()) return null;
+    try {
+      const raw = window.localStorage.getItem(NEWSLETTER_STATUS_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      if (typeof parsed.timestamp !== 'number' || typeof parsed.subscribed !== 'boolean') return null;
+      if (Date.now() - parsed.timestamp > NEWSLETTER_STATUS_CACHE_DURATION) {
+        window.localStorage.removeItem(NEWSLETTER_STATUS_STORAGE_KEY);
+        return null;
+      }
+      return { subscribed: parsed.subscribed };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function setCachedNewsletterStatus(subscribed: boolean) {
+    if (!canUseNewsletterCache()) return;
+    try {
+      window.localStorage.setItem(
+        NEWSLETTER_STATUS_STORAGE_KEY,
+        JSON.stringify({ subscribed, timestamp: Date.now() })
+      );
+    } catch (_error) {
+    }
+  }
+
+  function clearCachedNewsletterStatus() {
+    if (!canUseNewsletterCache()) return;
+    try {
+      window.localStorage.removeItem(NEWSLETTER_STATUS_STORAGE_KEY);
+    } catch (_error) {
+    }
+  }
   
   // 等待订阅管理器加载
   function waitForHeaderSubscriptionManager(callback: () => void) {
@@ -974,15 +1069,38 @@ import ThemeToggle from './ThemeToggle.astro';
       // 订阅状态变化通知
       headerUnsubscribeFromManager = window.subscriptionManager.onStatusChange((data) => {
         updateHeaderNewsletterButton(data.subscribed);
+        setCachedNewsletterStatus(data.subscribed);
       });
       
       // 立即检查状态
       window.subscriptionManager.checkStatus();
     });
   }
+
+  // 监听来自其他组件的订阅状态变化事件
+  window.addEventListener('newsletterStatusChanged', (event: any) => {
+    const subscribed = Boolean(event?.detail?.subscribed);
+    console.log('📧 Header: Received newsletter status change event:', event?.detail);
+    updateHeaderNewsletterButton(subscribed);
+    setCachedNewsletterStatus(subscribed);
+
+    // 确保全局订阅管理器状态保持最新
+    if (window.subscriptionManager) {
+      window.subscriptionManager.checkStatus().catch((error) => {
+        console.error('Header failed to synchronize subscription manager status:', error);
+      });
+    }
+  });
   
   // 加载邮件订阅状态
   async function loadNewsletterStatus() {
+    const cachedStatus = getCachedNewsletterStatus();
+    if (cachedStatus) {
+      console.log('📧 Header: Using cached newsletter status');
+      updateHeaderNewsletterButton(cachedStatus.subscribed);
+      return;
+    }
+
     try {
       console.log('📧 Header: Checking newsletter status...');
       const response = await fetch('/api/newsletter/subscribe', {
@@ -999,9 +1117,11 @@ import ThemeToggle from './ThemeToggle.astro';
       const result = await response.json();
       console.log('📧 Header: Newsletter status result:', result);
       updateHeaderNewsletterButton(result.subscribed);
+      setCachedNewsletterStatus(result.subscribed);
     } catch (error) {
       console.log('📧 Header: Newsletter status check failed:', error);
       updateHeaderNewsletterButton(false);
+      clearCachedNewsletterStatus();
     }
   }
   
@@ -1009,7 +1129,8 @@ import ThemeToggle from './ThemeToggle.astro';
   function updateHeaderNewsletterButton(isSubscribed: boolean) {
     const headerNewsletterBtn = document.getElementById('headerNewsletterBtn');
     const headerNewsletterText = headerNewsletterBtn?.querySelector('.newsletter-btn-text');
-    
+    const spinner = headerNewsletterBtn?.querySelector('.newsletter-spinner');
+
     if (headerNewsletterBtn && headerNewsletterText) {
       if (isSubscribed) {
         headerNewsletterBtn.classList.add('subscribed');
@@ -1019,6 +1140,10 @@ import ThemeToggle from './ThemeToggle.astro';
         headerNewsletterBtn.classList.remove('subscribed');
         headerNewsletterText.textContent = 'Newsletter';
         headerNewsletterBtn.title = 'Subscribe to our newsletter';
+      }
+
+      if (spinner instanceof HTMLElement) {
+        spinner.style.display = headerNewsletterBtn.classList.contains('loading') ? 'inline-block' : 'none';
       }
     }
   }
@@ -1035,6 +1160,8 @@ import ThemeToggle from './ThemeToggle.astro';
           const confirmed = confirm('Are you sure you want to unsubscribe from our newsletter?');
           if (!confirmed) return;
           
+          setHeaderNewsletterLoading(true, 'unsubscribe');
+
           console.log('📧 Header: Attempting to unsubscribe...');
           const response = await fetch('/api/newsletter/unsubscribe', {
             method: 'POST',
@@ -1046,16 +1173,20 @@ import ThemeToggle from './ThemeToggle.astro';
           
           if (result.success) {
             alert('✅ ' + result.message);
-            loadNewsletterStatus();
+            await loadNewsletterStatus();
             // 通知其他组件状态已更改
             window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
               detail: { subscribed: false } 
             }));
+            setCachedNewsletterStatus(false);
           } else {
             alert('ℹ️ ' + (result.message || 'Failed to unsubscribe. Please try again.'));
+            updateHeaderNewsletterButton(true);
           }
         } else {
           // Subscribe
+          setHeaderNewsletterLoading(true, 'subscribe');
+
           console.log('📧 Header: Attempting to subscribe...');
           const response = await fetch('/api/newsletter/subscribe', {
             method: 'POST',
@@ -1069,11 +1200,12 @@ import ThemeToggle from './ThemeToggle.astro';
           
           if (result.success) {
             alert('🎉 ' + result.message);
-            loadNewsletterStatus();
+            await loadNewsletterStatus();
             // 通知其他组件状态已更改
             window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
               detail: { subscribed: true } 
             }));
+            setCachedNewsletterStatus(true);
           } else {
             if (result.error === 'LOGIN_REQUIRED') {
               if (confirm('📧 ' + result.message + '\n\nWould you like to login or register now?')) {
@@ -1084,13 +1216,36 @@ import ThemeToggle from './ThemeToggle.astro';
             } else {
               alert('ℹ️ ' + result.message);
             }
+            updateHeaderNewsletterButton(false);
           }
         }
       } catch (error) {
         console.error('Header newsletter operation failed:', error);
         alert('❌ Failed to update subscription. Please try again later.');
+        updateHeaderNewsletterButton(isSubscribed);
+      } finally {
+        setHeaderNewsletterLoading(false);
       }
     });
+  }
+
+  function setHeaderNewsletterLoading(isLoading: boolean, action?: 'subscribe' | 'unsubscribe') {
+    const btn = document.getElementById('headerNewsletterBtn');
+    const text = btn?.querySelector('.newsletter-btn-text');
+
+    if (!btn || !(text instanceof HTMLElement)) return;
+
+    if (isLoading) {
+      btn.classList.add('loading');
+      btn.setAttribute('aria-busy', 'true');
+      btn.setAttribute('disabled', 'true');
+      text.textContent = action === 'unsubscribe' ? 'Unsubscribing...' : 'Subscribing...';
+    } else {
+      btn.classList.remove('loading');
+      btn.removeAttribute('aria-busy');
+      btn.removeAttribute('disabled');
+      updateHeaderNewsletterButton(btn.classList.contains('subscribed'));
+    }
   }
   
   // 🆕 导出调试函数

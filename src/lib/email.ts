@@ -126,12 +126,8 @@ export const emailTemplates = {
         
         <!-- Header -->
         <div style="background: #1a73e8; padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">
-            <span style="font-weight: 700;">IMACX</span><span style="font-weight: 400;">News</span>
-          </h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
-            Tech News • In-depth Analysis • Future Insights
-          </p>
+          <span style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:-0.02em;">IMACX News</span>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Tech News • In-depth Analysis • Future Insights</p>
         </div>
         
         <!-- Main Content -->
@@ -229,12 +225,8 @@ IMACX News Team`
         
         <!-- Header -->
         <div style="background: #1a73e8; padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">
-            <span style="font-weight: 700;">IMACX</span><span style="font-weight: 400;">News</span>
-          </h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
-            Password Reset Confirmation
-          </p>
+          <span style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:-0.02em;">IMACX News</span>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Password Reset Confirmation</p>
         </div>
         
         <!-- Main Content -->
@@ -332,28 +324,22 @@ IMACX News Security Team`
    * Newsletter Subscription Confirmation Email Template
    */
   newsletterSubscription: (username: string, displayName?: string, unsubscribeUrl?: string) => ({
-    subject: 'Welcome to IMACX News Newsletter',
+    subject: 'IMACX News Newsletter Subscription Confirmed',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
         
         <!-- Header -->
         <div style="background: #1a73e8; padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">
-            <span style="font-weight: 700;">IMACX</span><span style="font-weight: 400;">News</span>
-          </h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
-            Newsletter Subscription Confirmed
-          </p>
+          <span style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:-0.02em;">IMACX News</span>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Newsletter Subscription Confirmed</p>
         </div>
         
         <!-- Main Content -->
         <div style="background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
           <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 80px; height: 80px; background: #e0e7ff; border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 36px;">📬</span>
-            </div>
-            <h2 style="color: #4338ca; margin: 0 0 15px 0; font-size: 24px;">Subscription Confirmed!</h2>
+            
+            <h2 style="color: #4338ca; margin: 0 0 15px 0; font-size: 24px;">Subscription Confirmed</h2>
             <p style="color: #374151; margin: 0; font-size: 16px;">
               Hello <strong style="color: #6366f1;">${displayName || username}</strong>
             </p>
@@ -361,7 +347,7 @@ IMACX News Security Team`
           
           <div style="background: #f0f9ff; border: 1px solid #3b82f6; padding: 25px; border-radius: 8px; margin: 25px 0;">
             <p style="color: #1e40af; margin: 0 0 15px 0; font-weight: 600;">
-              🎉 You're now subscribed to IMACX News Newsletter!
+              You're now subscribed to IMACX News Newsletter.
             </p>
             <p style="color: #1e40af; margin: 0; line-height: 1.6;">
               You'll receive our curated tech news and insights directly in your inbox. Stay ahead with the latest technology trends!
@@ -369,7 +355,7 @@ IMACX News Security Team`
           </div>
           
           <div style="margin: 30px 0;">
-            <h3 style="color: #4338ca; margin: 0 0 15px 0; font-size: 18px;">📰 What to expect:</h3>
+            <h3 style="color: #4338ca; margin: 0 0 15px 0; font-size: 18px;">What to expect</h3>
             <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
               <ul style="color: #374151; margin: 0; padding-left: 20px; line-height: 1.8;">
                 <li>Weekly curated tech news and analysis</li>
@@ -384,7 +370,7 @@ IMACX News Security Team`
           <div style="text-align: center; margin: 35px 0;">
             <a href="https://imacxnews.com" 
                style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);">
-              🚀 Visit IMACX News
+              Visit IMACX News
             </a>
           </div>
           
@@ -408,7 +394,7 @@ IMACX News Security Team`
         
       </div>
     `,
-    text: `📧 IMACX News Newsletter Subscription Confirmed!
+    text: `IMACX News Newsletter Subscription Confirmed
 
 Hello ${displayName || username},
 
@@ -421,7 +407,7 @@ What to expect:
 • Product reviews and recommendations
 • Future technology trends and predictions
 
-We're excited to share amazing tech content with you!
+We're excited to share amazing tech content with you.
 
 Visit us: https://imacxnews.com
 ${unsubscribeUrl ? `Unsubscribe: ${unsubscribeUrl}` : ''}
@@ -433,27 +419,21 @@ IMACX News Team`
    * Newsletter Unsubscription Confirmation Email Template
    */
   newsletterUnsubscription: (username: string, displayName?: string) => ({
-    subject: '📭 IMACX News Newsletter - Unsubscription Confirmed',
+    subject: 'IMACX News Newsletter - Unsubscription Confirmed',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">
-            📭 IMACX News
-          </h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
-            Newsletter Unsubscription Confirmed
-          </p>
+          <span style="color:#ffffff; font-size:24px; font-weight:700;">IMACX News</span>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Newsletter Unsubscription Confirmed</p>
         </div>
         
         <!-- Main Content -->
         <div style="background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
           <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 36px;">✅</span>
-            </div>
+            
             <h2 style="color: #475569; margin: 0 0 15px 0; font-size: 24px;">Unsubscribed Successfully</h2>
             <p style="color: #374151; margin: 0; font-size: 16px;">
               Hello <strong style="color: #64748b;">${displayName || username}</strong>
@@ -461,16 +441,14 @@ IMACX News Team`
           </div>
           
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 25px; border-radius: 8px; margin: 25px 0;">
-            <p style="color: #475569; margin: 0 0 15px 0; font-weight: 600;">
-              😢 You've been unsubscribed from IMACX News Newsletter.
-            </p>
+            <p style="color: #475569; margin: 0 0 15px 0; font-weight: 600;">You've been unsubscribed from IMACX News Newsletter.</p>
             <p style="color: #475569; margin: 0; line-height: 1.6;">
               We're sorry to see you go! Your email has been removed from our newsletter list and you won't receive any more emails from us.
             </p>
           </div>
           
           <div style="margin: 30px 0;">
-            <h3 style="color: #475569; margin: 0 0 15px 0; font-size: 18px;">🤔 We'd love your feedback:</h3>
+            <h3 style="color: #475569; margin: 0 0 15px 0; font-size: 18px;">We'd love your feedback</h3>
             <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
               <p style="color: #374151; margin: 0 0 15px 0; line-height: 1.6;">
                 Help us improve by letting us know why you unsubscribed:
@@ -489,9 +467,7 @@ IMACX News Team`
           </div>
           
           <div style="background: #ecfdf5; border: 1px solid #10b981; padding: 20px; border-radius: 8px; margin: 25px 0;">
-            <p style="color: #065f46; margin: 0 0 10px 0; font-weight: 600;">
-              💡 Changed your mind?
-            </p>
+            <p style="color: #065f46; margin: 0 0 10px 0; font-weight: 600;">Changed your mind?</p>
             <p style="color: #065f46; margin: 0; line-height: 1.6; font-size: 14px;">
               You can always resubscribe by visiting our website and signing up again. We'd be happy to have you back!
             </p>
@@ -499,9 +475,7 @@ IMACX News Team`
           
           <div style="text-align: center; margin: 35px 0;">
             <a href="https://imacxnews.com" 
-               style="background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(148, 163, 184, 0.3);">
-              🌐 Visit IMACX News
-            </a>
+               style="background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(148, 163, 184, 0.3);">Visit IMACX News</a>
           </div>
           
           <div style="border-top: 1px solid #e2e8f0; padding-top: 25px; text-align: center;">
@@ -523,7 +497,7 @@ IMACX News Team`
         
       </div>
     `,
-    text: `📭 IMACX News Newsletter - Unsubscription Confirmed
+    text: `IMACX News Newsletter - Unsubscription Confirmed
 
 Hello ${displayName || username},
 
@@ -540,7 +514,7 @@ We'd love your feedback on why you unsubscribed:
 
 Feel free to reply to this email with your feedback!
 
-💡 Changed your mind?
+Changed your mind?
 You can always resubscribe by visiting our website and signing up again. We'd be happy to have you back!
 
 Visit us: https://imacxnews.com
@@ -554,27 +528,21 @@ IMACX News Team`
    * Email Verification Email Template
    */
   emailVerification: (username: string, verificationUrl: string, displayName?: string) => ({
-    subject: '📧 IMACX News - 请验证你的邮箱地址',
+    subject: 'IMACX News - 请验证你的邮箱地址',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">
-            📧 IMACX News
-          </h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
-            邮箱地址验证
-          </p>
+          <span style="color:#ffffff; font-size:24px; font-weight:700;">IMACX News</span>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">邮箱地址验证</p>
         </div>
         
         <!-- Main Content -->
         <div style="background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
           <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 80px; height: 80px; background: #f3e8ff; border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 36px;">📬</span>
-            </div>
+            
             <h2 style="color: #581c87; margin: 0 0 15px 0; font-size: 24px;">验证你的邮箱地址</h2>
             <p style="color: #374151; margin: 0; font-size: 16px;">
               你好 <strong style="color: #7c3aed;">${displayName || username}</strong>
@@ -589,9 +557,7 @@ IMACX News Team`
           
           <div style="text-align: center; margin: 35px 0;">
             <a href="${verificationUrl}" 
-               style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(168, 85, 247, 0.3);">
-              ✅ 验证邮箱地址
-            </a>
+               style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(168, 85, 247, 0.3);">验证邮箱地址</a>
           </div>
           
           <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 25px 0;">
@@ -605,12 +571,9 @@ IMACX News Team`
           
           <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <div style="display: flex; align-items: flex-start;">
-              <span style="font-size: 20px; margin-right: 10px;">⏰</span>
               <div>
                 <p style="color: #92400e; margin: 0 0 10px 0; font-weight: 600;">重要提醒</p>
-                <p style="color: #92400e; margin: 0; line-height: 1.6; font-size: 14px;">
-                  此验证链接将在24小时后过期。如果链接已过期，你可以在登录页面重新请求验证邮件。
-                </p>
+                <p style="color: #92400e; margin: 0; line-height: 1.6; font-size: 14px;">此验证链接将在24小时后过期。如果链接已过期，你可以在登录页面重新请求验证邮件。</p>
               </div>
             </div>
           </div>
@@ -634,7 +597,7 @@ IMACX News Team`
         
       </div>
     `,
-    text: `📧 IMACX News - 邮箱地址验证
+    text: `IMACX News - 邮箱地址验证
 
 你好 ${displayName || username}，
 
@@ -643,7 +606,7 @@ IMACX News Team`
 点击以下链接进行验证：
 ${verificationUrl}
 
-⏰ 重要提醒：
+重要提醒：
 此验证链接将在24小时后过期。如果链接已过期，你可以在登录页面重新请求验证邮件。
 
 如果你没有注册 IMACX News 账户，请忽略此邮件。

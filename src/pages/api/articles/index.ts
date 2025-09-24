@@ -306,9 +306,14 @@ export const POST: APIRoute = async ({ request }) => {
       if (mode === 'immediate') {
         // 异步触发，避免阻塞创建流程
         const cronSecret = import.meta.env.CRON_SECRET || 'imacx-newsletter-2024-secret';
-        const baseUrl = import.meta.env.SITE_BASE_URL || import.meta.env.PUBLIC_SITE_URL || '';
-        const endpoint = `${baseUrl}/api/newsletter/daily-send`;
-        fetch(endpoint, {
+        const origin = (() => { try { return new URL(request.url).origin; } catch { return ''; } })();
+        const configuredBase = import.meta.env.SITE_BASE_URL || import.meta.env.PUBLIC_SITE_URL || '';
+        const baseUrl = configuredBase || origin;
+        const endpoint = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/newsletter/daily-send` : '';
+        if (!endpoint) {
+          console.error('❌ Immediate newsletter trigger skipped: missing SITE_BASE_URL/PUBLIC_SITE_URL and origin');
+        }
+        if (endpoint) fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

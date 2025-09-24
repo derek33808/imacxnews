@@ -61,9 +61,7 @@ export function generateDailyNewsletterHTML(articles: Article[], subscriber: Sub
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                📰 IMACX News
-              </h1>
+              <span style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:-0.02em;">IMACX News</span>
               <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; font-weight: 500;">
                 Daily Update for ${currentDate}
               </p>
@@ -126,7 +124,7 @@ export function generateDailyNewsletterHTML(articles: Article[], subscriber: Sub
                         <tr>
                           <td style="background-color: #1a73e8; border-radius: 6px;">
                             <a href="https://imacxnews.com/article/${article.slug}" style="background-color: #1a73e8; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px;">
-                              Read Full Article →
+                              Read Full Article
                             </a>
                           </td>
                         </tr>
@@ -134,8 +132,8 @@ export function generateDailyNewsletterHTML(articles: Article[], subscriber: Sub
                       
                       <!-- Article Meta -->
                       <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f3f4; font-size: 13px; color: #9aa0a6;">
-                        <span style="margin-right: 15px;">📅 ${new Date(article.publishDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                        <span>✍️ ${article.author}</span>
+                        <span style="margin-right: 15px;">Date: ${new Date(article.publishDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span>Author: ${article.author}</span>
                       </div>
                       
                     </td>
@@ -152,26 +150,31 @@ export function generateDailyNewsletterHTML(articles: Article[], subscriber: Sub
               
               <!-- Social Links -->
               <div style="margin-bottom: 20px;">
-                <a href="https://imacxnews.com" style="color: #1a73e8; text-decoration: none; margin: 0 15px; font-weight: 500;">
-                  🏠 Visit Website
-                </a>
-                <a href="mailto:newsletter@imacxnews.com" style="color: #1a73e8; text-decoration: none; margin: 0 15px; font-weight: 500;">
-                  📧 Contact Us
-                </a>
+                <a href="https://imacxnews.com" style="color: #1a73e8; text-decoration: none; margin: 0 15px; font-weight: 500;">Visit Website</a>
+                <a href="mailto:newsletter@imacxnews.com" style="color: #1a73e8; text-decoration: none; margin: 0 15px; font-weight: 500;">Contact Us</a>
               </div>
               
               <!-- Subscription Info -->
               <p style="color: #5f6368; margin: 0 0 15px 0; font-size: 14px; line-height: 1.5;">
-                📬 You received this email because you subscribed to IMACX News newsletter.<br>
+                You received this email because you subscribed to IMACX News newsletter.<br>
                 This email was sent to <strong>${subscriber.email}</strong>
               </p>
               
               <!-- Unsubscribe Link -->
-              <p style="margin: 15px 0 0 0;">
-                <a href="${unsubscribeUrl}" style="color: #ea4335; text-decoration: none; font-size: 13px; font-weight: 500;">
-                  🚫 Unsubscribe from newsletter
-                </a>
-              </p>
+              <div style="margin: 20px 0 0 0;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                  <tr>
+                    <td style="background-color: #ea4335; border-radius: 28px;">
+                      <a href="${unsubscribeUrl}" style="display: inline-block; padding: 12px 28px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px;">
+                        Unsubscribe
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="color: #9aa0a6; margin: 12px 0 0 0; font-size: 12px;">
+                  Manage your preferences or stop receiving these emails with one click.
+                </p>
+              </div>
               
               <!-- Copyright -->
               <p style="color: #9aa0a6; margin: 25px 0 0 0; font-size: 12px;">
@@ -199,9 +202,9 @@ export function generateEmailSubject(articles: Article[]): string {
   });
   
   if (count === 1) {
-    return `📰 IMACX News (${today}): ${articles[0].title}`;
+    return `IMACX News (${today}): ${articles[0].title}`;
   } else {
-    return `📰 IMACX News Daily Update (${today}): ${count} New Articles`;
+    return `IMACX News Daily Update (${today}): ${count} New Articles`;
   }
 }
 

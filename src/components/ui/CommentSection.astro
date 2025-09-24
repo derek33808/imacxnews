@@ -205,6 +205,7 @@ const {
     border-radius: var(--radius-md);
     border: 1px solid transparent;
     transition: border-color 0.2s ease, background-color 0.3s ease;
+    align-items: flex-start; /* 防止左侧头像在某些环境被拉伸 */
   }
 
   .comment-form:focus-within {
@@ -214,6 +215,8 @@ const {
 
   .user-avatar {
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
   }
 
   .avatar-emoji {
@@ -226,6 +229,7 @@ const {
     text-align: center;
     line-height: 40px;
     font-size: 1.25rem;
+    aspect-ratio: 1 / 1; /* 保证正圆比例，避免被父容器拉伸 */
   }
 
   .form-content {
