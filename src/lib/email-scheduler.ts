@@ -4,7 +4,7 @@ import type { EmailOptions } from './email';
 export interface EmailScheduleConfig {
   sendTime: string;        // HH:MM format
   timezone: string;        // e.g., "Asia/Shanghai"
-  frequency: 'daily' | 'weekly' | 'monthly' | 'disabled';
+  frequency: 'immediate' | 'daily' | 'weekly' | 'monthly' | 'disabled';
   weeklyDay?: string;      // for weekly: monday, tuesday, etc.
   monthlyDate?: number;    // for monthly: 1-28
 }
@@ -59,6 +59,9 @@ export class EmailScheduler {
     const today = this.getDateInTimezone(now, this.scheduleConfig.timezone);
     
     switch (this.scheduleConfig.frequency) {
+      case 'immediate':
+        // Immediate mode is event-driven, not time-driven
+        return false;
       case 'daily':
         return true;
         
@@ -241,7 +244,7 @@ export class EmailScheduler {
     }
 
     // 验证频率
-    const validFrequencies = ['daily', 'weekly', 'monthly', 'disabled'];
+    const validFrequencies = ['immediate', 'daily', 'weekly', 'monthly', 'disabled'];
     if (!validFrequencies.includes(this.scheduleConfig.frequency)) {
       errors.push('Invalid NEWSLETTER_FREQUENCY. Use: daily, weekly, monthly, or disabled.');
     }

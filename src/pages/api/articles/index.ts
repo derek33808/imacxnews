@@ -300,6 +300,31 @@ export const POST: APIRoute = async ({ request }) => {
       operation: 'CREATE'
     };
     
+    // 触发立即推送（根据环境配置）
+    try {
+      const mode = (import.meta.env.NEWSLETTER_FREQUENCY as string) || 'daily';
+      if (mode === 'immediate') {
+        // 异步触发，避免阻塞创建流程
+        const cronSecret = import.meta.env.CRON_SECRET || 'imacx-newsletter-2024-secret';
+        const baseUrl = import.meta.env.SITE_BASE_URL || import.meta.env.PUBLIC_SITE_URL || '';
+        const endpoint = `${baseUrl}/api/newsletter/daily-send`;
+        fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${cronSecret}`,
+            'x-force-immediate': 'true'
+          },
+          body: JSON.stringify({ articleId: created.id })
+        }).then(async (r) => {
+          console.log('📧 Immediate newsletter trigger status:', r.status);
+          try { console.log('📧 Immediate newsletter trigger body:', await r.text()); } catch {}
+        }).catch((e) => console.error('❌ Immediate newsletter trigger failed:', e));
+      }
+    } catch (e) {
+      console.error('⚠️ Failed to trigger immediate newsletter:', e);
+    }
+
     return new Response(JSON.stringify(responseData), { 
       status: 201, 
       headers: { 

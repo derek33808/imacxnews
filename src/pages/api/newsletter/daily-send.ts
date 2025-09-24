@@ -57,9 +57,40 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // 解析目标文章ID（用于立即发送特定文章）
+    let targetArticleIds: number[] | null = null;
+    try {
+      if (request.headers.get('content-type')?.includes('application/json')) {
+        const body = await request.json().catch(() => null);
+        if (body && Array.isArray(body.articleIds)) {
+          targetArticleIds = body.articleIds.map((x: any) => Number(x)).filter((x: number) => Number.isFinite(x));
+        } else if (body && Number.isFinite(body.articleId)) {
+          targetArticleIds = [Number(body.articleId)];
+        }
+      }
+    } catch {}
+
+    // 支持从查询参数读取单个 articleId（可选）
+    if (!targetArticleIds) {
+      const urlObj = new URL(request.url);
+      const qId = urlObj.searchParams.get('articleId');
+      if (qId && Number.isFinite(Number(qId))) {
+        targetArticleIds = [Number(qId)];
+      }
+      const qIds = urlObj.searchParams.getAll('articleIds');
+      if (!targetArticleIds && qIds && qIds.length > 0) {
+        const parsed = qIds
+          .flatMap((v) => v.split(','))
+          .map((x) => Number(x))
+          .filter((x) => Number.isFinite(x));
+        if (parsed.length > 0) targetArticleIds = parsed;
+      }
+    }
+
     // 检查是否应该今天发送（但允许强制发送）
     const forceImmediate = request.headers.get('x-force-immediate') === 'true' || 
-                          request.url.includes('force=true');
+                          request.url.includes('force=true') ||
+                          !!targetArticleIds;
     
     if (!config.shouldSendToday && !forceImmediate) {
       console.log(`📧 Newsletter not scheduled for today (${config.schedule.frequency} frequency)`);
@@ -84,26 +115,44 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('🔍 Newsletter daily send called');
 
-    // 获取今天发布的文章（如果强制发送，则获取最新的文章）
+    // 获取今天发布的文章（如果强制发送，则获取最新或指定的文章）
     let todayArticles;
     
     if (forceImmediate) {
-      // 强制发送时，获取最近发布的文章
-      console.log('🔄 Force mode: Getting latest articles instead of today only');
-      todayArticles = await prisma.article.findMany({
-        orderBy: { publishDate: 'desc' },
-        take: 5, // 获取最新5篇文章
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          image: true,
-          author: true,
-          publishDate: true,
-          category: true
-        }
-      });
+      if (targetArticleIds && targetArticleIds.length > 0) {
+        console.log('🔄 Force mode: Using specified articleIds for immediate send', targetArticleIds);
+        todayArticles = await prisma.article.findMany({
+          where: { id: { in: targetArticleIds } },
+          orderBy: { publishDate: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            image: true,
+            author: true,
+            publishDate: true,
+            category: true
+          }
+        });
+      } else {
+        // 强制发送但未指定ID时，获取最近发布的文章
+        console.log('🔄 Force mode: Getting latest articles instead of today only');
+        todayArticles = await prisma.article.findMany({
+          orderBy: { publishDate: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            image: true,
+            author: true,
+            publishDate: true,
+            category: true
+          }
+        });
+      }
     } else {
       // 正常模式：只获取今天发布的文章
       todayArticles = await prisma.article.findMany({
@@ -200,8 +249,17 @@ export const POST: APIRoute = async ({ request }) => {
         // 批量发送邮件
         const emailPromises = subscribers.map(async (subscriber) => {
           try {
-            const htmlContent = generateDailyNewsletterHTML(todayArticles, subscriber);
-            const textContent = generatePlainTextVersion(todayArticles, subscriber);
+            const subForEmail = {
+              id: (subscriber as any).id,
+              email: (subscriber as any).email,
+              unsubscribeToken: (subscriber as any).unsubscribeToken,
+              user: {
+                username: (subscriber as any).user?.username,
+                displayName: (subscriber as any).user?.displayName
+              }
+            } as any;
+            const htmlContent = generateDailyNewsletterHTML(todayArticles as any, subForEmail);
+            const textContent = generatePlainTextVersion(todayArticles as any, subForEmail);
 
             const result = await resend.emails.send({
               from: fromEmail,
@@ -249,6 +307,15 @@ export const POST: APIRoute = async ({ request }) => {
       console.log('🧪 Simulating email send (no RESEND_API_KEY found)...');
       
       emailResults = subscribers.map((subscriber) => {
+        const subForEmail = {
+          id: (subscriber as any).id,
+          email: (subscriber as any).email,
+          unsubscribeToken: (subscriber as any).unsubscribeToken,
+          user: {
+            username: (subscriber as any).user?.username,
+            displayName: (subscriber as any).user?.displayName
+          }
+        } as any;
         console.log(`📧 [SIMULATE] Would send to: ${subscriber.email}`);
         successCount++;
         return { 
@@ -260,17 +327,24 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // 记录发送日志到数据库
+    // 记录发送日志到数据库（兼容 prisma client 表名映射）
     try {
-      await prisma.emailSendLog.create({
-        data: {
-          recipientCount: successCount,
-          articleIds: todayArticles.map(a => a.id),
-          subject: emailSubject,
-          status: errorCount === 0 ? 'sent' : 'partial',
-          errorMessage: errorCount > 0 ? `${errorCount} emails failed` : null
-        }
-      });
+      // 优先使用 prisma.emailSendLog，如果不存在则使用 prisma["email_send_log"]
+      const logData = {
+        recipientCount: successCount,
+        articleIds: todayArticles.map(a => a.id),
+        subject: emailSubject,
+        status: errorCount === 0 ? 'sent' : 'partial',
+        errorMessage: errorCount > 0 ? `${errorCount} emails failed` : null
+      } as any;
+      const clientAny: any = prisma as any;
+      if (clientAny.emailSendLog?.create) {
+        await clientAny.emailSendLog.create({ data: logData });
+      } else if (clientAny.email_send_log?.create) {
+        await clientAny.email_send_log.create({ data: logData });
+      } else {
+        console.warn('⚠️ EmailSendLog model not available on Prisma client');
+      }
       console.log('📝 Send log recorded to database');
     } catch (logError) {
       console.error('⚠️ Failed to record send log:', logError);

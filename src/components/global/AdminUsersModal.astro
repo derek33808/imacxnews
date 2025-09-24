@@ -76,6 +76,16 @@
         
         <div id="usersTable" style="display: none;">
           <table class="users-table">
+            <colgroup>
+              <col style="width:72px">
+              <col style="width:120px">
+              <col style="width:140px">
+              <col style="width:180px">
+              <col style="width:100px">
+              <col style="width:100px">
+              <col style="width:120px">
+              <col style="width:140px">
+            </colgroup>
             <thead>
               <tr>
                 <th class="col-avatar">Avatar</th>
@@ -148,7 +158,7 @@
     transform: translateY(-50px);
     transition: transform 0.3s ease;
     box-shadow: var(--shadow-xl);
-    border: 1px solid var(--color-border);
+    border: none;
   }
   
   .modal.active .modal-content {
@@ -323,6 +333,7 @@
     background-color: transparent;
     border-radius: var(--radius-lg);
     overflow: hidden;
+    table-layout: fixed; /* 保持表头与行宽度一致 */
   }
   
   .users-table thead th {
@@ -341,6 +352,23 @@
     margin-bottom: 4px;
   }
 
+  /* 让表头左边距与单元格内内容对齐：与单元格保持一致的水平内边距 */
+  .users-table thead th.col-username {
+    padding-left: var(--space-5);
+  }
+  .users-table thead th.col-email {
+    padding-left: var(--space-5);
+  }
+
+  /* 明确将这些列表头居中，避免被通用规则覆盖 */
+  .users-table thead th.col-avatar,
+  .users-table thead th.col-role,
+  .users-table thead th.col-status,
+  .users-table thead th.col-activity,
+  .users-table thead th.col-actions {
+    text-align: center;
+  }
+
   .users-table thead th:first-child {
     border-top-left-radius: var(--radius-md);
     border-bottom-left-radius: var(--radius-md);
@@ -352,24 +380,15 @@
   }
   
   .users-table .col-avatar {
-    width: 60px;
+    width: 72px; /* 头像52 + 单元格左右padding差值，保证表头与内容对齐 */
     text-align: center;
   }
   
-  .users-table .col-username {
-    width: 120px;
-    min-width: 100px;
-  }
+  .users-table .col-username { width: 120px; min-width: 120px; }
   
-  .users-table .col-display-name {
-    width: 140px;
-    min-width: 120px;
-  }
+  .users-table .col-display-name { width: 140px; min-width: 140px; }
   
-  .users-table .col-email {
-    width: 180px;
-    min-width: 150px;
-  }
+  .users-table .col-email { width: 180px; min-width: 180px; }
   
   .users-table .col-role {
     width: 100px;
@@ -394,7 +413,7 @@
   .users-container {
     background-color: var(--color-background-alt);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
+    border: none;
     overflow: hidden;
     max-height: 500px;
     overflow-y: auto;
@@ -460,6 +479,11 @@
     padding: var(--space-6) var(--space-5);
     vertical-align: middle;
     border: none;
+  }
+
+  /* 首列内容（头像）与表头竖线对齐：给首列内容提供同等水平空间 */
+  .users-table tbody td.col-avatar > .user-avatar {
+    margin-left: calc((72px - 52px) / 2); /* 与表头的72px列宽配合，头像52px */
   }
   
   .users-table .col-avatar {
@@ -564,7 +588,7 @@
 
   /* 新的列样式 */
   .username-cell, .display-name-cell, .email-cell {
-    padding: var(--space-2) 0;
+    padding: 0;
   }
 
   .username-text {

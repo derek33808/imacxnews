@@ -294,27 +294,34 @@
     margin-bottom: var(--space-4);
   }
 
-  .newsletter-table {
+  :global(.newsletter-table) {
     width: 100%;
   }
 
-  .table-header {
+  :global(.table-header) {
     display: grid;
     grid-template-columns: 200px 250px 100px 100px 150px 120px;
     background: var(--color-background-alt);
     padding: var(--space-3);
+    gap: var(--space-2);
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--color-text);
     border-bottom: 1px solid var(--color-border);
   }
 
-  .table-body {
+  /* 让“User”表头与用户名文本对齐（忽略头像占位宽度） */
+  :global(.table-header .header-cell:first-child) {
+    /* 与行内：row左内边距 + 头像32 + 列内gap 对齐 */
+    padding-left: calc(var(--space-3) + 32px + var(--space-2));
+  }
+
+  :global(.table-body) {
     max-height: 400px;
     overflow-y: auto;
   }
 
-  .newsletter-row {
+  :global(.newsletter-row) {
     display: grid;
     grid-template-columns: 200px 250px 100px 100px 150px 120px;
     padding: var(--space-3);
@@ -324,20 +331,20 @@
     gap: var(--space-2);
   }
 
-  .newsletter-row > div {
+  :global(.newsletter-row > div) {
     min-height: 20px;
     overflow: hidden;
     display: flex;
     align-items: center;
   }
 
-  .user-cell {
+  :global(.user-cell) {
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
 
-  .user-avatar {
+  :global(.user-avatar) {
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -351,41 +358,41 @@
     margin-bottom: 4px;
   }
 
-  .user-name {
+  :global(.user-name) {
     font-weight: 600;
     font-size: 0.875rem;
   }
 
-  .user-role {
+  :global(.user-role) {
     font-size: 0.75rem;
     color: var(--color-text-light);
   }
 
-  .email-cell {
+  :global(.email-cell) {
     font-family: monospace;
     font-size: 0.875rem;
     word-break: break-all;
   }
 
-  .status-cell, .source-cell, .date-cell, .actions-cell {
+  :global(.status-cell), :global(.source-cell), :global(.date-cell), :global(.actions-cell) {
     font-size: 0.875rem;
   }
 
-  .newsletter-row:hover {
+  :global(.newsletter-row:hover) {
     background-color: var(--color-background-alt);
   }
 
-  .newsletter-row:last-child {
+  :global(.newsletter-row:last-child) {
     border-bottom: none;
   }
 
-  .user-info {
+  :global(.user-info) {
     display: flex;
     align-items: center;
     gap: var(--space-2);
   }
 
-  .user-avatar {
+  :global(.user-avatar) {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -398,11 +405,11 @@
     font-weight: 600;
   }
 
-  .user-details {
+  :global(.user-details) {
     overflow: hidden;
   }
 
-  .user-name {
+  :global(.user-name) {
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--color-text);
@@ -411,7 +418,7 @@
     text-overflow: ellipsis;
   }
 
-  .user-role {
+  :global(.user-role) {
     font-size: 0.75rem;
     color: var(--color-text-light);
     white-space: nowrap;
@@ -419,7 +426,7 @@
     text-overflow: ellipsis;
   }
 
-  .subscription-email {
+  :global(.subscription-email) {
     font-family: monospace;
     font-size: 0.875rem;
     color: var(--color-text);
@@ -428,7 +435,7 @@
     text-overflow: ellipsis;
   }
 
-  .status-badge {
+  :global(.status-badge) {
     display: inline-flex;
     align-items: center;
     padding: 2px 8px;
@@ -438,17 +445,17 @@
     white-space: nowrap;
   }
 
-  .status-badge.active {
+  :global(.status-badge.active) {
     background-color: #dcfce7;
     color: #166534;
   }
 
-  .status-badge.inactive {
+  :global(.status-badge.inactive) {
     background-color: #fef2f2;
     color: #dc2626;
   }
 
-  .source-badge {
+  :global(.source-badge) {
     display: inline-flex;
     align-items: center;
     padding: 2px 6px;
@@ -460,18 +467,18 @@
     white-space: nowrap;
   }
 
-  .subscription-date {
+  :global(.subscription-date) {
     font-size: 0.875rem;
     color: var(--color-text-light);
     white-space: nowrap;
   }
 
-  .action-buttons {
+  :global(.action-buttons) {
     display: flex;
     gap: var(--space-1);
   }
 
-  .action-btn {
+  :global(.action-btn) {
     padding: var(--space-1);
     background: none;
     border: 1px solid var(--color-border);
@@ -482,20 +489,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: var(--space-1);
   }
 
-  .action-btn:hover {
+  :global(.action-btn:hover) {
     background-color: var(--color-background-alt);
     color: var(--color-text);
   }
 
-  .action-btn.danger:hover {
+  :global(.action-btn.danger:hover) {
     background-color: #fef2f2;
     color: #dc2626;
     border-color: #dc2626;
   }
 
-  .cancelled-text {
+  :global(.action-btn .btn-text) {
+    font-size: 0.8rem;
+    line-height: 1;
+  }
+
+  :global(.cancelled-text) {
     font-size: 0.75rem;
     color: var(--color-text-light);
     font-style: italic;
@@ -587,8 +600,8 @@
   }
 
   @media (max-width: 1024px) {
-    .table-header,
-    .newsletter-row {
+    :global(.table-header),
+    :global(.newsletter-row) {
       grid-template-columns: 150px 200px 80px 80px 120px 100px;
       font-size: 0.8rem;
     }
@@ -623,17 +636,17 @@
       min-width: unset;
     }
 
-    .table-header,
-    .newsletter-row {
+    :global(.table-header),
+    :global(.newsletter-row) {
       grid-template-columns: 1fr;
       gap: var(--space-2);
     }
 
-    .table-header {
+    :global(.table-header) {
       display: none;
     }
 
-    .newsletter-row {
+    :global(.newsletter-row) {
       display: block;
       padding: var(--space-4);
     }
@@ -932,10 +945,11 @@
           ${sub.isActive ? `
             <button class="action-btn danger" 
                     onclick="window.cancelSubscription('${sub.id}', '${sub.user.username}')"
-                    title="Cancel subscription">
+                    title="Cancel subscription" aria-label="Cancel subscription">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6L6 18M6 6l12 12"></path>
               </svg>
+              <span class="btn-text">Unsubscribe</span>
             </button>
           ` : `
             <span class="cancelled-text">Cancelled</span>
