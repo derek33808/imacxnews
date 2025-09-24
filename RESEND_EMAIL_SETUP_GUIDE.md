@@ -19,7 +19,7 @@
 ```env
 # Resend 邮件服务配置
 RESEND_API_KEY="your-resend-api-key-here"
-RESEND_FROM_EMAIL="newsletter@imacxnews.com"
+RESEND_FROM_EMAIL="service@imacxnews.com"
 RESEND_FROM_NAME="IMACX News"
 ```
 
@@ -155,7 +155,7 @@ curl -X POST https://yourdomain.com/api/email/test \
 
 ```
 RESEND_API_KEY = your-resend-api-key
-RESEND_FROM_EMAIL = newsletter@imacxnews.com
+RESEND_FROM_EMAIL = service@imacxnews.com
 RESEND_FROM_NAME = IMACX News
 ```
 

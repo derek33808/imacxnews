@@ -39,6 +39,7 @@ model User {
   subscriptions NewsSubscription[] // 🆕 新闻订阅
   notifications Notification[]     // 🆕 用户通知
   uploadedMedia MediaFile[]
+  passwordResetTokens PasswordResetToken[] // 🆕 密码重置令牌
   
   @@index([email])
   @@index([createdAt])
@@ -220,4 +221,20 @@ model Notification {
   @@index([userId, isRead])
   @@index([createdAt])
   @@index([type])
+}
+
+// 🆕 密码重置令牌模型
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }

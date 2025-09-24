@@ -2,10 +2,11 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import jwt from 'jsonwebtoken';
 import { setAuthCookie } from '../../../lib/auth';
+import { getRequiredServerEnv, getServerEnv } from '../../../lib/env';
 
 // 从环境变量获取管理员账户信息
-const ADMIN_USERNAME = import.meta.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+const ADMIN_USERNAME = getServerEnv('ADMIN_USERNAME', { fallback: 'admin' }) || 'admin';
+const ADMIN_PASSWORD = getServerEnv('ADMIN_PASSWORD');
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -28,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const token = jwt.sign(
       { id: 1, role: 'ADMIN', username },
-      import.meta.env.JWT_SECRET,
+      getRequiredServerEnv('JWT_SECRET'),
       { expiresIn: '7d' }
     );
 

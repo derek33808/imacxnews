@@ -675,8 +675,13 @@ import ThemeToggle from './ThemeToggle.astro';
     // 设置下拉菜单点击处理
     setupUserDropdownClick();
     
-    // 加载邮件订阅状态
-    loadNewsletterStatus();
+    // 清除缓存的订阅状态，强制重新检查（用户可能有订阅状态）
+    clearCachedNewsletterStatus();
+    
+    // 延迟加载邮件订阅状态，确保用户状态已完全设置
+    setTimeout(() => {
+      loadNewsletterStatus();
+    }, 100);
   }
   
   // 🆕 更新Header显示管理员状态（旧系统兼容）
@@ -703,8 +708,13 @@ import ThemeToggle from './ThemeToggle.astro';
     // 设置下拉菜单点击处理
     setupUserDropdownClick();
     
-    // 加载邮件订阅状态
-    loadNewsletterStatus();
+    // 清除缓存的订阅状态，强制重新检查（管理员也可能有订阅状态）
+    clearCachedNewsletterStatus();
+    
+    // 延迟加载邮件订阅状态，确保用户状态已完全设置
+    setTimeout(() => {
+      loadNewsletterStatus();
+    }, 100);
   }
   
   // 🆕 更新Header为未登录状态
@@ -746,9 +756,10 @@ import ThemeToggle from './ThemeToggle.astro';
       };
     }
     
-    // 确保header newsletter按钮显示未订阅状态并加载状态
+    // 确保header newsletter按钮显示未订阅状态
     updateHeaderNewsletterButton(false);
-    loadNewsletterStatus();
+    // 用户退出后不需要加载订阅状态，直接显示未订阅状态
+    setCachedNewsletterStatus(false);
   }
   
   // 🆕 用户下拉菜单点击处理
@@ -793,6 +804,9 @@ import ThemeToggle from './ThemeToggle.astro';
         localStorage.removeItem('currentUser');
         localStorage.removeItem('lastStatusCheck');
         
+        // 清除订阅状态缓存
+        clearCachedNewsletterStatus();
+        
         // 关闭下拉菜单
         if (userDropdown) {
           userDropdown.classList.remove('active');
@@ -803,6 +817,11 @@ import ThemeToggle from './ThemeToggle.astro';
         
         // 触发登出事件
         window.dispatchEvent(new CustomEvent('userLoggedOut'));
+        
+        // 触发订阅状态变化事件，通知其他组件用户已退出，订阅状态重置
+        window.dispatchEvent(new CustomEvent('newsletterStatusChanged', { 
+          detail: { subscribed: false, reason: 'user_logout' } 
+        }));
         
         // 不再强制刷新页面，让状态自然更新
         console.log('✅ User logged out successfully');
@@ -993,7 +1012,14 @@ import ThemeToggle from './ThemeToggle.astro';
   // 🆕 监听用户登录事件（从登录模态框触发）
   window.addEventListener('userLoggedIn', (e) => {
     setTimeout(async () => {
+      // 清除缓存的订阅状态
+      clearCachedNewsletterStatus();
+      // 检查用户状态（这会触发订阅状态检查）
       await checkUserStatus();
+      // 延迟再次检查订阅状态，确保用户状态更新完成后再检查
+      setTimeout(() => {
+        loadNewsletterStatus();
+      }, 200);
     }, 100);
   });
   

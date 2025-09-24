@@ -29,5 +29,9 @@ export default defineConfig({
     define: {
       __DEV__: isDev
     }
+  },
+  // 🔒 安全配置 - 允许内联脚本
+  security: {
+    checkOrigin: false
   }
 });

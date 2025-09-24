@@ -5,6 +5,7 @@ import { createHash, randomBytes } from 'crypto';
 import { setAuthCookie } from '../../../lib/auth';
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
 import { sendWelcomeEmail } from '../../../lib/email';
+import { getRequiredServerEnv } from '../../../lib/env';
 
 // 邮箱格式验证函数
 function isValidEmail(email: string): boolean {
@@ -129,7 +130,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const token = jwt.sign(
       tokenPayload,
-      import.meta.env.JWT_SECRET,
+      getRequiredServerEnv('JWT_SECRET'),
       { expiresIn: '7d' }
     );
 

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { createHash } from 'crypto';
 import { setAuthCookie } from '../../../lib/auth';
 import { createDatabaseConnection, withRetry } from '../../../lib/database';
+import { getRequiredServerEnv, getServerEnv } from '../../../lib/env';
 
 // 验证密码函数（与register.ts保持一致）
 function verifyPassword(password: string, hashedPassword: string): boolean {
@@ -35,8 +36,8 @@ export const POST: APIRoute = async ({ request }) => {
     const cleanPassword = password.trim();
     
     // 🆕 首先检查是否为环境变量管理员
-    const ADMIN_USERNAME = import.meta.env.ADMIN_USERNAME || 'admin';
-    const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+    const ADMIN_USERNAME = getServerEnv('ADMIN_USERNAME', { fallback: 'admin' }) || 'admin';
+    const ADMIN_PASSWORD = getServerEnv('ADMIN_PASSWORD');
     
     if (ADMIN_PASSWORD && 
         cleanIdentifier.toLowerCase() === ADMIN_USERNAME.toLowerCase() && 
@@ -46,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
       // 生成管理员JWT token
       const token = jwt.sign(
         { id: 1, role: 'ADMIN', username: ADMIN_USERNAME },
-        import.meta.env.JWT_SECRET,
+        getRequiredServerEnv('JWT_SECRET'),
         { expiresIn: '7d' }
       );
 
@@ -145,7 +146,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const token = jwt.sign(
       tokenPayload,
-      import.meta.env.JWT_SECRET,
+      getRequiredServerEnv('JWT_SECRET'),
       { expiresIn: '7d' }
     );
 

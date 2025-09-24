@@ -1,5 +1,6 @@
 // @ts-ignore
 import jwt from 'jsonwebtoken';
+import { getRequiredServerEnv } from './env';
 
 export function setAuthCookie(headers: Headers, token: string) {
   // Enhanced cookie settings for better compatibility
@@ -49,11 +50,7 @@ export function getUserFromRequest(request: Request): { id: number; role: 'USER'
   }
   
   try {
-    const jwtSecret = import.meta.env.JWT_SECRET;
-    if (!jwtSecret) {
-      console.error('❌ JWT_SECRET not configured');
-      return null;
-    }
+    const jwtSecret = getRequiredServerEnv('JWT_SECRET');
     
     const decoded = jwt.verify(decodeURIComponent(rawToken), jwtSecret) as { id: number; role: 'USER' | 'ADMIN'; username: string };
     

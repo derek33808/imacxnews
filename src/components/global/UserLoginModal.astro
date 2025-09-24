@@ -24,6 +24,10 @@
         <input type="password" id="userPassword" name="password" required placeholder="Enter your password">
       </div>
       
+      <div class="forgot-password-link">
+        <a href="/auth/forgot-password" class="forgot-password-btn">Forgot Password?</a>
+      </div>
+      
       <button type="submit" class="user-login-submit-btn">Sign In</button>
       
       <div class="user-login-footer">
@@ -162,6 +166,24 @@
   .user-login-submit-btn:disabled {
     background-color: #9ca3af;
     cursor: not-allowed;
+  }
+  
+  .forgot-password-link {
+    text-align: right;
+    margin-bottom: var(--space-4);
+  }
+  
+  .forgot-password-btn {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color var(--transition);
+  }
+  
+  .forgot-password-btn:hover {
+    color: var(--color-primary-light);
+    text-decoration: underline;
   }
   
   .user-login-footer {

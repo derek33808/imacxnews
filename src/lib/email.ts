@@ -22,8 +22,21 @@ interface EmailResult {
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   try {
     // 检查 API 密钥是否配置
-    if (!import.meta.env.RESEND_API_KEY) {
-      console.warn('⚠️ Resend API key not configured, skipping email send');
+    if (!import.meta.env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY === 'your-resend-api-key-here') {
+      console.warn('⚠️ Resend API key not configured, using development mode');
+      
+      // 开发模式：模拟成功发送
+      if (import.meta.env.NODE_ENV === 'development') {
+        console.log('📧 [DEV MODE] Email would be sent to:', options.to);
+        console.log('📧 [DEV MODE] Subject:', options.subject);
+        console.log('📧 [DEV MODE] Content preview:', options.html.substring(0, 100) + '...');
+        
+        return { 
+          success: true, 
+          data: { id: 'dev-' + Date.now(), message: 'Email simulated in development mode' }
+        };
+      }
+      
       return { 
         success: false, 
         error: 'Email service not configured. Please set RESEND_API_KEY environment variable.' 
@@ -31,11 +44,11 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
     }
 
     // 检查发送邮箱是否配置
-    const fromEmail = import.meta.env.RESEND_FROM_EMAIL;
+    const fromEmail = import.meta.env.RESEND_FROM_EMAIL || 'noreply@imacxnews.com';
     const fromName = import.meta.env.RESEND_FROM_NAME || 'IMACX News';
     
-    if (!fromEmail) {
-      console.error('❌ RESEND_FROM_EMAIL not configured');
+    if (!fromEmail || fromEmail === 'your-email@example.com') {
+      console.error('❌ RESEND_FROM_EMAIL not configured properly');
       return { 
         success: false, 
         error: 'Sender email not configured. Please set RESEND_FROM_EMAIL environment variable.' 
@@ -213,6 +226,124 @@ Start exploring now: https://imacxnews.com
 If you have any questions, feel free to contact us!
 
 IMACX News Team`
+  }),
+
+  /**
+   * Password Reset Request Email Template
+   */
+  passwordResetRequest: (username: string, resetUrl: string, displayName?: string) => ({
+    subject: 'IMACX News - Password Reset Request',
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:-0.02em; margin: 0;">IMACX News</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Password Reset Request</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="background: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #202124; margin: 0 0 15px 0; font-size: 24px; font-weight: 600;">Reset Your Password</h2>
+            <p style="color: #5f6368; margin: 0; font-size: 16px;">
+              Hello <strong style="color: #dc2626;">${displayName || username}</strong>
+            </p>
+          </div>
+          
+          <div style="background: #fef2f2; border: 1px solid #fca5a5; padding: 25px; border-radius: 8px; margin: 25px 0;">
+            <p style="color: #991b1b; margin: 0 0 15px 0; font-weight: 600;">
+              We received a request to reset your IMACX News account password.
+            </p>
+            <p style="color: #991b1b; margin: 0; line-height: 1.6;">
+              Click the button below to reset your password. For your account security, this link will expire in 1 hour.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 35px 0;">
+            <a href="${resetUrl}" 
+               style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);">
+              Reset My Password
+            </a>
+          </div>
+          
+          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 25px 0;">
+            <p style="color: #6b7280; margin: 0 0 10px 0; font-size: 14px;">
+              <strong>Can't click the button?</strong> Copy the following link to your browser address bar:
+            </p>
+            <p style="color: #dc2626; margin: 0; font-size: 14px; word-break: break-all;">
+              ${resetUrl}
+            </p>
+          </div>
+          
+          <!-- Security Alert -->
+          <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
+            <p style="color: #92400e; margin: 0 0 10px 0; font-weight: 600;">Security Notice</p>
+            <p style="color: #92400e; margin: 0; line-height: 1.6; font-size: 14px;">
+              If you did not request a password reset, please ignore this email. Your password will not be changed.<br>
+              If you are concerned about your account security, please contact our support team immediately:
+              <a href="mailto:service@imacxnews.com" style="color: #92400e; font-weight: 600; text-decoration: underline;">service@imacxnews.com</a>
+            </p>
+          </div>
+          
+          <!-- Security Tips -->
+          <div style="margin: 30px 0;">
+            <h3 style="color: #202124; margin: 0 0 15px 0; font-size: 18px;">Security Recommendations</h3>
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+              <ul style="color: #374151; margin: 0; padding-left: 20px; line-height: 1.8;">
+                <li>Use strong passwords with uppercase, lowercase, numbers, and special characters</li>
+                <li>Never share your account information with others</li>
+                <li>Update your password regularly (recommended every 3-6 months)</li>
+                <li>Don't save login credentials on public devices</li>
+                <li>Contact us immediately if you notice any suspicious activity</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 25px; text-align: center;">
+            <p style="color: #6b7280; margin: 0; font-size: 14px; line-height: 1.6;">
+              This reset link will expire in 1 hour. If you have any questions, please contact our support team.<br>
+              We are committed to protecting your account security.
+            </p>
+            <p style="color: #dc2626; margin: 20px 0 0 0; font-weight: 600;">
+              IMACX News Security Team
+            </p>
+          </div>
+          
+        </div>
+        
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 20px; color: #94a3b8; font-size: 12px;">
+          <p style="margin: 0;">© ${new Date().getFullYear()} IMACX News. All rights reserved.</p>
+        </div>
+        
+      </div>
+    `,
+    text: `IMACX News - Password Reset Request
+
+Hello ${displayName || username},
+
+We received a request to reset your IMACX News account password.
+
+Click the following link to reset your password:
+${resetUrl}
+
+Security Notice:
+- This link will expire in 1 hour
+- If you did not request a password reset, please ignore this email
+- If you are concerned about account security, contact us: service@imacxnews.com
+
+Security Recommendations:
+- Use strong passwords with uppercase, lowercase, numbers, and special characters
+- Never share your account information with others
+- Update your password regularly (recommended every 3-6 months)
+- Don't save login credentials on public devices
+- Contact us immediately if you notice any suspicious activity
+
+If you have any questions, please contact our support team.
+
+IMACX News Security Team`
   }),
 
   /**
@@ -625,6 +756,25 @@ export async function sendWelcomeEmail(
   displayName?: string
 ): Promise<EmailResult> {
   const template = emailTemplates.welcome(username, displayName);
+  
+  return sendEmail({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text
+  });
+}
+
+/**
+ * 快速发送密码重置请求邮件 - 🆕 
+ */
+export async function sendPasswordResetRequest(
+  email: string, 
+  username: string, 
+  resetUrl: string,
+  displayName?: string
+): Promise<EmailResult> {
+  const template = emailTemplates.passwordResetRequest(username, resetUrl, displayName);
   
   return sendEmail({
     to: email,
