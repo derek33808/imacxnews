@@ -73,7 +73,8 @@ public/*.jpg
 public/*.png
 !public/image.png
 !public/image copy.png
-!public/IMG_*.jpeg
+# 排除大的测试图片文件
+public/IMG_*.jpeg
 !public/images/uploads/**
 
 # Local Netlify folder
