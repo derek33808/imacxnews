@@ -44,7 +44,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
     }
 
     // 检查发送邮箱是否配置
-    const fromEmail = import.meta.env.RESEND_FROM_EMAIL || 'noreply@imacxnews.com';
+    const fromEmail = import.meta.env.RESEND_FROM_EMAIL || 'service@imacxnews.com';
     const fromName = import.meta.env.RESEND_FROM_NAME || 'IMACX News';
     
     if (!fromEmail || fromEmail === 'your-email@example.com') {
