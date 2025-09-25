@@ -620,39 +620,39 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
   /* 🎯 手机版专用 - 精致小尺寸VIDEO图标 */
   @media (max-width: 768px) {
     :global(#categoryArticlesList .video-type-badge) {
-      padding: 3px 6px !important;
-      font-size: 0.6rem !important;
-      gap: 3px !important;
-      top: 6px !important;
-      left: 6px !important;
-      border-radius: 4px !important;
+      padding: 4px 8px !important;
+      font-size: 0.65rem !important;
+      gap: 4px !important;
+      top: 8px !important;
+      left: 8px !important;
+      border-radius: 6px !important;
     }
     
     :global(#categoryArticlesList .video-type-badge.enhanced) {
       padding: 4px 8px !important;
       font-size: 0.65rem !important;
-      top: 6px !important;
-      left: 6px !important;
+      top: 8px !important;
+      left: 8px !important;
     }
     
     :global(#categoryArticlesList .video-type-badge svg) {
-      width: 10px !important;
-      height: 10px !important;
+      width: 12px !important;
+      height: 12px !important;
     }
     
     :global(.dynamic-video-badge) {
-      top: auto;
-      bottom: 60px;
-      right: 8px;
-      left: auto;
-      font-size: 0.6rem !important;
-      padding: 3px 6px !important;
-      gap: 3px !important;
+      top: 8px !important;
+      bottom: auto;
+      right: auto;
+      left: 8px !important;
+      font-size: 0.65rem !important;
+      padding: 4px 8px !important;
+      gap: 4px !important;
     }
     
     :global(.dynamic-video-badge svg) {
-      width: 10px !important;
-      height: 10px !important;
+      width: 12px !important;
+      height: 12px !important;
     }
   }
 
@@ -1174,11 +1174,11 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       ctx.closePath();
       ctx.fill();
       
-      // 添加文字
+      // 添加文字 - 改为左上角小尺寸，参考YouTube风格
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('VIDEO', 160, 140);
+      ctx.font = 'bold 10px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('VIDEO', 1, 25);
       
       const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
       imgElement.src = thumbnailUrl;
