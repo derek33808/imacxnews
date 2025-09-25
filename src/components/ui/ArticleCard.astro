@@ -136,7 +136,7 @@ const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster)
     transform: scale(1.05);
   }
   
-  /* 🆕 视频标识样式 */
+  /* 🆕 视频标识样式 - 恢复桌面版原始大小 */
   .video-indicator {
     position: absolute;
     bottom: 8px;
@@ -259,22 +259,24 @@ const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster)
     gap: var(--space-2);
   }
   
-  /* 🆕 响应式视频标识 */
+  /* 🆕 响应式视频标识 - 手机版更小更精致 */
   @media (max-width: 768px) {
     .video-indicator {
-      padding: 3px 6px;
-      font-size: 0.7rem;
-      bottom: 6px;
-      right: 6px;
+      padding: 2px 4px;
+      font-size: 0.6rem;
+      bottom: 4px;
+      right: 4px;
+      gap: 3px;
+      border-radius: 4px;
     }
     
     .video-indicator svg {
-      width: 14px;
-      height: 14px;
+      width: 10px;
+      height: 10px;
     }
     
     .duration {
-      font-size: 0.65rem;
+      font-size: 0.55rem;
     }
     
     .meta-tags {

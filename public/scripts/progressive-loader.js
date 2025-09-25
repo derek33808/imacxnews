@@ -977,11 +977,11 @@ class ProgressiveLoader {
       // 🎯 改进视频标识：纯白色样式
       const videoBadge = isVideo ? `
         <div class="video-badge enhanced">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: white;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: white;">
             <polygon points="23 7 16 12 23 17 23 7"/>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
-          <span style="color: white;">VIDEO</span>
+          <span style="color: white; font-size: 0.85rem; font-weight: 700;">VIDEO</span>
         </div>` : '';
       
       const videoDuration = isVideo && article.videoDuration ? `<div class="video-duration-badge">${this.formatDuration(article.videoDuration)}</div>` : '';

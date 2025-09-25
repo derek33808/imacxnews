@@ -617,13 +617,42 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
     opacity: 0.8;
   }
 
-  /* 小屏幕设备上移动到右下角避开播放器控制栏 */
+  /* 🎯 手机版专用 - 精致小尺寸VIDEO图标 */
   @media (max-width: 768px) {
+    :global(#categoryArticlesList .video-type-badge) {
+      padding: 3px 6px !important;
+      font-size: 0.6rem !important;
+      gap: 3px !important;
+      top: 6px !important;
+      left: 6px !important;
+      border-radius: 4px !important;
+    }
+    
+    :global(#categoryArticlesList .video-type-badge.enhanced) {
+      padding: 4px 8px !important;
+      font-size: 0.65rem !important;
+      top: 6px !important;
+      left: 6px !important;
+    }
+    
+    :global(#categoryArticlesList .video-type-badge svg) {
+      width: 10px !important;
+      height: 10px !important;
+    }
+    
     :global(.dynamic-video-badge) {
       top: auto;
       bottom: 60px;
-      right: 12px;
+      right: 8px;
       left: auto;
+      font-size: 0.6rem !important;
+      padding: 3px 6px !important;
+      gap: 3px !important;
+    }
+    
+    :global(.dynamic-video-badge svg) {
+      width: 10px !important;
+      height: 10px !important;
     }
   }
 
