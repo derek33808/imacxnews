@@ -45,12 +45,15 @@ export const POST: APIRoute = async ({ request }) => {
     // Generate storage path
     const timestamp = Date.now();
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
-    const sanitizedName = fileName
+    const sanitizedBase = fileName
       .replace(/\.[^/.]+$/, '') // Remove extension
-      .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-') // Replace special characters
-      .substring(0, 50); // Limit length
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9]+/g, '-') // ASCII-only slug
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+    const safeBase = sanitizedBase || `upload-${timestamp}`;
     
-    const finalFileName = `${sanitizedName}-${timestamp}.${ext}`;
+    const finalFileName = `${safeBase}-${timestamp}.${ext}`;
     const folder = isVideo ? 'videos' : 'images';
     const categoryPath = category === 'TodayNews' ? 'today-news' : 'past-news';
     const storagePath = `${folder}/${categoryPath}/${finalFileName}`;

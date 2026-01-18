@@ -83,12 +83,15 @@ export class SimpleMediaUploader {
     // Generate filename
     const timestamp = Date.now();
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const sanitizedName = file.name
+    const sanitizedBase = file.name
       .replace(/\.[^/.]+$/, '') // Remove extension
-      .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-') // Replace special characters
-      .substring(0, 50); // Limit length
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9]+/g, '-') // ASCII-only slug
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+    const safeBase = sanitizedBase || `upload-${timestamp}`;
     
-    const filename = `${sanitizedName}-${timestamp}.${ext}`;
+    const filename = `${safeBase}-${timestamp}.${ext}`;
     
     // Determine storage path
     const folder = validation.type === 'image' ? 'images' : 'videos';

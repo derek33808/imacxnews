@@ -3758,8 +3758,14 @@ document.addEventListener('DOMContentLoaded', function() {
           // Show upload progress
           showUploadProgress(mediaType, file.name);
           
-          // 🚀 Always use direct upload to Supabase (unified approach)
-          const result = await directUploadToSupabase(file, mediaType);
+          // 🚀 Try direct upload first, fallback to server upload for CORS/network issues
+          let result;
+          try {
+            result = await directUploadToSupabase(file, mediaType);
+          } catch (directError) {
+            console.warn('⚠️ Direct upload failed, falling back to server upload:', directError);
+            result = await serverUploadToSupabase(file, mediaType);
+          }
           
           if (result.success) {
             console.log('✅ Upload successful:', result.data);
@@ -3938,6 +3944,20 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // 🔄 Fallback: upload via server API to bypass CORS/network issues
+    async function serverUploadToSupabase(file, mediaType) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'TodayNews');
+
+      const result = await uploadWithProgress('/api/media/simple-upload', formData, mediaType);
+      if (!result || !result.success) {
+        throw new Error(result?.error || 'Upload failed');
+      }
+
+      return result;
+    }
+
     // 🖼️ Handle poster upload
     async function handlePosterUpload(formEl) {
       console.log('🖼️ Starting poster upload...');
@@ -3959,8 +3979,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show upload progress
             showPosterUploadProgress();
             
-            // 🚀 Use direct upload for poster as well
-            const result = await directUploadToSupabase(file, 'poster');
+            // 🚀 Use direct upload for poster, fallback to server upload on failure
+            let result;
+            try {
+              result = await directUploadToSupabase(file, 'poster');
+            } catch (directError) {
+              console.warn('⚠️ Direct poster upload failed, falling back to server upload:', directError);
+              result = await serverUploadToSupabase(file, 'poster');
+            }
             
             if (result.success) {
               console.log('✅ Poster upload successful:', result.data);
