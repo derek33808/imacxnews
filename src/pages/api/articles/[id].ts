@@ -80,12 +80,29 @@ export const PATCH: APIRoute = async ({ params, request }) => {
 
     const updates: any = { ...data };
     if (data.title) {
-      updates.slug = String(data.title)
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
+      const generateBaseSlug = (title: string) => {
+        return String(title || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+      };
+
+      let baseSlug = generateBaseSlug(data.title || '');
+      if (!baseSlug) {
+        baseSlug = `article-${id}`;
+      }
+
+      let slug = baseSlug;
+      let counter = 2;
+      while (true) {
+        const existing = await prisma.article.findUnique({ where: { slug } }).catch(() => null);
+        if (!existing || existing.id === id) break;
+        slug = `${baseSlug}-${counter++}`;
+      }
+
+      updates.slug = slug;
     }
     if (data.publishDate) {
       const d = new Date(data.publishDate);
@@ -210,4 +227,3 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     );
   }
 };
-

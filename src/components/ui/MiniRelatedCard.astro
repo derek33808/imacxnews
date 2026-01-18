@@ -9,10 +9,11 @@ const category = getCategoryById(article.category);
 const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
   ? article.videoPoster 
   : article.image || '/images/placeholder.svg';
+const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
 ---
 
 <article class="mini-related-card">
-  <a href={`/article/${article.slug}`} class="card-link">
+  <a href={articleHref} class="card-link">
     <div class="image-container">
       <img 
         src={displayImage}

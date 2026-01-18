@@ -9,6 +9,7 @@ const category = getCategoryById(article.category) || { name: 'Uncategorized', i
 const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
   ? article.videoPoster 
   : article.image || '/images/placeholder.svg';
+const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
 ---
 
 <article class="featured-article">
@@ -45,7 +46,7 @@ const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster)
     </a>
     
     <h2 class="featured-title">
-      <a href={`/article/${article.slug}`}>{article.title}</a>
+      <a href={articleHref}>{article.title}</a>
     </h2>
     
     <p class="featured-excerpt">{article.excerpt}</p>
@@ -55,7 +56,7 @@ const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster)
       <span class="featured-date">{getRelativeTime(article.publishDate)}</span>
     </div>
     
-    <a href={`/article/${article.slug}`} class="featured-read-more btn">
+    <a href={articleHref} class="featured-read-more btn">
       Read Full Story
     </a>
   </div>

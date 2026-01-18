@@ -9,10 +9,11 @@ const category = getCategoryById(article.category);
 const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster) 
   ? article.videoPoster 
   : article.image || '/images/placeholder.svg';
+const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
 ---
 
 <article class={`article-card ${featured ? 'featured' : ''} ${article.mediaType === 'VIDEO' ? 'has-video' : 'has-image'}`}>
-  <a href={`/article/${article.slug}`} class="card-image-link">
+  <a href={articleHref} class="card-image-link">
     <div class="image-container">
       {featured ? (
         <img 
@@ -76,14 +77,14 @@ const displayImage = (article.mediaType === 'VIDEO' && article.videoPoster)
     </div>
     
     <h3 class="card-title">
-      <a href={`/article/${article.slug}`}>{article.title}</a>
+      <a href={articleHref}>{article.title}</a>
     </h3>
     
     <p class="card-excerpt">{article.excerpt}</p>
     
     <div class="card-footer">
       <span class="author">{article.author}</span>
-      <a href={`/article/${article.slug}`} class="read-more">
+      <a href={articleHref} class="read-more">
         Read more
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><path d="M12 5l7 7-7 7"></path></svg>
       </a>

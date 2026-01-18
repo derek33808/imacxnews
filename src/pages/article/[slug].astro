@@ -3,39 +3,51 @@ export const prerender = false;
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import { createDatabaseConnection, withRetry } from '../../lib/database';
 
-const { slug } = Astro.params;
+const rawSlug = Astro.params.slug || '';
 
 // 强制从数据库获取文章，不使用静态数据回退
 let article = null;
+let matchedById = false;
+const articleSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  content: true,
+  chineseContent: true,
+  category: true,
+  image: true,
+  imageAlt: true,
+  imageCaption: true,
+  author: true,
+  publishDate: true,
+  featured: true,
+  contentLength: true,
+  readingTime: true,
+  mediaType: true,
+  videoUrl: true,
+  videoPoster: true,
+  videoDuration: true,
+};
 
 try {
   const prisma = createDatabaseConnection();
   article = await withRetry(async () => {
     return await prisma.article.findUnique({ 
-      where: { slug },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        excerpt: true,
-        content: true,
-        chineseContent: true,
-        category: true,
-        image: true,
-        imageAlt: true,
-        imageCaption: true,
-        author: true,
-        publishDate: true,
-        featured: true,
-        contentLength: true,
-        readingTime: true,
-        mediaType: true,
-        videoUrl: true,
-        videoPoster: true,
-        videoDuration: true,
-      }
+      where: { slug: rawSlug },
+      select: articleSelect
     });
-  }, `Find article by slug: ${slug}`);
+  }, `Find article by slug: ${rawSlug}`);
+
+  if (!article && /^[0-9]+$/.test(rawSlug)) {
+    article = await withRetry(async () => {
+      return await prisma.article.findUnique({ 
+        where: { id: Number(rawSlug) },
+        select: articleSelect
+      });
+    }, `Find article by ID: ${rawSlug}`);
+    matchedById = Boolean(article);
+  }
 } catch (e: any) {
   console.error('数据库连接失败:', e?.message);
   throw new Error(`无法从数据库获取文章: ${e?.message}`);
@@ -43,8 +55,13 @@ try {
 
 // 如果数据库中没有找到文章，返回404
 if (!article) {
-  console.error(`数据库中未找到文章: ${slug}`);
+  console.error(`数据库中未找到文章: ${rawSlug}`);
   return Astro.redirect('/404');
+}
+
+// 通过 ID 命中时，重定向到标准 slug URL
+if (matchedById && article.slug && article.slug !== rawSlug) {
+  return Astro.redirect(`/article/${article.slug}`);
 }
 ---
 
