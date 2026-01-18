@@ -72,6 +72,14 @@
           </svg>
           Refresh
         </button>
+        <button id="newsletterSendTodayBtn" class="btn-primary">
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span class="btn-text">Send Today's Updates</span>
+        </button>
       </div>
       
       <!-- 订阅列表 -->
@@ -599,6 +607,43 @@
     cursor: not-allowed;
   }
 
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    color: #fff;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(0.95);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary .btn-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .btn-primary.loading .btn-spinner {
+    display: inline-block;
+  }
+
   @media (max-width: 1024px) {
     :global(.table-header),
     :global(.newsletter-row) {
@@ -681,6 +726,7 @@
   const sortByFilter = document.getElementById('sortByFilter') as HTMLSelectElement;
   const sortOrderFilter = document.getElementById('sortOrderFilter') as HTMLSelectElement;
   const refreshBtn = document.getElementById('newsletterRefreshBtn') as HTMLElement;
+  const sendTodayBtn = document.getElementById('newsletterSendTodayBtn') as HTMLButtonElement;
   
   // 列表元素
   const loadingDiv = document.getElementById('newsletterLoading') as HTMLElement;
@@ -762,6 +808,28 @@
   // 隐藏消息
   function hideMessage() {
     messageDiv.style.display = 'none';
+  }
+
+  function setSendTodayLoading(isLoading: boolean, label?: string) {
+    if (!sendTodayBtn) return;
+    sendTodayBtn.disabled = isLoading;
+    sendTodayBtn.classList.toggle('loading', isLoading);
+    const textEl = sendTodayBtn.querySelector('.btn-text');
+    if (textEl) {
+      textEl.textContent = isLoading ? (label || 'Sending...') : "Send Today's Updates";
+    }
+  }
+
+  function formatSendStats(stats: any) {
+    if (!stats) return '';
+    const parts = [];
+    if (Number.isFinite(stats.articlesFound)) parts.push(`Articles: ${stats.articlesFound}`);
+    if (Number.isFinite(stats.subscribersFound)) parts.push(`Subscribers: ${stats.subscribersFound}`);
+    if (Number.isFinite(stats.emailsSent)) parts.push(`Sent: ${stats.emailsSent}`);
+    if (Number.isFinite(stats.emailsFailed) && stats.emailsFailed > 0) {
+      parts.push(`Failed: ${stats.emailsFailed}`);
+    }
+    return parts.length ? ` (${parts.join(', ')})` : '';
   }
 
   // 加载Newsletter订阅列表
@@ -997,6 +1065,51 @@
     }
   }
 
+  async function sendTodayNewsletter() {
+    const confirmed = confirm('Send all articles published today to active subscribers now?');
+    if (!confirmed) return;
+
+    try {
+      hideMessage();
+      setSendTodayLoading(true, 'Sending...');
+
+      const response = await fetch('/api/admin/newsletter-send', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        result = null;
+      }
+
+      if (!response.ok || !result?.success) {
+        const fallbackMessage = result?.message || `Request failed (${response.status})`;
+        throw new Error(fallbackMessage);
+      }
+
+      if (result.skipped) {
+        const noArticles = typeof result?.stats?.articlesFound === 'number' && result.stats.articlesFound === 0;
+        const skippedMessage = noArticles
+          ? 'No new articles today. Nothing was sent.'
+          : (result.message || 'No articles found to send.');
+        showMessage(skippedMessage, 'info');
+        return;
+      }
+
+      const summary = formatSendStats(result.stats);
+      showMessage(`${result.message || 'Newsletter sent successfully.'}${summary}`, 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to send newsletter';
+      showMessage(message, 'error');
+    } finally {
+      setSendTodayLoading(false);
+    }
+  }
+
   // 查看订阅详情
   function viewSubscriptionDetails(subscriptionId: string) {
     // TODO: 实现订阅详情查看功能
@@ -1035,6 +1148,10 @@
   refreshBtn.addEventListener('click', () => {
     loadNewsletterSubscriptions();
   });
+
+  if (sendTodayBtn) {
+    sendTodayBtn.addEventListener('click', sendTodayNewsletter);
+  }
 
   // 分页事件
   prevPageBtn.addEventListener('click', () => {

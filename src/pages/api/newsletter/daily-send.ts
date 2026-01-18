@@ -1,16 +1,17 @@
 import type { APIRoute } from 'astro';
-import { PrismaClient } from '@prisma/client';
 import { generateDailyNewsletterHTML, generateEmailSubject, generatePlainTextVersion } from '../../../lib/email-utils';
 import { emailScheduler } from '../../../lib/email-scheduler';
 import { sendEmail } from '../../../lib/email';
+import { createDatabaseConnection, withRetry } from '../../../lib/database';
 
-const prisma = new PrismaClient();
 
 // Resend 邮件发送（如果你还没安装，需要先运行: npm install resend）
 // 如果暂时不用 Resend，可以先注释掉这行，使用模拟发送
 // import { Resend } from 'resend';
 
 export const POST: APIRoute = async ({ request }) => {
+  const prisma = createDatabaseConnection();
+
   try {
     // 验证请求来源（安全检查）
     const authHeader = request.headers.get('authorization');
@@ -57,6 +58,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    const urlObj = new URL(request.url);
+
     // 解析目标文章ID（用于立即发送特定文章）
     let targetArticleIds: number[] | null = null;
     try {
@@ -72,7 +75,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 支持从查询参数读取单个 articleId（可选）
     if (!targetArticleIds) {
-      const urlObj = new URL(request.url);
       const qId = urlObj.searchParams.get('articleId');
       if (qId && Number.isFinite(Number(qId))) {
         targetArticleIds = [Number(qId)];
@@ -89,10 +91,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 检查是否应该今天发送（但允许强制发送）
     const forceImmediate = request.headers.get('x-force-immediate') === 'true' || 
-                          request.url.includes('force=true') ||
+                          urlObj.searchParams.get('force') === 'true' ||
                           !!targetArticleIds;
+    const forceToday = request.headers.get('x-force-today') === 'true' ||
+                      urlObj.searchParams.get('forceToday') === 'true' ||
+                      urlObj.searchParams.get('mode') === 'today';
+    const forceSend = forceImmediate || forceToday;
     
-    if (!config.shouldSendToday && !forceImmediate) {
+    if (!config.shouldSendToday && !forceSend) {
       console.log(`📧 Newsletter not scheduled for today (${config.schedule.frequency} frequency)`);
       return new Response(JSON.stringify({ 
         success: true, 
@@ -104,8 +110,11 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    if (forceImmediate) {
+    if (forceImmediate && !forceToday) {
       console.log('🚀 Force immediate send enabled - bypassing schedule check');
+    }
+    if (forceToday) {
+      console.log('📅 Force today send enabled - bypassing schedule check');
     }
 
     // 获取今天发布的文章
@@ -118,10 +127,10 @@ export const POST: APIRoute = async ({ request }) => {
     // 获取今天发布的文章（如果强制发送，则获取最新或指定的文章）
     let todayArticles;
     
-    if (forceImmediate) {
-      if (targetArticleIds && targetArticleIds.length > 0) {
-        console.log('🔄 Force mode: Using specified articleIds for immediate send', targetArticleIds);
-        todayArticles = await prisma.article.findMany({
+    if (targetArticleIds && targetArticleIds.length > 0) {
+      console.log('🔄 Force mode: Using specified articleIds for immediate send', targetArticleIds);
+      todayArticles = await withRetry(async () => {
+        return await prisma.article.findMany({
           where: { id: { in: targetArticleIds } },
           orderBy: { publishDate: 'desc' },
           select: {
@@ -135,10 +144,35 @@ export const POST: APIRoute = async ({ request }) => {
             category: true
           }
         });
-      } else {
-        // 强制发送但未指定ID时，获取最近发布的文章
-        console.log('🔄 Force mode: Getting latest articles instead of today only');
-        todayArticles = await prisma.article.findMany({
+      }, 'Fetch newsletter articles by ID');
+    } else if (forceToday) {
+      console.log('🔄 Force today: Using today-only articles');
+      todayArticles = await withRetry(async () => {
+        return await prisma.article.findMany({
+          where: {
+            publishDate: {
+              gte: startOfDay,
+              lt: endOfDay
+            }
+          },
+          orderBy: { publishDate: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            image: true,
+            author: true,
+            publishDate: true,
+            category: true
+          }
+        });
+      }, 'Fetch today newsletter articles');
+    } else if (forceImmediate) {
+      // 强制发送但未指定ID时，获取最近发布的文章
+      console.log('🔄 Force mode: Getting latest articles instead of today only');
+      todayArticles = await withRetry(async () => {
+        return await prisma.article.findMany({
           orderBy: { publishDate: 'desc' },
           take: 5,
           select: {
@@ -152,28 +186,30 @@ export const POST: APIRoute = async ({ request }) => {
             category: true
           }
         });
-      }
+      }, 'Fetch latest newsletter articles');
     } else {
       // 正常模式：只获取今天发布的文章
-      todayArticles = await prisma.article.findMany({
-        where: {
-          publishDate: {
-            gte: startOfDay,
-            lt: endOfDay
+      todayArticles = await withRetry(async () => {
+        return await prisma.article.findMany({
+          where: {
+            publishDate: {
+              gte: startOfDay,
+              lt: endOfDay
+            }
+          },
+          orderBy: { publishDate: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            image: true,
+            author: true,
+            publishDate: true,
+            category: true
           }
-        },
-        orderBy: { publishDate: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          image: true,
-          author: true,
-          publishDate: true,
-          category: true
-        }
-      });
+        });
+      }, 'Fetch scheduled newsletter articles');
     }
 
     console.log(`📰 Found ${todayArticles.length} articles to send`);
@@ -195,17 +231,19 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 获取活跃的订阅者
-    const subscribers = await prisma.newsSubscription.findMany({
-      where: { isActive: true },
-      include: {
-        user: {
-          select: {
-            username: true,
-            displayName: true
+    const subscribers = await withRetry(async () => {
+      return await prisma.newsSubscription.findMany({
+        where: { isActive: true },
+        include: {
+          user: {
+            select: {
+              username: true,
+              displayName: true
+            }
           }
         }
-      }
-    });
+      });
+    }, 'Fetch newsletter subscribers');
 
     console.log(`👥 Found ${subscribers.length} active subscribers`);
 
@@ -339,9 +377,13 @@ export const POST: APIRoute = async ({ request }) => {
       } as any;
       const clientAny: any = prisma as any;
       if (clientAny.emailSendLog?.create) {
-        await clientAny.emailSendLog.create({ data: logData });
+        await withRetry(async () => {
+          return await clientAny.emailSendLog.create({ data: logData });
+        }, 'Create email send log');
       } else if (clientAny.email_send_log?.create) {
-        await clientAny.email_send_log.create({ data: logData });
+        await withRetry(async () => {
+          return await clientAny.email_send_log.create({ data: logData });
+        }, 'Create email send log');
       } else {
         console.warn('⚠️ EmailSendLog model not available on Prisma client');
       }
@@ -375,17 +417,25 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   } catch (error: any) {
+    const rawMessage = error?.message || 'Unknown error occurred';
+    const isDbError = rawMessage.includes("Can't reach database server") ||
+      rawMessage.includes('connection pool') ||
+      rawMessage.includes('Timed out') ||
+      rawMessage.includes('timeout') ||
+      rawMessage.includes('Connection terminated');
+    const message = isDbError
+      ? 'Database connection failed. Please verify database availability and credentials.'
+      : rawMessage;
+
     console.error('❌ Daily newsletter send failed:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: 'SEND_FAILED',
-      message: error.message || 'Unknown error occurred',
+      message,
       timestamp: new Date().toISOString()
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
-  } finally {
-    await prisma.$disconnect();
   }
 };
