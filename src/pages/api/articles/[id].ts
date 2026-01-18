@@ -172,7 +172,12 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     const id = Number(params.id);
     // 使用统一的重试封装，提高临时性故障的鲁棒性
     await withRetry(async () => {
-      await prisma.article.delete({ where: { id } });
+      await prisma.$transaction(async (tx) => {
+        await tx.comment.deleteMany({ where: { articleId: id } });
+        await tx.articleLike.deleteMany({ where: { articleId: id } });
+        await tx.articleFavorite.deleteMany({ where: { articleId: id } });
+        await tx.article.delete({ where: { id } });
+      });
       return null as any;
     }, `Delete article: ${id}`);
 
@@ -205,5 +210,4 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     );
   }
 };
-
 
