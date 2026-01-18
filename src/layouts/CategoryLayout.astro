@@ -127,7 +127,9 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
     </header>
     
     <div class="articles-list" id="categoryArticlesList">
-      {/** @type {any[]} */ (articles as any[]).map((article: any, index: number) => (
+      {/** @type {any[]} */ (articles as any[]).map((article: any, index: number) => {
+        const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
+        return (
         <div class="large-article-card">
           <div class="article-media-container">
             {article.mediaType === 'VIDEO' && article.videoUrl ? (
@@ -218,21 +220,22 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
             </div>
             
             <h2 class="article-title">
-              <a href={`/article/${article.slug}`}>{article.title}</a>
+              <a href={articleHref}>{article.title}</a>
             </h2>
             
             <p class="article-excerpt">{article.excerpt}</p>
             
             <div class="article-footer">
               <span class="author">By {article.author}</span>
-              <a href={`/article/${article.slug}`} class="read-more-btn">
+              <a href={articleHref} class="read-more-btn">
                 {article.mediaType === 'VIDEO' ? 'Watch Video' : 'Read more'}
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><path d="M12 5l7 7-7 7"></path></svg>
               </a>
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   </div>
 </Layout>
@@ -1198,6 +1201,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
       const isVideo = article.mediaType === 'VIDEO' && article.videoUrl;
       const isYoutube = isVideo && isEmbeddableVideoClient(article.videoUrl);
       const needsVideoThumbnail = isVideo && !isYoutube && !article.videoPoster && !article.image;
+      const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
       
       // 🎬 生成媒体内容HTML
       let mediaHTML;
@@ -1297,14 +1301,14 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
             </div>
             
             <h2 class="article-title">
-              <a href="/article/${article.slug}">${article.title}</a>
+              <a href="${articleHref}">${article.title}</a>
             </h2>
             
             <p class="article-excerpt">${article.excerpt}</p>
             
             <div class="article-footer">
               <span class="author">By ${article.author}</span>
-              <a href="/article/${article.slug}" class="read-more-btn">
+              <a href="${articleHref}" class="read-more-btn">
                 ${isVideo ? 'Watch Video' : 'Read more'}
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"></line>

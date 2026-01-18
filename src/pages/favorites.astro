@@ -883,6 +883,7 @@ import Layout from '../layouts/Layout.astro';
         month: 'short',
         day: 'numeric'
       });
+      const articleHref = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
       // 🎬 优化图片回退逻辑，确保视频有合适的预览图
       let displayImage = '/images/fallback/imacx-news-placeholder.svg';
       
@@ -912,7 +913,7 @@ import Layout from '../layouts/Layout.astro';
       }
       
       return `
-        <a href="/article/${article.slug}" class="thumb-card">
+        <a href="${articleHref}" class="thumb-card">
           <div class="thumb-image-wrap">
             <img 
               src="${displayImage}" 

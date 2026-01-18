@@ -471,7 +471,8 @@
     
     // 安全处理数据
     const safeTitle = article.title || 'Untitled';
-    const safeSlug = article.slug || '';
+    const safeSlug = article.slug || article.id;
+    const articleHref = safeSlug ? `/article/${safeSlug}` : '#';
     
     // 获取缩略图 - 优先显示videoPoster或image，fallback到placeholder
     const mediaUrl = article.videoPoster || article.image || '/images/placeholder.svg';
@@ -491,7 +492,7 @@
       `<span class="duration-text">${formatDuration(article.videoDuration)}</span>` : '';
     
     return `
-      <a href="/article/${safeSlug}" class="index-row ${isVideo ? 'video-row' : ''}">
+      <a href="${articleHref}" class="index-row ${isVideo ? 'video-row' : ''}">
         <img src="${mediaUrl}" alt="${safeTitle}" class="index-thumb" 
              loading="lazy" onerror="this.src='/images/placeholder.svg'">
         <div class="index-meta">

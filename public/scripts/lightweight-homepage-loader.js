@@ -79,6 +79,7 @@ class LightweightHomepageLoader {
     
     const categoryDisplay = article.category === 'TodayNews' ? 'Today News' : 'Past News';
     const imageUrl = article.image || '/images/placeholder.svg';
+    const articleHref = this.getArticleHref(article);
     
     container.innerHTML = `
       <article class="featured-article">
@@ -94,7 +95,7 @@ class LightweightHomepageLoader {
           </a>
           
           <h2 class="featured-title">
-            <a href="/article/${article.slug}">${article.title}</a>
+            <a href="${articleHref}">${article.title}</a>
           </h2>
           
           <p class="featured-excerpt">${article.excerpt}</p>
@@ -104,7 +105,7 @@ class LightweightHomepageLoader {
             <span class="featured-date">${this.formatDate(article.publishDate)}</span>
           </div>
           
-          <a href="/article/${article.slug}" class="featured-read-more btn">
+          <a href="${articleHref}" class="featured-read-more btn">
             Read Full Story
           </a>
         </div>
@@ -118,9 +119,10 @@ class LightweightHomepageLoader {
     
     container.innerHTML = articles.map(article => {
       const imageUrl = article.image || '/images/placeholder.svg';
+      const articleHref = this.getArticleHref(article);
       
       return `
-        <a href="/article/${article.slug}" class="thumb-card">
+        <a href="${articleHref}" class="thumb-card">
           <div class="thumb-image-wrap" style="position: relative; aspect-ratio: 16/9; overflow: hidden; display: block;">
             <img src="${imageUrl}" alt="${article.title}" class="thumb-img"
                  loading="lazy" onerror="this.src='/images/placeholder.svg'"
@@ -227,6 +229,16 @@ class LightweightHomepageLoader {
     } catch (error) {
       return 'Date Error';
     }
+  }
+
+  getArticleHref(article) {
+    if (article && article.slug) {
+      return `/article/${article.slug}`;
+    }
+    if (article && article.id !== undefined && article.id !== null) {
+      return `/article/${article.id}`;
+    }
+    return '#';
   }
 }
 

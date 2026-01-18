@@ -73,6 +73,7 @@ function getCategoryClass(category: string): string {
 
 const isVideo = mediaType === 'VIDEO';
 const hasVideo = isVideo && videoUrl;
+const articleHref = slug ? `/article/${slug}` : `/article/${id}`;
 ---
 
 <article class={`video-article-card ${featured ? 'featured' : ''} ${isVideo ? 'has-video' : 'has-image'}`}>
@@ -160,7 +161,7 @@ const hasVideo = isVideo && videoUrl;
 
     <!-- 文章标题 -->
     <h3 class="article-title">
-      <a href={`/article/${slug}`}>{title}</a>
+      <a href={articleHref}>{title}</a>
     </h3>
 
     <!-- 文章摘要 -->

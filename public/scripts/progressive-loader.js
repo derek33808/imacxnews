@@ -340,7 +340,7 @@ class ProgressiveLoader {
           </a>
           
           <h2 class="featured-title">
-            <a href="/article/${article.slug}">${article.title}</a>
+            <a href="${this.getArticleHref(article)}">${article.title}</a>
           </h2>
           
           <p class="featured-excerpt">${article.excerpt}</p>
@@ -351,7 +351,7 @@ class ProgressiveLoader {
             ${isVideo && article.videoDuration ? `<span class="featured-duration">${this.formatDuration(article.videoDuration)}</span>` : ''}
           </div>
           
-          <a href="/article/${article.slug}" class="featured-read-more btn">
+          <a href="${this.getArticleHref(article)}" class="featured-read-more btn">
             ${isVideo ? 'Watch Video' : 'Read Full Story'}
           </a>
         </div>
@@ -987,7 +987,7 @@ class ProgressiveLoader {
       const videoDuration = isVideo && article.videoDuration ? `<div class="video-duration-badge">${this.formatDuration(article.videoDuration)}</div>` : '';
       
       return `
-        <a href="/article/${article.slug}" class="thumb-card overlay ${isVideo ? 'video-card' : ''}">
+        <a href="${this.getArticleHref(article)}" class="thumb-card overlay ${isVideo ? 'video-card' : ''}">
           <div class="thumb-image-wrap" style="position: relative; aspect-ratio: 16/9; overflow: hidden; display: block;">
             <img src="${mediaUrl}" alt="${article.title}" class="thumb-img"
                  data-article-id="${article.id}"
@@ -1067,7 +1067,7 @@ class ProgressiveLoader {
       const videoDuration = isVideo && article.videoDuration ? `<span class="duration-text">${this.formatDuration(article.videoDuration)}</span>` : '';
       
       return `
-        <a href="/article/${article.slug}" class="index-row ${isVideo ? 'video-row' : ''}">
+        <a href="${this.getArticleHref(article)}" class="index-row ${isVideo ? 'video-row' : ''}">
           <img src="${mediaUrl}" alt="${article.title}" class="index-thumb"
                loading="lazy" onerror="this.src='/images/placeholder.svg'">
           <div class="index-meta">
@@ -1144,7 +1144,7 @@ class ProgressiveLoader {
       const videoDuration = isVideo && article.videoDuration ? `<span class="duration-text">${this.formatDuration(article.videoDuration)}</span>` : '';
       
       return `
-        <a href="/article/${article.slug}" class="index-row ${isVideo ? 'video-row' : ''}">
+        <a href="${this.getArticleHref(article)}" class="index-row ${isVideo ? 'video-row' : ''}">
           <img src="${mediaUrl}" alt="${article.title}" class="index-thumb"
                loading="lazy" onerror="this.src='/images/placeholder.svg'">
           <div class="index-meta">
@@ -1247,6 +1247,16 @@ class ProgressiveLoader {
       return cached.data;
     }
     return null;
+  }
+
+  getArticleHref(article) {
+    if (article && article.slug) {
+      return `/article/${article.slug}`;
+    }
+    if (article && article.id !== undefined && article.id !== null) {
+      return `/article/${article.id}`;
+    }
+    return '#';
   }
   
   // 🔧 Unified date formatting method
