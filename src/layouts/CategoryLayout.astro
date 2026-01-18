@@ -198,7 +198,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
                      ? (getYouTubeThumbnail(article.videoUrl) || article.videoPoster || article.image || '/images/placeholder.svg')
                      : (article.mediaType === 'VIDEO' 
                         ? (article.videoPoster || article.image || '/images/placeholder.svg')
-                        : article.image)} 
+                        : (article.image || '/images/placeholder.svg'))} 
                 alt={article.title}
                 class="article-image"
                 data-article-id={article.id}
@@ -1265,7 +1265,7 @@ function getYouTubeThumbnail(url: string, quality: string = 'maxresdefault'): st
         }
       } else {
         // 图片 - 如果是视频但不是YouTube，也要尝试获取YouTube缩略图
-        let imageSrc = article.image;
+        let imageSrc = article.image || '/images/placeholder.svg';
         if (article.mediaType === 'VIDEO' && isEmbeddableVideoClient(article.videoUrl)) {
           const youtubeThumbnail = getYouTubeThumbnailClient(article.videoUrl);
           imageSrc = youtubeThumbnail || article.image || '/images/placeholder.svg';

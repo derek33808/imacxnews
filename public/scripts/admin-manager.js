@@ -2155,10 +2155,12 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       
-      articlesHTML += imageArticles.map(article => `
+      articlesHTML += imageArticles.map(article => {
+        const imageSrc = article.image || '/images/placeholder.svg';
+        return `
         <div class="article-item image-article">
           <div class="article-thumbnail image-thumbnail">
-            <img src="${article.image}" alt="${article.title}" class="video-fallback-image">
+            <img src="${imageSrc}" alt="${article.title}" class="video-fallback-image">
           </div>
           
           <div class="article-info">
@@ -2200,7 +2202,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
     
     articlesList.innerHTML = articlesHTML;
