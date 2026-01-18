@@ -112,6 +112,9 @@ try {
 
 const title = `${article.title} | IMACX-news`;
 const description = article.excerpt;
+const displayImage = article.image || '/images/placeholder.svg';
+const displayImageAlt = article.imageAlt || article.title;
+const displayVideoPoster = article.videoPoster || article.image || '/images/placeholder.svg';
 ---
 
 <Layout title={title} description={description}>
@@ -143,19 +146,20 @@ const description = article.excerpt;
             class="article-video-container" 
             id="articleVideoContainer"
             data-video-url={article.videoUrl}
-            data-video-poster={article.videoPoster || article.image}
+            data-video-poster={displayVideoPoster}
             data-video-duration={article.videoDuration || 0}
           >
             <!-- Video content will be inserted by JavaScript -->
           </div>
         ) : (
           <img 
-            src={article.image} 
-            alt={article.title} 
+            src={displayImage} 
+            alt={displayImageAlt} 
             loading="eager"
             width="1200"
             height="675"
             class="article-image"
+            onerror="this.src='/images/placeholder.svg'"
           />
         )}
       </div>
